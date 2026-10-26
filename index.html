@@ -20,7 +20,7 @@
     html, body {
       height: 100%;
       height: 100dvh;
-      overflow: hidden; /* Chống cuộn toàn trang */
+      overflow: hidden;
     }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -29,7 +29,7 @@
       touch-action: manipulation;
       background-color: #0b0f19;
       background-image: 
-        radial-gradient(circle at center, rgba(11, 15, 25, 0.4) 0%, rgba(3, 7, 18, 0.75) 100%),
+        radial-gradient(circle at center, rgba(11, 15, 25, 0.45) 0%, rgba(3, 7, 18, 0.8) 100%),
         url('background_home.png');
       background-size: cover;
       background-position: center;
@@ -40,40 +40,44 @@
       font-family: 'Comic Neue', cursive, sans-serif;
     }
     
-    /* Hiệu ứng gương thần phát sáng */
     .magic-glow {
       box-shadow: 0 0 25px rgba(245, 158, 11, 0.45), inset 0 0 15px rgba(245, 158, 11, 0.2);
     }
-    .magic-glow-pulse {
-      animation: magicPulse 2s infinite alternate;
+    
+    /* Animation rung lắc cho rương kho báu */
+    @keyframes chestWiggle {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      20% { transform: rotate(-8deg) scale(1.06); }
+      40% { transform: rotate(8deg) scale(1.08); }
+      60% { transform: rotate(-5deg) scale(1.06); }
+      80% { transform: rotate(5deg) scale(1.03); }
     }
-    @keyframes magicPulse {
-      0% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), inset 0 0 10px rgba(168, 85, 247, 0.2); }
-      100% { box-shadow: 0 0 35px rgba(234, 179, 8, 0.7), inset 0 0 20px rgba(234, 179, 8, 0.4); }
+    .chest-animate {
+      animation: chestWiggle 1.3s infinite ease-in-out;
+      transform-origin: bottom center;
     }
     
-    /* Tùy chỉnh thanh cuộn nếu màn hình cực nhỏ */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
   </style>
 </head>
 <body class="flex flex-col text-slate-100 antialiased h-screen overflow-hidden">
 
-  <!-- TOP APP BAR / HEADER (Cố định, nhỏ gọn) -->
-  <header class="flex-none px-3 py-2 bg-slate-950/80 backdrop-blur-md border-b border-amber-500/20 z-30">
+  <!-- TOP APP BAR -->
+  <header class="flex-none px-3 py-2 bg-slate-950/85 backdrop-blur-md border-b border-amber-500/25 z-30">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
-      <!-- Player Profile -->
+      <!-- Player Profile & Rank -->
       <div class="flex items-center gap-2 min-w-0">
         <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center text-sm shadow-md flex-shrink-0">
           🧙‍♂️
-          <span class="absolute -bottom-1 -right-1 text-[9px] bg-amber-500 text-slate-950 px-1 rounded-full font-black">Lv.1</span>
+          <span id="playerBadge" class="absolute -bottom-1 -right-1 text-[9px] bg-amber-500 text-slate-950 px-1 rounded-full font-black">Lv.1</span>
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-1">
             <h1 class="text-xs sm:text-sm font-bold text-amber-300 truncate">Minh The Wizard</h1>
+            <span id="playerRankTitle" class="hidden md:inline-block text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.2 rounded border border-purple-600/40 font-semibold truncate">Novice</span>
           </div>
-          <!-- Mini Progress -->
           <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
             <div class="w-16 sm:w-24 bg-slate-800 h-1.5 rounded-full overflow-hidden">
               <div id="topProgressBar" class="bg-gradient-to-r from-amber-400 to-purple-500 h-full w-0 transition-all duration-300"></div>
@@ -83,9 +87,9 @@
         </div>
       </div>
 
-      <!-- Stats: Gems, Streak, Lives -->
+      <!-- Stats: Gems, Streak, Pets -->
       <div class="flex items-center gap-2 sm:gap-4 bg-slate-900/90 px-2.5 py-1 rounded-full border border-slate-800 text-xs shadow-inner">
-        <div class="flex items-center gap-1 text-cyan-400 font-semibold" title="Stars Earned">
+        <div class="flex items-center gap-1 text-cyan-400 font-semibold" title="Magic Gems">
           <span>💎</span>
           <span id="starCounter">0</span>
         </div>
@@ -95,22 +99,22 @@
           <span id="streakCounter">0</span>
         </div>
         <div class="w-px h-3 bg-slate-700"></div>
-        <div class="flex items-center gap-1 text-rose-400 font-semibold" title="Shield Hearts">
-          <span>💖</span>
-          <span>3/3</span>
+        <div class="flex items-center gap-1 text-purple-300 font-semibold" title="Vault Pets">
+          <span>🐾</span>
+          <span id="petCountDisplay">0/9</span>
         </div>
       </div>
 
-      <!-- Control Actions -->
+      <!-- Actions -->
       <div class="flex items-center gap-1 sm:gap-1.5">
         <button onclick="toggleRealmMap()" class="px-2 py-1 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 rounded-lg text-xs font-semibold border border-indigo-500/30 flex items-center gap-1 transition">
           <span>🗺️</span>
           <span class="hidden sm:inline">Realms</span>
         </button>
-        <button onclick="toggleInventoryModal()" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-lg border border-slate-700 text-xs transition" title="Treasure Vault">
+        <button onclick="toggleInventoryModal()" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-lg border border-slate-700 text-xs transition" title="Pet Vault">
           🎒
         </button>
-        <button onclick="adjustFontScale(0.1)" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs font-bold transition" title="Increase Font">
+        <button onclick="adjustFontScale(0.1)" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs font-bold transition" title="Font Scale">
           A+
         </button>
         <button onclick="toggleMute()" id="muteBtn" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs transition" title="Mute Audio">
@@ -120,14 +124,14 @@
     </div>
   </header>
 
-  <!-- MAIN GAMEPLAY VIEWPORT (Co giãn trọn vẹn trong 1 màn hình) -->
+  <!-- MAIN VIEWPORT -->
   <main class="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 min-h-0 relative z-10">
     <div class="w-full max-w-3xl flex-1 flex flex-col justify-between max-h-[calc(100dvh-4.5rem)]">
       
       <!-- MAGIC MIRROR CARD -->
       <div id="magicMirrorCard" class="relative flex-1 flex flex-col bg-slate-900/90 backdrop-blur-xl border-2 border-amber-500/40 rounded-2xl p-3 sm:p-5 shadow-2xl magic-glow transition-all duration-300 overflow-hidden">
         
-        <!-- Header thông tin Realm / Part -->
+        <!-- Header -->
         <div class="flex-none flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2">
           <div class="flex items-center gap-2 min-w-0">
             <span id="realmIcon" class="text-lg">✨</span>
@@ -138,26 +142,61 @@
           </div>
           <button id="btnHeaderSpeak" onclick="speakCurrentTarget()" class="flex-shrink-0 px-2 py-1 bg-purple-950/80 hover:bg-purple-900 text-purple-300 rounded-lg text-xs font-semibold border border-purple-500/30 flex items-center gap-1 transition">
             <span>📢</span>
-            <span class="hidden sm:inline">Listen Prompt</span>
+            <span class="hidden sm:inline">Listen UK</span>
           </button>
         </div>
 
-        <!-- VÙNG NỘI DUNG CÂU HỎI (Tự động co giãn theo tỷ lệ màn hình) -->
-        <div id="questionContainer" class="flex-1 flex flex-col items-center justify-center text-center min-h-0 overflow-y-auto px-1 py-1">
-          <!-- Nội dung render động qua JavaScript -->
-        </div>
+        <!-- VÙNG NỘI DUNG CÂU HỎI -->
+        <div id="questionContainer" class="flex-1 flex flex-col items-center justify-center text-center min-h-0 overflow-y-auto px-1 py-1"></div>
 
-        <!-- VÙNG TƯƠNG TÁC: INPUT / LỰA CHỌN TRẮC NGHIỆM -->
-        <div id="interactiveArea" class="flex-none pt-2 mt-auto border-t border-slate-800/60 flex flex-col items-center gap-2">
-          <!-- Dynamic Controls -->
-        </div>
+        <!-- VÙNG TƯƠNG TÁC -->
+        <div id="interactiveArea" class="flex-none pt-2 mt-auto border-t border-slate-800/60 flex flex-col items-center gap-2"></div>
 
       </div>
 
     </div>
   </main>
 
-  <!-- MODAL: BẢN ĐỒ REALMS (Ẩn mặc định) -->
+  <!-- MODAL: ĐẬP RƯƠNG MA THUẬT (MYSTERY CHEST) DÙNG ASSET ẢNH THẬT -->
+  <div id="mysteryChestModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
+    <div class="relative bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-950 border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+      
+      <div class="absolute -top-10 w-32 h-32 bg-amber-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <h3 class="text-xs uppercase tracking-widest text-amber-400 font-extrabold mb-1">🎉 REALM CLEARED!</h3>
+      <h2 id="chestModalTitle" class="text-base sm:text-lg font-black text-white mb-2">Mystery Chest Discovered!</h2>
+
+      <!-- Trạng thái 1: Rương Đóng Rung Lắc -->
+      <div id="chestWrapper" onclick="unlockMysteryChest()" class="my-3 cursor-pointer flex flex-col items-center group">
+        <div class="w-36 h-36 flex items-center justify-center select-none">
+          <img src="chest_closed.png" alt="Magic Chest" class="max-h-full max-w-full object-contain chest-animate transition-transform active:scale-95 drop-shadow-2xl" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-7xl chest-animate\'>🎁</div>'">
+        </div>
+        <div class="mt-3 text-xs font-bold text-amber-300 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-400/40 animate-pulse">
+          👉 Tap Chest to Crack Open! 👈
+        </div>
+      </div>
+
+      <!-- Trạng thái 2: Rương Mở Nắp & Thú Cưng Xuất Hiện -->
+      <div id="chestRewardArea" class="hidden flex-col items-center w-full">
+        <!-- Ảnh rương mở nắp -->
+        <div class="w-28 h-24 mb-1 flex items-center justify-center">
+          <img src="chest_open.png" alt="Chest Opened" class="max-h-full max-w-full object-contain drop-shadow-xl" onerror="this.style.display='none'">
+        </div>
+        <!-- Hình ảnh Thú cưng 3D mở khóa -->
+        <div id="rewardPetImageSlot" class="w-28 h-28 my-1 flex items-center justify-center">
+          <!-- Render động -->
+        </div>
+        <h4 id="rewardPetName" class="text-base font-black text-amber-300">Baby Dragon</h4>
+        <p id="rewardPetDesc" class="text-xs text-slate-300 mt-1 mb-3">A loyal magical companion has joined Minh's Vault!</p>
+        <button onclick="closeChestModal()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-sm shadow-lg transition active:scale-95">
+          Continue Adventure ➔
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: BẢN ĐỒ REALMS -->
   <div id="realmMapModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
     <div class="bg-slate-900 border-2 border-amber-500/50 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
@@ -166,9 +205,7 @@
         </h3>
         <button onclick="toggleRealmMap()" class="text-slate-400 hover:text-slate-100 text-base font-bold px-2 py-0.5">✕</button>
       </div>
-      <div id="realmListGrid" class="p-3 overflow-y-auto space-y-2 flex-1">
-        <!-- Render 9 realms -->
-      </div>
+      <div id="realmListGrid" class="p-3 overflow-y-auto space-y-2 flex-1"></div>
       <div class="p-2 border-t border-slate-800 bg-slate-950/50 text-center">
         <button onclick="confirmResetProgress()" class="text-[11px] text-rose-400 hover:text-rose-300 font-semibold px-3 py-1 rounded bg-rose-950/40 border border-rose-800/50">
           ⚠️ Reset Adventure Progress
@@ -177,37 +214,69 @@
     </div>
   </div>
 
-  <!-- MODAL: KHO BÁU / TÚI ĐỒ PHÙ THỦY -->
+  <!-- MODAL: BALO PHÙ THỦY (PET VAULT) DÙNG ASSET ẢNH THẬT -->
   <div id="inventoryModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-slate-900 border-2 border-purple-500/50 rounded-2xl max-w-md w-full p-4 shadow-2xl flex flex-col">
+    <div class="bg-slate-900 border-2 border-purple-500/50 rounded-2xl max-w-md w-full p-4 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
         <h3 class="text-sm font-bold text-purple-300 flex items-center gap-1.5">
-          <span>🎒</span> Minh's Magic Vault
+          <span>🎒</span> Minh's Magic Pet Vault
         </h3>
         <button onclick="toggleInventoryModal()" class="text-slate-400 hover:text-slate-100 text-base font-bold">✕</button>
       </div>
-      <div id="artifactsGrid" class="grid grid-cols-3 gap-2.5 py-2">
-        <!-- 9 Artifacts -->
-      </div>
+      <div id="vaultItemsGrid" class="grid grid-cols-3 gap-2.5 py-2 overflow-y-auto"></div>
     </div>
   </div>
 
-  <!-- JAVASCRIPT ENGINE -->
+  <!-- JAVASCRIPT GAME ENGINE -->
   <script>
-    // --- 1. DỮ LIỆU 9 REALMS & 100 CÂU HỎI CAMBRIDGE STAGE 2 ---
+    // --- 1. DỮ LIỆU REALMS VÀ CÁC THÚ CƯNG 3D ASSETS ---
     const REALMS = [
-      { id: 1, name: "Spelling Realm", range: [1, 15], icon: "✍️", desc: "Listen carefully & spell the magic rune" },
-      { id: 2, name: "Missing Letter Runes", range: [16, 25], icon: "🧩", desc: "Look at the pattern & fill missing letters" },
-      { id: 3, name: "Plural Enchantments", range: [26, 35], icon: "✨", desc: "Transform singular objects into plurals" },
-      { id: 4, name: "Pronoun Grove", range: [36, 40], icon: "🌿", desc: "Choose the correct hero pronoun" },
-      { id: 5, name: "Preposition Pathway", range: [41, 45], icon: "🧭", desc: "Master where objects are placed" },
-      { id: 6, name: "Verb & Tense Tower", range: [46, 55], icon: "⏳", desc: "Past, present and action spells" },
-      { id: 7, name: "Sentence Builder", range: [56, 60], icon: "🧱", desc: "Connect words with punctuation" },
-      { id: 8, name: "Grammar Sorter", range: [61, 65], icon: "⚖️", desc: "Nouns, Verbs and Adjectives" },
-      { id: 9, name: "Story Caption Citadel", range: [66, 100], icon: "🎨", desc: "Look at the picture & write a sentence" }
+      { 
+        id: 1, name: "Spelling Realm", range: [1, 15], icon: "✍️", desc: "Listen carefully & spell the magic rune", 
+        pet: { name: "Baby Dragon", img: "pet_01_dragon.png", icon: "🐉", desc: "A fiery little dragon from Realm 1!" } 
+      },
+      { 
+        id: 2, name: "Missing Letter Runes", range: [16, 25], icon: "🧩", desc: "Look at the pattern & fill missing letters", 
+        pet: { name: "Snowy Owl", img: "pet_02_owl.png", icon: "🦉", desc: "Wise courier of the Cambridge sky!" } 
+      },
+      { 
+        id: 3, name: "Plural Enchantments", range: [26, 35], icon: "✨", desc: "Transform singular objects into plurals", 
+        pet: { name: "Shadow Cat", img: "pet_03_cat.png", icon: "🐈‍⬛", desc: "Quiet guardian with glowing eyes!" } 
+      },
+      { 
+        id: 4, name: "Pronoun Grove", range: [36, 40], icon: "🌿", desc: "Choose the correct hero pronoun", 
+        pet: { name: "Forest Pixie", img: "pet_04_pixie.png", icon: "🧚", desc: "Sprinkles fairy dust on grammar!" } 
+      },
+      { 
+        id: 5, name: "Preposition Pathway", range: [41, 45], icon: "🧭", desc: "Master where objects are placed", 
+        pet: { name: "Magic Compass", img: "pet_05_compass.png", icon: "🧭", desc: "Never loses the way in storyland!" } 
+      },
+      { 
+        id: 6, name: "Verb & Tense Tower", range: [46, 55], icon: "⏳", desc: "Past, present and action spells", 
+        pet: { name: "Time Griffin", img: "pet_06_griffin.png", icon: "🦅", desc: "Masters past, present & future!" } 
+      },
+      { 
+        id: 7, name: "Sentence Builder", range: [56, 60], icon: "🧱", desc: "Connect words with punctuation", 
+        pet: { name: "Silver Unicorn", img: "pet_07_unicorn.png", icon: "🦄", desc: "Brings harmony to long sentences!" } 
+      },
+      { 
+        id: 8, name: "Grammar Sorter", range: [61, 65], icon: "⚖️", desc: "Nouns, Verbs and Adjectives", 
+        pet: { name: "Scholar Fox", img: "pet_08_fox.png", icon: "🦊", desc: "Sharp eye for every part of speech!" } 
+      },
+      { 
+        id: 9, name: "Story Caption Citadel", range: [66, 100], icon: "🎨", desc: "Look at the picture & write a sentence", 
+        pet: { name: "Grand Archmage Phoenix", img: "pet_09_phoenix.png", icon: "🔥", desc: "Supreme master of Cambridge Stage 2!" } 
+      }
     ];
 
-    // Mảng 100 câu hỏi
+    const RANKS = [
+      { minGems: 0, title: "Novice Spellcaster", badge: "Lv.1" },
+      { minGems: 25, title: "Rune Apprentice", badge: "Lv.2" },
+      { minGems: 60, title: "Dragon Rider", badge: "Lv.3" },
+      { minGems: 100, title: "Cambridge Archmage", badge: "Lv.4" },
+      { minGems: 150, title: "Grand Grandmaster", badge: "Lv.MAX" }
+    ];
+
     const QUESTIONS = [
       // PART 1: SPELLING (1-15)
       { id: 1, part: 1, target: "cat", word: "cat", hint: "A furry pet that meows", len: 3 },
@@ -291,62 +360,64 @@
       { id: 65, part: 8, prompt: "Find the adjective in: 'The brave wizard smiled.'", options: ["brave", "wizard", "smiled"], answer: "brave" },
 
       // PART 9: STORY CAPTION (66-100)
-      { id: 66, part: 9, img: "caption_066.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["apple", "table", "on", "red"] },
-      { id: 67, part: 9, img: "caption_067.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["ball", "table", "under", "red"] },
-      { id: 68, part: 9, img: "caption_068.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["cat", "box", "in", "sleeping"] },
-      { id: 69, part: 9, img: "caption_069.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["dog", "park", "running", "grass"] },
-      { id: 70, part: 9, img: "caption_070.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["boy", "book", "reading", "chair"] },
-      { id: 71, part: 9, img: "caption_071.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["girl", "bicycle", "riding", "street"] },
-      { id: 72, part: 9, img: "caption_072.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["bird", "tree", "singing", "branch"] },
-      { id: 73, part: 9, img: "caption_073.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["fish", "bowl", "swimming", "water"] },
-      { id: 74, part: 9, img: "caption_074.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["children", "cake", "eating", "party"] },
-      { id: 75, part: 9, img: "caption_075.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["sun", "sky", "shining", "clouds"] },
-      { id: 76, part: 9, img: "caption_076.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["frog", "pond", "jumping", "leaf"] },
-      { id: 77, part: 9, img: "caption_077.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["monkey", "banana", "eating", "tree"] },
-      { id: 78, part: 9, img: "caption_078.png", prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["boat", "sea", "sailing", "waves"] },
-      { id: 79, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["train", "track", "moving", "station"] },
-      { id: 80, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["airplane", "sky", "flying", "clouds"] },
-      { id: 81, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["flower", "garden", "blooming", "red"] },
-      { id: 82, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["duck", "lake", "swimming", "yellow"] },
-      { id: 83, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["rabbit", "carrot", "eating", "grass"] },
-      { id: 84, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["butterfly", "flower", "flying", "wings"] },
-      { id: 85, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["elephant", "water", "drinking", "river"] },
-      { id: 86, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["lion", "rock", "sleeping", "sun"] },
-      { id: 87, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["bear", "honey", "eating", "forest"] },
-      { id: 88, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["owl", "night", "sitting", "tree"] },
-      { id: 89, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["mouse", "cheese", "nibbling", "hole"] },
-      { id: 90, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["star", "sky", "twinkling", "night"] },
-      { id: 91, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["kite", "wind", "flying", "park"] },
-      { id: 92, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["clock", "wall", "ticking", "room"] },
-      { id: 93, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["guitar", "music", "playing", "boy"] },
-      { id: 94, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["robot", "walking", "metal", "floor"] },
-      { id: 95, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["wizard", "magic", "casting", "wand"] },
-      { id: 96, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["dragon", "cave", "guarding", "gold"] },
-      { id: 97, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["rainbow", "sky", "colorful", "rain"] },
-      { id: 98, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["castle", "hill", "standing", "tall"] },
-      { id: 99, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["treasure", "chest", "shining", "gold"] },
-      { id: 100, part: 9, prompt: "Look at the picture and write a complete sentence:", targetKeywords: ["minh", "trophy", "winning", "champion"] }
+      { id: 66, part: 9, img: "caption_066.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 67, part: 9, img: "caption_067.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 68, part: 9, img: "caption_068.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 69, part: 9, img: "caption_069.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 70, part: 9, img: "caption_070.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 71, part: 9, img: "caption_071.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 72, part: 9, img: "caption_072.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 73, part: 9, img: "caption_073.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 74, part: 9, img: "caption_074.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 75, part: 9, img: "caption_075.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 76, part: 9, img: "caption_076.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 77, part: 9, img: "caption_077.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 78, part: 9, img: "caption_078.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 79, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 80, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 81, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 82, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 83, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 84, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 85, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 86, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 87, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 88, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 89, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 90, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 91, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 92, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 93, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 94, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 95, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 96, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 97, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 98, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 99, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 100, part: 9, prompt: "Look at the picture and write a complete sentence:" }
     ];
 
-    // --- 2. GAME STATE & LOCALSTORAGE ---
+    // --- 2. GAME STATE & REWARDS ---
     let currentQIndex = 0;
     let starsEarned = 0;
     let streakCount = 0;
+    let unlockedPets = [1];
     let isMuted = false;
     let fontScale = 1;
     let selectedJumbleWords = [];
+    let pendingRewardRealm = null;
 
     function loadProgress() {
       try {
         const savedIndex = localStorage.getItem("word_wizard_q_index");
         const savedStars = localStorage.getItem("word_wizard_stars");
         const savedStreak = localStorage.getItem("word_wizard_streak");
+        const savedPets = localStorage.getItem("word_wizard_pets");
         if (savedIndex !== null) currentQIndex = parseInt(savedIndex, 10) || 0;
         if (savedStars !== null) starsEarned = parseInt(savedStars, 10) || 0;
         if (savedStreak !== null) streakCount = parseInt(savedStreak, 10) || 0;
-      } catch (e) {
-        console.warn("Storage access restricted", e);
-      }
+        if (savedPets !== null) unlockedPets = JSON.parse(savedPets) || [1];
+      } catch (e) {}
       updateTopBarUI();
     }
 
@@ -355,6 +426,7 @@
         localStorage.setItem("word_wizard_q_index", currentQIndex);
         localStorage.setItem("word_wizard_stars", starsEarned);
         localStorage.setItem("word_wizard_streak", streakCount);
+        localStorage.setItem("word_wizard_pets", JSON.stringify(unlockedPets));
       } catch (e) {}
       updateTopBarUI();
     }
@@ -364,6 +436,7 @@
         currentQIndex = 0;
         starsEarned = 0;
         streakCount = 0;
+        unlockedPets = [1];
         saveProgress();
         toggleRealmMap();
         renderCurrentQuestion();
@@ -375,9 +448,29 @@
       document.getElementById("topProgressBar").style.width = `${((currentQIndex + 1) / QUESTIONS.length) * 100}%`;
       document.getElementById("starCounter").innerText = starsEarned;
       document.getElementById("streakCounter").innerText = streakCount;
+      document.getElementById("petCountDisplay").innerText = `${unlockedPets.length}/9`;
+
+      const rank = [...RANKS].reverse().find(r => starsEarned >= r.minGems) || RANKS[0];
+      document.getElementById("playerRankTitle").innerText = rank.title;
+      document.getElementById("playerBadge").innerText = rank.badge;
     }
 
-    // --- 3. DUAL-ENGINE AUDIO (STUDIO UK SPEECH) ---
+    // --- 3. DUAL AUDIO ENGINE CHUẨN UK ---
+    function playNativeWordAudio(word) {
+      if (isMuted) return;
+      const cleanWord = word.trim().toLowerCase();
+      const audioUrl = `https://api.dictionaryapi.dev/media/entries/en/${cleanWord}-uk.mp3`;
+      const fallbackUrl = `https://ssl.gstatic.com/dictionary/static/sounds/oxford/${cleanWord}--_gb_1.mp3`;
+      
+      const audio = new Audio(audioUrl);
+      audio.play().catch(() => {
+        const audio2 = new Audio(fallbackUrl);
+        audio2.play().catch(() => {
+          speakText(word, 1.0, 0.85);
+        });
+      });
+    }
+
     function speakText(text, pitch = 1.0, rate = 0.88) {
       if (isMuted || !window.speechSynthesis) return;
       window.speechSynthesis.cancel();
@@ -386,7 +479,7 @@
       u.rate = rate;
       u.pitch = pitch;
       const voices = window.speechSynthesis.getVoices();
-      const ukVoice = voices.find(v => v.lang.includes('en-GB') || v.name.includes('UK') || v.name.includes('British'));
+      const ukVoice = voices.find(v => v.lang.includes('en-GB') || v.name.includes('UK') || v.name.includes('British') || v.name.includes('Daniel') || v.name.includes('Oliver'));
       if (ukVoice) u.voice = ukVoice;
       window.speechSynthesis.speak(u);
     }
@@ -407,6 +500,19 @@
           gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
           osc.start();
           osc.stop(ctx.currentTime + 0.35);
+        } else if (type === 'fanfare') {
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+            g.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.1);
+            g.gain.linearRampToValueAtTime(0, ctx.currentTime + idx * 0.1 + 0.4);
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start(ctx.currentTime + idx * 0.1);
+            o.stop(ctx.currentTime + idx * 0.1 + 0.4);
+          });
         } else {
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(220, ctx.currentTime);
@@ -430,7 +536,7 @@
       document.documentElement.style.setProperty('--app-font-scale', fontScale);
     }
 
-    // --- 4. RENDER CÂU HỎI VÀ TỐI ƯU CHIỀU CAO KHUNG NHÌN ---
+    // --- 4. RENDER CÂU HỎI THEO BỐ CỤC 1 MÀN HÌNH ---
     function getCurrentRealm(qId) {
       return REALMS.find(r => qId >= r.range[0] && qId <= r.range[1]) || REALMS[0];
     }
@@ -439,7 +545,6 @@
       const q = QUESTIONS[currentQIndex];
       const realm = getCurrentRealm(q.id);
 
-      // Cập nhật Header
       document.getElementById("realmIcon").innerText = realm.icon;
       document.getElementById("realmTag").innerText = `PART ${realm.id}: ${realm.name.toUpperCase()} (Q${q.id})`;
       document.getElementById("realmDesc").innerText = realm.desc;
@@ -449,7 +554,6 @@
       qContainer.innerHTML = "";
       iArea.innerHTML = "";
 
-      // Tắt nút loa ở Header nếu ở Part 2 để tránh làm lộ từ đích
       const btnSpeak = document.getElementById("btnHeaderSpeak");
       if (q.part === 2) {
         btnSpeak.classList.add("hidden");
@@ -457,15 +561,13 @@
         btnSpeak.classList.remove("hidden");
       }
 
-      // Xử lý từng Part
       if (q.part === 1) {
-        // PART 1: LISTEN & SPELL (Ẩn chữ hoàn toàn)
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
-            <span class="text-xs sm:text-sm font-semibold text-purple-300">Spell the magical word you hear:</span>
-            <button onclick="speakText('${q.target}')" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full font-bold shadow-lg flex items-center gap-2 transition active:scale-95 my-1">
+            <span class="text-xs sm:text-sm font-semibold text-purple-300">Listen closely and spell the word:</span>
+            <button onclick="playNativeWordAudio('${q.target}')" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full font-bold shadow-lg flex items-center gap-2 transition active:scale-95 my-1">
               <span class="text-xl">🔊</span>
-              <span class="text-sm">Hear the Word</span>
+              <span class="text-sm">Hear British Voice</span>
             </button>
             <div class="tracking-widest text-lg sm:text-xl font-mono text-amber-300 font-bold">
               ${'_ '.repeat(q.len).trim()} <span class="text-xs text-slate-400 font-normal">(${q.len} letters)</span>
@@ -478,13 +580,13 @@
             <input type="text" id="spellingInput" autocomplete="off" autocapitalize="off" spellcheck="false"
               placeholder="Type word here..." 
               class="flex-1 bg-slate-950/80 border-2 border-purple-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300 tracking-wider">
-            <button onclick="checkSpelling()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
+            <button onclick="checkSpelling()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
               Cast ✨
             </button>
           </div>
         `;
         setTimeout(() => {
-          speakText(q.target);
+          playNativeWordAudio(q.target);
           const inp = document.getElementById("spellingInput");
           if (inp) {
             inp.focus();
@@ -493,7 +595,6 @@
         }, 300);
 
       } else if (q.part === 2) {
-        // PART 2: MISSING LETTERS
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
             <span class="text-xs sm:text-sm font-semibold text-cyan-300">Fill in the missing letter rune:</span>
@@ -508,7 +609,7 @@
             <input type="text" id="missingInput" maxlength="1" autocomplete="off" autocapitalize="off"
               placeholder="?" 
               class="w-14 h-12 bg-slate-950/80 border-2 border-cyan-500/50 focus:border-amber-400 focus:outline-none rounded-xl text-center text-xl font-black text-amber-300">
-            <button onclick="checkMissingLetter()" class="flex-1 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
+            <button onclick="checkMissingLetter()" class="flex-1 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
               Unlock 🔓
             </button>
           </div>
@@ -522,7 +623,6 @@
         }, 150);
 
       } else if (q.part === 3) {
-        // PART 3: PLURALS
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
             <span class="text-xs sm:text-sm font-semibold text-indigo-300">Cast the plural spell:</span>
@@ -536,7 +636,7 @@
             <input type="text" id="pluralInput" autocomplete="off" autocapitalize="off"
               placeholder="Write plural form..." 
               class="flex-1 bg-slate-950/80 border-2 border-indigo-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300">
-            <button onclick="checkPlural()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
+            <button onclick="checkPlural()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
               Transform ✨
             </button>
           </div>
@@ -551,7 +651,6 @@
         }, 200);
 
       } else if (q.part === 4 || q.part === 5 || q.part === 6 || q.part === 8) {
-        // MULTIPLE CHOICE (Trắc nghiệm nút to, bấm nhạy)
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
             <span class="text-xs sm:text-sm font-semibold text-amber-300">Select the correct magic choice:</span>
@@ -573,16 +672,13 @@
         setTimeout(() => speakText(q.prompt), 200);
 
       } else if (q.part === 7) {
-        // PART 7: SENTENCE JUMBLE
         selectedJumbleWords = [];
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
             <span class="text-xs font-semibold text-purple-300">Tap words in correct order:</span>
-            <!-- Answer Slot -->
             <div id="jumbleAnswerBox" class="min-h-[42px] w-full bg-slate-950/80 border-2 border-dashed border-amber-500/40 rounded-xl flex flex-wrap items-center justify-center gap-1.5 p-1.5 text-sm font-bold text-amber-300">
               <span class="text-xs text-slate-500 font-normal">Tap words below...</span>
             </div>
-            <!-- Word pool -->
             <div id="jumbleWordPool" class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
               ${q.words.map((w, idx) => `
                 <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 rounded-lg text-xs font-bold text-slate-200 transition">
@@ -604,15 +700,13 @@
         `;
 
       } else if (q.part === 9) {
-        // PART 9: STORY CAPTION (Ảnh gọn gàng, vừa khít 1 màn hình)
         const imgSrc = q.img || `caption_${String(q.id).padStart(3, '0')}.png`;
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-1.5 w-full max-w-md">
             <span class="text-xs font-semibold text-amber-300">Look at the picture and write a complete sentence:</span>
-            <!-- Image Card với giới hạn chiều cao tối đa không vượt quá 32% chiều cao màn hình -->
-            <div class="relative w-full max-h-[30vh] sm:max-h-[34vh] rounded-xl overflow-hidden border-2 border-amber-500/40 shadow-lg bg-slate-950 flex items-center justify-center">
+            <div class="relative w-full max-h-[28vh] sm:max-h-[32vh] rounded-xl overflow-hidden border-2 border-amber-500/40 shadow-lg bg-slate-950 flex items-center justify-center">
               <img src="${imgSrc}" alt="Story Illustration" 
-                class="w-full h-full object-contain max-h-[30vh] sm:max-h-[34vh]"
+                class="w-full h-full object-contain max-h-[28vh] sm:max-h-[32vh]"
                 onerror="handleImageError(this, ${q.id})">
             </div>
           </div>
@@ -643,11 +737,10 @@
       }
     }
 
-    // Xử lý fallback ảnh bằng vector SVG sạch sẽ
     function handleImageError(imgEl, id) {
       imgEl.onerror = null;
       imgEl.parentElement.innerHTML = `
-        <div class="w-full h-36 flex flex-col items-center justify-center bg-slate-950 text-slate-400 p-2 text-center">
+        <div class="w-full h-32 flex flex-col items-center justify-center bg-slate-950 text-slate-400 p-2 text-center">
           <span class="text-3xl mb-1">🖼️</span>
           <span class="text-xs font-semibold text-amber-300">Scene #${id} Illustration</span>
           <span class="text-[10px] text-slate-500">Describe what you imagine in this scene</span>
@@ -655,25 +748,31 @@
       `;
     }
 
-    // --- 5. LOGIC KIỂM TRA ĐÁP ÁN & HIỆU ỨNG CHIẾN THẮNG ---
+    // --- 5. LOGIC KIỂM TRA ĐÁP ÁN ---
     function handleSuccess(rewardStars = 1) {
       playSound('correct');
       starsEarned += rewardStars;
       streakCount++;
-      saveProgress();
 
-      // Confetti pháo hoa
       if (typeof confetti === 'function') {
         confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
       }
 
-      // Flash card viền vàng
       const card = document.getElementById("magicMirrorCard");
       card.classList.add("ring-4", "ring-emerald-400");
 
+      const currentQ = QUESTIONS[currentQIndex];
+      const realm = getCurrentRealm(currentQ.id);
+      const isEndOfRealm = currentQ.id === realm.range[1];
+
       setTimeout(() => {
         card.classList.remove("ring-4", "ring-emerald-400");
-        nextQuestion();
+        saveProgress();
+        if (isEndOfRealm && !unlockedPets.includes(realm.id)) {
+          triggerMysteryChest(realm);
+        } else {
+          nextQuestion();
+        }
       }, 900);
     }
 
@@ -693,40 +792,28 @@
     function checkSpelling() {
       const q = QUESTIONS[currentQIndex];
       const val = (document.getElementById("spellingInput")?.value || "").trim().toLowerCase();
-      if (val === q.target.toLowerCase()) {
-        handleSuccess(2);
-      } else {
-        handleFailure(q.target);
-      }
+      if (val === q.target.toLowerCase()) handleSuccess(2);
+      else handleFailure(q.target);
     }
 
     function checkMissingLetter() {
       const q = QUESTIONS[currentQIndex];
       const val = (document.getElementById("missingInput")?.value || "").trim().toLowerCase();
-      if (val === q.answer.toLowerCase()) {
-        handleSuccess(1);
-      } else {
-        handleFailure(q.answer);
-      }
+      if (val === q.answer.toLowerCase()) handleSuccess(1);
+      else handleFailure(q.answer);
     }
 
     function checkPlural() {
       const q = QUESTIONS[currentQIndex];
       const val = (document.getElementById("pluralInput")?.value || "").trim().toLowerCase();
-      if (val === q.answer.toLowerCase()) {
-        handleSuccess(1);
-      } else {
-        handleFailure(q.answer);
-      }
+      if (val === q.answer.toLowerCase()) handleSuccess(1);
+      else handleFailure(q.answer);
     }
 
     function checkMultipleChoice(selected) {
       const q = QUESTIONS[currentQIndex];
-      if (selected === q.answer) {
-        handleSuccess(1);
-      } else {
-        handleFailure(q.answer);
-      }
+      if (selected === q.answer) handleSuccess(1);
+      else handleFailure(q.answer);
     }
 
     function selectJumbleWord(word, idx) {
@@ -754,21 +841,13 @@
     function checkJumble() {
       const q = QUESTIONS[currentQIndex];
       const sentence = selectedJumbleWords.map(i => i.word).join(' ');
-      if (sentence === q.answer) {
-        handleSuccess(2);
-      } else {
-        handleFailure(q.answer);
-      }
+      if (sentence === q.answer) handleSuccess(2);
+      else handleFailure(q.answer);
     }
 
     function checkCaption() {
       const q = QUESTIONS[currentQIndex];
       const val = (document.getElementById("captionInput")?.value || "").trim();
-      
-      // Kiểm tra chuẩn ngữ pháp Cambridge Stage 2:
-      // 1. Bắt đầu bằng chữ hoa
-      // 2. Kết thúc bằng dấu chấm (.)
-      // 3. Có ít nhất 3 từ
       const hasCapital = /^[A-Z]/.test(val);
       const hasPeriod = /[.!?]$/.test(val);
       const words = val.split(/\s+/).filter(Boolean);
@@ -789,7 +868,6 @@
         saveProgress();
         renderCurrentQuestion();
       } else {
-        // Hoàn thành cả 100 câu!
         alert("🎉 CONGRATULATIONS! Minh has mastered all 100 Cambridge Stage 2 Spells!");
         speakText("Congratulations Minh! You are now a Grand Cambridge Word Wizard!");
         confetti({ particleCount: 150, spread: 100 });
@@ -798,11 +876,70 @@
 
     function speakCurrentTarget() {
       const q = QUESTIONS[currentQIndex];
-      if (q.target) speakText(q.target);
+      if (q.target) playNativeWordAudio(q.target);
       else if (q.prompt) speakText(q.prompt);
     }
 
-    // --- 6. MODAL & REALM NAVIGATION ---
+    // --- 6. LOGIC ĐẬP RƯƠNG KHO BÁU (MYSTERY CHEST) ---
+    function triggerMysteryChest(realm) {
+      pendingRewardRealm = realm;
+      const modal = document.getElementById("mysteryChestModal");
+      const wrapper = document.getElementById("chestWrapper");
+      const rewardArea = document.getElementById("chestRewardArea");
+
+      wrapper.classList.remove("hidden");
+      rewardArea.classList.add("hidden");
+      rewardArea.classList.remove("flex");
+
+      document.getElementById("chestModalTitle").innerText = `Realm ${realm.id} Chest Discovered!`;
+      modal.classList.remove("hidden");
+
+      speakText("You cleared the realm! Tap the magic chest to crack it open!");
+    }
+
+    function unlockMysteryChest() {
+      if (!pendingRewardRealm) return;
+      playSound('fanfare');
+
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
+      }
+
+      const wrapper = document.getElementById("chestWrapper");
+      const rewardArea = document.getElementById("chestRewardArea");
+
+      wrapper.classList.add("hidden");
+      rewardArea.classList.remove("hidden");
+      rewardArea.classList.add("flex");
+
+      const pet = pendingRewardRealm.pet;
+      
+      // Hiển thị ảnh Thú Cưng thật nếu có, nếu không thì hiện Emoji
+      const petSlot = document.getElementById("rewardPetImageSlot");
+      if (pet.img) {
+        petSlot.innerHTML = `<img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain animate-bounce drop-shadow-xl" onerror="this.parentElement.innerHTML='<span class=\\'text-6xl\\'>${pet.icon}</span>'">`;
+      } else {
+        petSlot.innerHTML = `<span class="text-6xl animate-bounce">${pet.icon}</span>`;
+      }
+
+      document.getElementById("rewardPetName").innerText = pet.name;
+      document.getElementById("rewardPetDesc").innerText = pet.desc;
+
+      if (!unlockedPets.includes(pendingRewardRealm.id)) {
+        unlockedPets.push(pendingRewardRealm.id);
+        saveProgress();
+      }
+
+      speakText(`Hooray! You unlocked ${pet.name}!`);
+    }
+
+    function closeChestModal() {
+      document.getElementById("mysteryChestModal").classList.add("hidden");
+      pendingRewardRealm = null;
+      nextQuestion();
+    }
+
+    // --- 7. MODALS NAVIGATION & BALO THÚ CƯNG ---
     function toggleRealmMap() {
       const m = document.getElementById("realmMapModal");
       m.classList.toggle("hidden");
@@ -834,13 +971,25 @@
       const m = document.getElementById("inventoryModal");
       m.classList.toggle("hidden");
       if (!m.classList.contains("hidden")) {
-        const grid = document.getElementById("artifactsGrid");
+        const grid = document.getElementById("vaultItemsGrid");
         grid.innerHTML = REALMS.map(r => {
-          const isUnlocked = currentQIndex >= r.range[0] - 1;
+          const isUnlocked = unlockedPets.includes(r.id);
+          const pet = r.pet;
+          
+          let visualContent = `<span class="text-3xl mb-1">🔒</span>`;
+          if (isUnlocked) {
+            if (pet.img) {
+              visualContent = `<img src="${pet.img}" alt="${pet.name}" class="w-12 h-12 object-contain mb-1 drop-shadow-md" onerror="this.outerHTML='<span class=\\'text-3xl mb-1\\'>${pet.icon}</span>'">`;
+            } else {
+              visualContent = `<span class="text-3xl mb-1">${pet.icon}</span>`;
+            }
+          }
+
           return `
-            <div class="flex flex-col items-center justify-center p-2 rounded-xl border ${isUnlocked ? 'bg-purple-950/60 border-amber-500/40 text-amber-300' : 'bg-slate-950/60 border-slate-800 text-slate-600 opacity-50'} text-center">
-              <span class="text-2xl mb-1">${isUnlocked ? r.icon : '🔒'}</span>
-              <span class="text-[10px] font-bold truncate w-full">${r.name}</span>
+            <div class="flex flex-col items-center justify-center p-2 rounded-xl border ${isUnlocked ? 'bg-purple-950/70 border-amber-400/60 text-amber-300 shadow-md' : 'bg-slate-950/60 border-slate-800 text-slate-600 opacity-40'} text-center">
+              ${visualContent}
+              <span class="text-[11px] font-black truncate w-full">${isUnlocked ? pet.name : 'Locked Pet'}</span>
+              <span class="text-[9px] text-slate-400">Realm ${r.id}</span>
             </div>
           `;
         }).join('');
