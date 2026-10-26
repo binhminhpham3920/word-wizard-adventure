@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Word Wizard Adventure - Học Viện Phù Thủy Cambridge Stage 2</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,400;0,700;1,700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti for Celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --app-font-scale: 1;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      font-size: calc(16px * var(--app-font-scale));
+    }
+    .font-magic {
+      font-family: 'Comic Neue', cursive, sans-serif;
+    }
+    /* Dynamic Font Scale Classes */
+    .scale-text-xs { font-size: calc(0.85rem * var(--app-font-scale)); }
+    .scale-text-sm { font-size: calc(1rem * var(--app-font-scale)); }
+    .scale-text-base { font-size: calc(1.15rem * var(--app-font-scale)); }
+    .scale-text-lg { font-size: calc(1.35rem * var(--app-font-scale)); }
+    .scale-text-xl { font-size: calc(1.65rem * var(--app-font-scale)); }
+    .scale-text-2xl { font-size: calc(2rem * var(--app-font-scale)); }
+    .scale-text-3xl { font-size: calc(2.4rem * var(--app-font-scale)); }
+
+    /* Wizard Academy Background overlay */
+    .magic-bg-texture {
+      background-image: radial-gradient(circle at 50% 20%, rgba(30, 27, 75, 0.85) 0%, rgba(3, 7, 18, 0.95) 100%), var(--bg-custom, none);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    /* Magic Mirror Glowing Effects */
+    .magic-mirror-frame {
+      border: 5px solid #f59e0b;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.45), inset 0 0 25px rgba(217, 119, 6, 0.25);
+      border-radius: 2rem;
+      position: relative;
+      background: radial-gradient(circle at 50% 20%, rgba(30, 27, 75, 0.92) 0%, rgba(3, 7, 18, 0.96) 100%);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .magic-mirror-active-glow {
+      box-shadow: 0 0 45px #fbbf24, 0 0 75px #a855f7, inset 0 0 35px #f59e0b !important;
+      border-color: #fde047 !important;
+      transform: scale(1.008);
+    }
+    /* Floating Sparkles */
+    .sparkle-particle {
+      position: absolute;
+      pointer-events: none;
+      border-radius: 50%;
+      animation: float-sparkle 1.3s ease-out forwards;
+    }
+    @keyframes float-sparkle {
+      0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+      50% { opacity: 0.9; }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2) rotate(180deg); }
+    }
+    /* Mystery Chest Wiggle Animation */
+    @keyframes chest-wiggle {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-8deg) scale(1.08); }
+      75% { transform: rotate(8deg) scale(1.08); }
+    }
+    .animate-chest-wiggle {
+      animation: chest-wiggle 1.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body id="appBody" class="bg-slate-950 magic-bg-texture text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- TOP STATUS BAR: EXP, HEARTS, RANK, LEVEL SELECTOR & AUDIO CONTROLS -->
+  <header class="w-full bg-slate-900/85 backdrop-blur-md border-b border-indigo-900/60 sticky top-0 z-40 px-3 py-2.5 sm:px-6 sm:py-3 shadow-lg">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
+      
+      <!-- Left: Player Profile & Wizard Title -->
+      <div class="flex items-center space-x-3">
+        <div class="relative cursor-pointer" onclick="openArtifactsModal()" title="View Wizard Artifacts">
+          <div id="playerAvatar" class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-tr from-amber-500 to-indigo-600 p-0.5 shadow-md flex items-center justify-center text-2xl ring-2 ring-amber-400/50 hover:scale-105 transition transform">
+            🧙‍♂️
+          </div>
+          <span id="levelBadge" class="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded-full border border-slate-900 shadow">
+            Lv.1
+          </span>
+        </div>
+
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-magic font-bold text-amber-300 scale-text-base tracking-wide flex items-center gap-1.5">
+              <span>Minh The Wizard</span>
+              <span id="rankTitle" class="scale-text-xs font-sans font-semibold text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-700/60">
+                Novice Spellcaster
+              </span>
+            </h1>
+          </div>
+          <!-- Progress bar towards Grand Master Wand -->
+          <div class="flex items-center space-x-2 mt-0.5">
+            <div class="w-24 sm:w-36 bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/80 p-0.5">
+              <div id="questProgressBar" class="bg-gradient-to-r from-amber-400 via-pink-500 to-purple-500 h-full rounded-full transition-all duration-500 shadow-sm" style="width: 1%;"></div>
+            </div>
+            <span id="questProgressText" class="scale-text-xs font-semibold text-slate-400">1/100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Magic Crystals (Stars) & Magic Wands (Streak) -->
+      <div class="flex items-center space-x-3 sm:space-x-4 bg-slate-950/70 border border-indigo-800/50 rounded-2xl px-3 py-1.5 shadow-inner">
+        <!-- Magic Crystals -->
+        <div class="flex items-center space-x-1.5" title="Magic Crystals Earned">
+          <span class="text-xl animate-pulse">💎</span>
+          <span id="scoreDisplay" class="font-bold text-amber-400 font-magic scale-text-sm sm:scale-text-base">0</span>
+        </div>
+        <div class="h-4 w-px bg-slate-700"></div>
+        <!-- Spell Streak -->
+        <div class="flex items-center space-x-1" title="Combo Spell Streak">
+          <span class="text-lg">🔥</span>
+          <span id="streakDisplay" class="font-bold text-orange-400 scale-text-xs sm:scale-text-sm">0</span>
+        </div>
+        <div class="h-4 w-px bg-slate-700"></div>
+        <!-- Hearts / Second Chances -->
+        <div class="flex items-center space-x-1" title="Life Potions">
+          <span class="text-base text-rose-500">❤️</span>
+          <span id="heartDisplay" class="font-bold text-rose-400 scale-text-xs sm:scale-text-sm">3/3</span>
+        </div>
+      </div>
+
+      <!-- Right: Utility Controls (Part Nav, Font Scale, Audio, Clear) -->
+      <div class="flex items-center space-x-1.5 sm:space-x-2">
+        <!-- Part Map Selector -->
+        <button onclick="toggleMapModal()" class="px-2.5 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 border border-indigo-500/50 rounded-xl text-amber-300 font-bold scale-text-xs flex items-center gap-1 transition shadow hover:scale-105 active:scale-95" title="Open Spell Realms Map">
+          <span>🗺️</span>
+          <span class="hidden sm:inline">Realms</span>
+        </button>
+
+        <!-- Artifacts Bag Button -->
+        <button onclick="openArtifactsModal()" class="p-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-xl text-amber-400 scale-text-sm transition shadow hover:scale-105" title="Wizard Artifacts Collection">
+          🎒
+        </button>
+
+        <!-- Font Size Magnifier -->
+        <button onclick="cycleFontScale()" class="px-2 py-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-xl text-indigo-300 font-bold scale-text-xs transition shadow" title="Adjust text size">
+          <span id="fontScaleLabel">A+</span>
+        </button>
+
+        <!-- Audio Spell Pronounce Voice Toggle -->
+        <button id="voiceToggleBtn" onclick="toggleAudio()" class="p-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-xl text-emerald-400 scale-text-sm transition shadow" title="Toggle Magical Spell Voice">
+          🔊
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN QUEST ARENA (THE MAGIC MIRROR) -->
+  <main class="flex-grow flex items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto relative z-10">
+    <div id="mirrorContainer" class="w-full magic-mirror-frame p-4 sm:p-8 backdrop-blur-xl transition-all duration-300 flex flex-col justify-between min-h-[460px] sm:min-h-[520px]">
+      
+      <!-- Quest Header Banner -->
+      <div class="flex items-center justify-between border-b border-indigo-800/60 pb-3 mb-4">
+        <div class="flex items-center space-x-2">
+          <span id="partEmoji" class="text-2xl sm:text-3xl">✨</span>
+          <div>
+            <span id="partName" class="text-indigo-300 uppercase tracking-widest font-black scale-text-xs">
+              Part 1: Alphabetical Spells
+            </span>
+            <div class="flex items-center gap-2">
+              <span id="questionNumTag" class="bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-lg border border-amber-500/40 scale-text-xs">
+                Spell #1
+              </span>
+              <span id="partDescTag" class="text-slate-400 scale-text-xs hidden sm:inline">
+                Sort words in alphabetical order
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Read Aloud Question Button (Native Web Speech TTS) -->
+        <button onclick="speakCurrentPrompt()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/60 text-indigo-200 border border-indigo-500/40 transition hover:scale-105 active:scale-95 scale-text-xs font-bold" title="Listen to Master Wizard's Voice">
+          <span>📢</span>
+          <span class="hidden sm:inline">Listen Prompt</span>
+        </button>
+      </div>
+
+      <!-- Interactive Question Prompt Area -->
+      <div class="my-auto py-2 flex flex-col items-center text-center">
+        <!-- Question Title / Prompt Text -->
+        <h2 id="questionPrompt" class="font-magic font-bold text-amber-100 scale-text-xl sm:scale-text-2xl mb-4 leading-snug drop-shadow">
+          Tap the words in correct alphabetical order:
+        </h2>
+
+        <!-- Context Sentence or Prompt Clue -->
+        <div id="promptClueBox" class="mb-5 max-w-xl mx-auto px-4 py-2.5 rounded-2xl bg-indigo-950/70 border border-indigo-700/50 shadow-inner hidden">
+          <p id="promptClueText" class="text-indigo-200 scale-text-base italic font-serif">
+            <!-- Dynamic prompt clue goes here -->
+          </p>
+        </div>
+
+        <!-- DYNAMIC PLAY INTERACTION ZONE (Altered depending on Question Type) -->
+        <div id="interactivePlayZone" class="w-full flex flex-col items-center justify-center my-2">
+          <!-- Injected dynamically by JS -->
+        </div>
+
+        <!-- Live Instant Feedback Messenger -->
+        <div id="feedbackBox" class="mt-4 px-4 py-2.5 rounded-xl scale-text-sm font-bold transition-all duration-300 opacity-0 transform translate-y-2 pointer-events-none max-w-lg">
+          <!-- Magical feedback text -->
+        </div>
+      </div>
+
+      <!-- Action Footer: Cast Spell / Check Answer / Next Spell -->
+      <div class="pt-4 border-t border-indigo-900/60 flex flex-wrap items-center justify-between gap-3 mt-4">
+        <!-- Left: Hint Button -->
+        <button id="hintBtn" onclick="revealMagicalHint()" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 font-bold scale-text-xs transition hover:scale-105 active:scale-95 shadow">
+          <span>💡</span>
+          <span>Hint (-1💎)</span>
+        </button>
+
+        <!-- Center: Skip / Re-try (Gentle Pedagogy) -->
+        <div id="secondaryActionZone" class="flex items-center gap-2">
+          <button id="skipBtn" onclick="skipQuestion()" class="text-slate-400 hover:text-slate-200 scale-text-xs font-semibold px-2 py-1 transition">
+            Skip this spell ⏭️
+          </button>
+        </div>
+
+        <!-- Right: Primary Action Button (Cast Spell / Continue) -->
+        <button id="primaryActionBtn" onclick="handlePrimaryAction()" class="flex items-center space-x-2 px-6 py-2.5 sm:px-8 sm:py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black scale-text-sm sm:scale-text-base transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg shadow-amber-500/25 border-2 border-yellow-200">
+          <span id="actionBtnIcon">✨</span>
+          <span id="actionBtnText">Cast Spell!</span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- WIZARD PROGRESS MAP MODAL (9 REALMS SELECTOR) -->
+  <div id="mapModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-gradient-to-b from-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between border-b border-indigo-800/80 pb-3 mb-4">
+        <div class="flex items-center space-x-2.5">
+          <span class="text-3xl">🗺️</span>
+          <div>
+            <h3 class="font-magic font-bold text-amber-300 scale-text-lg">The 9 Spell Realms of Cambridge</h3>
+            <p class="scale-text-xs text-slate-400">Choose any unlocked realm to practice its spells!</p>
+          </div>
+        </div>
+        <button onclick="toggleMapModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-lg">✕</button>
+      </div>
+
+      <!-- Realm Cards Grid -->
+      <div id="realmListGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto pr-1 flex-grow">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="pt-4 border-t border-indigo-800/80 flex justify-end mt-3">
+        <button onclick="toggleMapModal()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl scale-text-xs transition">
+          Close Map
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARTIFACTS INVENTORY MODAL -->
+  <div id="artifactsModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-gradient-to-b from-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl max-w-lg w-full p-6 shadow-2xl flex flex-col">
+      <div class="flex items-center justify-between border-b border-indigo-800 pb-3 mb-4">
+        <div class="flex items-center space-x-2">
+          <span class="text-3xl">🎒</span>
+          <div>
+            <h3 class="font-magic font-bold text-amber-300 scale-text-lg">Minh's Enchanted Bag</h3>
+            <p class="scale-text-xs text-slate-400">Ancient Relics unlocked through spell mastery</p>
+          </div>
+        </div>
+        <button onclick="closeArtifactsModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold">✕</button>
+      </div>
+
+      <!-- 9 Artifacts Display -->
+      <div id="artifactsGrid" class="grid grid-cols-3 gap-3.5 my-2">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="mt-4 p-3 bg-indigo-950/60 rounded-xl border border-indigo-800/60 text-center">
+        <p class="scale-text-xs text-amber-200">
+          🌟 Complete all 9 realms to unlock the legendary <b>Grand Master Wand</b>!
+        </p>
+      </div>
+
+      <div class="pt-3 border-t border-indigo-800 flex justify-between items-center mt-3">
+        <button onclick="resetAllProgressConfirmation()" class="text-rose-400 hover:text-rose-300 scale-text-xs font-semibold underline">
+          Reset All Progress
+        </button>
+        <button onclick="closeArtifactsModal()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl scale-text-xs">
+          Close Bag
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MYSTERY CHEST CELEBRATION MODAL -->
+  <div id="chestModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-gradient-to-b from-purple-950 via-indigo-950 to-slate-900 border-4 border-amber-400 rounded-3xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl relative">
+      <div class="text-6xl sm:text-7xl mb-3 animate-chest-wiggle cursor-pointer" onclick="openMysteryChest()" id="chestIconBox">
+        🎁
+      </div>
+      <h3 id="chestModalTitle" class="font-magic font-bold text-amber-300 scale-text-2xl mb-1">
+        Realm Conquered!
+      </h3>
+      <p id="chestModalSubtitle" class="text-indigo-200 scale-text-sm mb-4">
+        Tap the glowing treasure box to claim your magical reward!
+      </p>
+
+      <div id="chestRewardArea" class="hidden my-4 p-4 rounded-2xl bg-indigo-900/40 border border-amber-400/60 animate-bounce">
+        <div id="unlockedArtifactIcon" class="text-5xl mb-1">🪄</div>
+        <h4 id="unlockedArtifactName" class="font-magic font-bold text-amber-300 scale-text-lg">Crystal Wand</h4>
+        <p id="unlockedArtifactDesc" class="scale-text-xs text-slate-300">Harnesses the power of alphabetical order.</p>
+      </div>
+
+      <button id="claimRewardBtn" onclick="claimRewardAndContinue()" class="hidden w-full py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black rounded-2xl scale-text-base shadow-xl transform hover:scale-105 active:scale-95 transition">
+        Equip Artifact & Next Realm! 🚀
+      </button>
+    </div>
+  </div>
+
+  <!-- VICTORY MODAL FOR COMPLETION (100 SPELLS) -->
+  <div id="victoryModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-500">
+    <div class="bg-gradient-to-b from-amber-950/90 via-indigo-950 to-slate-900 border-4 border-yellow-300 rounded-3xl max-w-lg w-full p-8 text-center shadow-2xl relative overflow-hidden">
+      <div class="text-7xl mb-2 animate-bounce">👑</div>
+      <h2 class="font-magic font-black text-amber-300 scale-text-3xl mb-1">
+        HAIL GRAND MASTER MINH!
+      </h2>
+      <p class="scale-text-base text-yellow-100 font-semibold mb-3">
+        You have mastered all 100 Cambridge Stage 2 Spells!
+      </p>
+      <div class="bg-indigo-950/70 p-4 rounded-2xl border border-amber-400/50 my-4 text-left scale-text-sm text-slate-200 space-y-1.5">
+        <p>🏆 <b>Final Rank:</b> Grand Word Wizard</p>
+        <p>💎 <b>Total Crystals:</b> <span id="finalScoreText">0</span></p>
+        <p>🎒 <b>Artifacts Restored:</b> 9 / 9 Legendary Relics</p>
+        <p>🌟 <b>Cambridge Status:</b> Ready to conquer Stage 3 & Movers!</p>
+      </div>
+      <button onclick="dismissVictoryModal()" class="w-full py-3.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black scale-text-base rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition">
+        Celebrate & Play Again! 🎆
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="w-full text-center py-2 text-slate-500 scale-text-xs border-t border-slate-900/60 bg-slate-950/80 backdrop-blur z-20">
+    Word Wizard Adventure &bull; Specially crafted for bé Minh &bull; Cambridge Stage 2 Curriculum
+  </footer>
+
+  <!-- ========================================================================
+       JAVASCRIPT GAME ENGINE: 100 QUESTIONS, REALMS, SOUND SYNTH, PEDAGOGY
+       ======================================================================== -->
+  <script>
+    /* ========================================================================
+       1. GAME STATE & PROGRESSION DATA
+       ======================================================================== */
+    const GAME_CONFIG = {
+      storageKey: "word_wizard_minh_save_v2",
+      totalQuestions: 100
+    };
+
+    let gameState = {
+      currentQuestionIndex: 0,
+      score: 0,
+      streak: 0,
+      lives: 3,
+      maxLives: 3,
+      fontScaleIndex: 0, // 0: Normal, 1: Large, 2: Extra Large
+      soundEnabled: true,
+      completedQuestions: {}, // { [qId]: boolean }
+      unlockedArtifacts: [1], // Realm 1 artifact unlocked by default
+      pendingChest: false
+    };
+
+    const REALMS = [
+      { 
+        id: 1, 
+        name: "1. Alphabetical Grove", 
+        range: [1, 10], 
+        emoji: "🌲", 
+        part: "Part 1: Alphabetical Order (Q1-10)", 
+        desc: "Master ABC order of everyday words",
+        artifact: { icon: "🪄", name: "Spelling Wand", desc: "Forged from ancient alphabet wood." }
+      },
+      { 
+        id: 2, 
+        name: "2. Definition Oasis", 
+        range: [11, 20], 
+        emoji: "🌊", 
+        part: "Part 2: Word Definitions (Q11-20)", 
+        desc: "Match British English vocabulary to their meanings",
+        artifact: { icon: "📖", name: "Tome of Meanings", desc: "Contains definitions of all known spells." }
+      },
+      { 
+        id: 3, 
+        name: "3. Negative Peaks", 
+        range: [21, 30], 
+        emoji: "❄️", 
+        part: "Part 3: Negative Prefix 'un-' (Q21-30)", 
+        desc: "Reverse the power of adjectives using the magical 'un-' prefix",
+        artifact: { icon: "🔮", name: "Mirror of Reversal", desc: "Reveals the opposite truth of adjectives." }
+      },
+      { 
+        id: 4, 
+        name: "4. Realm of Belonging", 
+        range: [31, 40], 
+        emoji: "🏰", 
+        part: "Part 4: Possessive Apostrophe (Q31-40)", 
+        desc: "Claim ownership with singular possessive 's",
+        artifact: { icon: "🗝️", name: "Golden Key of Ownership", desc: "Binds belongings safely to their masters." }
+      },
+      { 
+        id: 5, 
+        name: "5. Dimension of Echoes", 
+        range: [41, 50], 
+        emoji: "🌌", 
+        part: "Part 5: Possessive Pronouns (Q41-50)", 
+        desc: "Replace clumsy phrases with mine, yours, hers, theirs!",
+        artifact: { icon: "💎", name: "Echo Prism", desc: "Reflects pronouns in harmony." }
+      },
+      { 
+        id: 6, 
+        name: "6. Whispering Winds", 
+        range: [51, 55], 
+        emoji: "💨", 
+        part: "Part 6: Prepositions of Position (Q51-55)", 
+        desc: "Find hidden objects (on, under, between, behind, next to)",
+        artifact: { icon: "🧭", name: "Compass of Location", desc: "Never lose anything in the enchanted woods." }
+      },
+      { 
+        id: 7, 
+        name: "7. Valley of Living Verbs", 
+        range: [56, 60], 
+        emoji: "⚡", 
+        part: "Part 7: Present Continuous Tense (Q56-60)", 
+        desc: "Enchant actions happening right now (is / are + ing)",
+        artifact: { icon: "⏳", name: "Hourglass of the Present", desc: "Holds moments in everlasting motion." }
+      },
+      { 
+        id: 8, 
+        name: "8. Punctuation Forge", 
+        range: [61, 65], 
+        emoji: "🌋", 
+        part: "Part 8: Sentence Structure & Grammar (Q61-65)", 
+        desc: "Seal sentences with capital letters, commas and full stops",
+        artifact: { icon: "🛡️", name: "Punctuation Shield", desc: "Guards sentences from breaking apart." }
+      },
+      { 
+        id: 9, 
+        name: "9. Story Canvas", 
+        range: [66, 100], 
+        emoji: "🎨", 
+        part: "Part 9: Caption Writing (Q66-100)", 
+        desc: "Paint living pictures with complete, punctuated sentences!",
+        artifact: { icon: "👑", name: "Grand Master Wand", desc: "The supreme symbol of a Cambridge Stage 2 Master." }
+      }
+    ];
+
+    /* ========================================================================
+       2. VECTOR SVG ILLUSTRATION GENERATOR & 100 QUESTIONS DATASET
+       ======================================================================== */
+    const ASSET_IMAGES = {
+      bgHome: "background_home.png",
+      caption66: "caption_066.png",
+      caption67: "caption_067.png",
+      caption68: "caption_068.png",
+      caption69: "caption_069.png",
+      caption70: "caption_070.png",
+      caption71: "caption_071.png",
+      caption72: "caption_072.png",
+      caption73: "caption_073.png",
+      caption74: "caption_074.png",
+      caption75: "caption_075.png",
+      caption76: "caption_076.png",
+      caption77: "caption_077.png",
+      caption78: "caption_078.png",
+      caption79: "caption_079.png",
+      caption80: "caption_080.png"
+    };
+
+    function handleImageError(imgElement, qId) {
+      if (!imgElement || !imgElement.parentElement) return;
+      const parent = imgElement.parentElement;
+      parent.innerHTML = getFallbackSvg(qId);
+    }
+
+    function generateSvgIllustration(id) {
+      const assetKey = `caption${id}`;
+      if (ASSET_IMAGES[assetKey]) {
+        return `
+          <div class="relative w-full max-w-sm sm:max-w-md mx-auto aspect-video rounded-2xl overflow-hidden border-2 border-amber-400/60 shadow-2xl bg-slate-900 flex items-center justify-center">
+            <img src="${ASSET_IMAGES[assetKey]}" alt="Illustration for spell ${id}" 
+                 class="w-full h-full object-cover object-center transform transition duration-500 hover:scale-105"
+                 onerror="handleImageError(this, ${id})" />
+            <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur text-[10px] text-amber-300 font-bold border border-amber-400/30">
+              🖼️ minh hoa goc
+            </div>
+          </div>
+        `;
+      }
+      return getFallbackSvg(id);
+    }
+
+    function getFallbackSvg(id) {
+      const svgs = {
+        66: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="150" y="60" width="100" height="60" fill="#e0a96d" stroke="#111" stroke-width="3"/><circle cx="200" cy="40" r="24" fill="#e11d48" stroke="#111" stroke-width="3"/></svg>`,
+        67: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><line x1="60" y1="40" x2="340" y2="40" stroke="#b45309" stroke-width="12" stroke-linecap="round"/><line x1="90" y1="40" x2="90" y2="120" stroke="#111" stroke-width="8"/><line x1="310" y1="40" x2="310" y2="120" stroke="#111" stroke-width="8"/><circle cx="200" cy="85" r="22" fill="#e11d48" stroke="#111" stroke-width="3"/></svg>`,
+        68: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="70" y="45" width="80" height="50" fill="#e0a96d" stroke="#111" stroke-width="3"/><rect x="250" y="45" width="80" height="50" fill="#e0a96d" stroke="#111" stroke-width="3"/><circle cx="200" cy="70" r="22" fill="#e11d48" stroke="#111" stroke-width="3"/></svg>`,
+        69: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="130" y="35" width="70" height="75" rx="14" fill="#10b981" stroke="#111" stroke-width="3"/><path d="M150 35 C150 15, 180 15, 180 35" fill="none" stroke="#111" stroke-width="4"/><circle cx="250" cy="75" r="24" fill="#3b82f6" stroke="#111" stroke-width="3"/></svg>`,
+        70: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><line x1="60" y1="75" x2="340" y2="75" stroke="#b45309" stroke-width="12" stroke-linecap="round"/><line x1="90" y1="75" x2="90" y2="125" stroke="#111" stroke-width="8"/><line x1="310" y1="75" x2="310" y2="125" stroke="#111" stroke-width="8"/><rect x="160" y="55" width="80" height="18" fill="#3b82f6" stroke="#111" stroke-width="2"/><rect x="160" y="37" width="80" height="18" fill="#ef4444" stroke="#111" stroke-width="2"/><rect x="160" y="19" width="80" height="18" fill="#10b981" stroke="#111" stroke-width="2"/></svg>`,
+        71: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="100" y="35" width="170" height="20" fill="#ef4444" stroke="#111" stroke-width="2"/><polygon points="270,35 295,45 270,55" fill="#fde68a" stroke="#111" stroke-width="2"/><rect x="100" y="75" width="170" height="20" fill="#ef4444" stroke="#111" stroke-width="2"/><polygon points="270,75 295,85 270,95" fill="#fde68a" stroke="#111" stroke-width="2"/></svg>`,
+        72: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="160" y="35" width="80" height="85" rx="16" fill="#10b981" stroke="#111" stroke-width="3"/><path d="M185 35 C185 15, 215 15, 215 35" fill="none" stroke="#111" stroke-width="4"/><rect x="170" y="60" width="60" height="30" fill="#fff" stroke="#111" stroke-width="1.5"/><text x="200" y="81" font-size="16" font-family="sans-serif" font-weight="bold" text-anchor="middle">Tom</text></svg>`,
+        73: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="150" cy="65" r="42" fill="#3b82f6" stroke="#111" stroke-width="3"/><circle cx="260" cy="75" r="22" fill="#3b82f6" stroke="#111" stroke-width="3"/></svg>`,
+        74: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="140" y="50" width="120" height="30" rx="3" fill="#3b82f6" stroke="#111" stroke-width="3"/><line x1="145" y1="72" x2="255" y2="72" stroke="#fff" stroke-width="3"/></svg>`,
+        75: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="150" y="50" width="100" height="70" fill="#e0a96d" stroke="#111" stroke-width="3"/><polygon points="150,50 180,20 280,20 250,50" fill="#fde68a" stroke="#111" stroke-width="3"/><circle cx="200" cy="45" r="22" fill="#ef4444" stroke="#111" stroke-width="3"/></svg>`,
+        76: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="110" y="35" width="70" height="75" rx="14" fill="#10b981" stroke="#111" stroke-width="3"/><path d="M130 35 C130 15, 160 15, 160 35" fill="none" stroke="#111" stroke-width="4"/><rect x="220" y="35" width="70" height="75" rx="14" fill="#ef4444" stroke="#111" stroke-width="3"/><path d="M240 35 C240 15, 270 15, 270 35" fill="none" stroke="#111" stroke-width="4"/></svg>`,
+        77: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><polygon points="200,10 235,50 200,90 165,50" fill="#ef4444" stroke="#111" stroke-width="3"/><path d="M200 90 L210 105 L190 120 L205 130" fill="none" stroke="#111" stroke-width="3"/></svg>`,
+        78: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><g fill="#f59e0b" stroke="#111" stroke-width="2"><polygon points="90,40 96,55 112,55 99,65 104,80 90,70 76,80 81,65 68,55 84,55"/><polygon points="160,40 166,55 182,55 169,65 174,80 160,70 146,80 151,65 138,55 154,55"/><polygon points="230,40 236,55 252,55 239,65 244,80 230,70 216,80 221,65 208,55 224,55"/><polygon points="300,40 306,55 322,55 309,65 314,80 300,70 286,80 291,65 278,55 294,55"/></g></svg>`,
+        79: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="100" y="35" width="75" height="80" rx="14" fill="#10b981" stroke="#111" stroke-width="3"/><path d="M125 35 C125 15, 150 15, 150 35" fill="none" stroke="#111" stroke-width="4"/><rect x="110" y="60" width="55" height="26" fill="#fff" stroke="#111" stroke-width="1.5"/><text x="137" y="79" font-size="14" font-family="sans-serif" font-weight="bold" text-anchor="middle">Tom</text><rect x="225" y="35" width="75" height="80" rx="14" fill="#ef4444" stroke="#111" stroke-width="3"/><path d="M250 35 C250 15, 275 15, 275 35" fill="none" stroke="#111" stroke-width="4"/><rect x="235" y="60" width="55" height="26" fill="#fff" stroke="#111" stroke-width="1.5"/><text x="262" y="79" font-size="14" font-family="sans-serif" font-weight="bold" text-anchor="middle">Lan</text></svg>`,
+        80: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><ellipse cx="130" cy="45" rx="22" ry="30" fill="#ef4444" stroke="#111" stroke-width="3"/><line x1="130" y1="75" x2="125" y2="125" stroke="#111" stroke-width="2"/><ellipse cx="200" cy="45" rx="22" ry="30" fill="#3b82f6" stroke="#111" stroke-width="3"/><line x1="200" y1="75" x2="195" y2="125" stroke="#111" stroke-width="2"/><ellipse cx="270" cy="45" rx="22" ry="30" fill="#10b981" stroke="#111" stroke-width="3"/><line x1="270" y1="75" x2="265" y2="125" stroke="#111" stroke-width="2"/></svg>`,
+        81: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><ellipse cx="200" cy="95" rx="95" ry="25" fill="#6ee7b7" stroke="#111" stroke-width="3"/><circle cx="200" cy="65" r="22" fill="#f59e0b" stroke="#111" stroke-width="2"/><polygon points="186,47 190,30 200,45" fill="#f59e0b" stroke="#111" stroke-width="2"/><polygon points="200,45 210,30 214,47" fill="#f59e0b" stroke="#111" stroke-width="2"/><circle cx="193" cy="62" r="2.5" fill="#111"/><circle cx="207" cy="62" r="2.5" fill="#111"/><path d="M222 75 C235 60, 235 45, 225 45" fill="none" stroke="#d97706" stroke-width="7" stroke-linecap="round"/></svg>`,
+        82: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><line x1="60" y1="40" x2="340" y2="40" stroke="#b45309" stroke-width="12" stroke-linecap="round"/><line x1="90" y1="40" x2="90" y2="120" stroke="#111" stroke-width="8"/><line x1="310" y1="40" x2="310" y2="120" stroke="#111" stroke-width="8"/><circle cx="200" cy="85" r="20" fill="#f59e0b" stroke="#111" stroke-width="2"/><polygon points="188,70 192,55 199,68" fill="#f59e0b" stroke="#111" stroke-width="2"/><polygon points="201,68 208,55 212,70" fill="#f59e0b" stroke="#111" stroke-width="2"/><circle cx="194" cy="82" r="2" fill="#111"/><circle cx="206" cy="82" r="2" fill="#111"/></svg>`,
+        83: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="80" y="35" width="70" height="75" rx="14" fill="#10b981" stroke="#111" stroke-width="3"/><rect x="250" y="35" width="70" height="75" rx="14" fill="#3b82f6" stroke="#111" stroke-width="3"/><circle cx="200" cy="75" r="20" fill="#f59e0b" stroke="#111" stroke-width="2"/><polygon points="188,60 192,45 199,58" fill="#f59e0b" stroke="#111" stroke-width="2"/><polygon points="201,58 208,45 212,60" fill="#f59e0b" stroke="#111" stroke-width="2"/></svg>`,
+        84: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="200" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="185" y="45" width="30" height="40" fill="#3b82f6" stroke="#111" stroke-width="2"/><line x1="185" y1="50" x2="165" y2="80" stroke="#111" stroke-width="4"/><line x1="215" y1="50" x2="235" y2="25" stroke="#111" stroke-width="4"/><circle cx="237" cy="23" r="6" fill="#fed7aa" stroke="#111" stroke-width="1.5"/><line x1="192" y1="85" x2="192" y2="120" stroke="#111" stroke-width="5"/><line x1="208" y1="85" x2="208" y2="120" stroke="#111" stroke-width="5"/></svg>`,
+        85: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="200" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="185" y="45" width="30" height="40" fill="#ec4899" stroke="#111" stroke-width="2"/><polygon points="170,60 200,65 200,95 170,90" fill="#10b981" stroke="#111" stroke-width="2"/><polygon points="200,65 230,60 230,90 200,95" fill="#10b981" stroke="#111" stroke-width="2"/><line x1="192" y1="85" x2="192" y2="120" stroke="#111" stroke-width="5"/><line x1="208" y1="85" x2="208" y2="120" stroke="#111" stroke-width="5"/></svg>`,
+        86: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="140" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="125" y="45" width="30" height="40" fill="#f8fafc" stroke="#111" stroke-width="2"/><line x1="132" y1="85" x2="132" y2="120" stroke="#111" stroke-width="5"/><line x1="148" y1="85" x2="148" y2="120" stroke="#111" stroke-width="5"/><rect x="200" y="70" width="90" height="45" fill="#94a3b8" stroke="#111" stroke-width="2"/><rect x="210" y="52" width="70" height="22" rx="4" fill="#64748b" stroke="#111" stroke-width="2"/><line x1="155" y1="55" x2="230" y2="58" stroke="#b45309" stroke-width="4"/><path d="M230 45 C230 35, 235 30, 230 20" fill="none" stroke="#cbd5e1" stroke-width="2"/></svg>`,
+        87: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="140" cy="30" r="14" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="127" y="44" width="26" height="36" fill="#3b82f6" stroke="#111" stroke-width="2"/><polygon points="115,55 140,60 140,85 115,80" fill="#10b981" stroke="#111" stroke-width="1.5"/><polygon points="140,60 165,55 165,80 140,85" fill="#10b981" stroke="#111" stroke-width="1.5"/><circle cx="260" cy="30" r="14" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="247" y="44" width="26" height="36" fill="#ec4899" stroke="#111" stroke-width="2"/><polygon points="235,55 260,60 260,85 235,80" fill="#10b981" stroke="#111" stroke-width="1.5"/><polygon points="260,60 285,55 285,80 260,85" fill="#10b981" stroke="#111" stroke-width="1.5"/></svg>`,
+        88: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="130" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="115" y="45" width="30" height="40" fill="#ec4899" stroke="#111" stroke-width="2"/><rect x="180" y="25" width="130" height="70" rx="4" fill="#065f46" stroke="#111" stroke-width="3"/><text x="230" y="65" fill="#fff" font-size="18" font-family="monospace">A B C</text><line x1="145" y1="55" x2="215" y2="40" stroke="#b45309" stroke-width="3"/></svg>`,
+        89: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="180" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="165" y="45" width="30" height="40" fill="#a855f7" stroke="#111" stroke-width="2"/><line x1="195" y1="50" x2="220" y2="35" stroke="#111" stroke-width="4"/><circle cx="225" cy="30" r="8" fill="#64748b" stroke="#111" stroke-width="2"/><text x="250" y="40" font-size="24">🎵</text></svg>`,
+        90: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><rect x="90" y="35" width="220" height="60" rx="12" fill="#3b82f6" stroke="#111" stroke-width="3"/><rect x="105" y="45" width="26" height="24" fill="#dbeafe" stroke="#111" stroke-width="2"/><rect x="140" y="45" width="26" height="24" fill="#dbeafe" stroke="#111" stroke-width="2"/><rect x="175" y="45" width="26" height="24" fill="#dbeafe" stroke="#111" stroke-width="2"/><rect x="210" y="45" width="26" height="24" fill="#dbeafe" stroke="#111" stroke-width="2"/><rect x="250" y="45" width="20" height="45" fill="#dbeafe" stroke="#111" stroke-width="2"/><circle cx="140" cy="95" r="16" fill="#334155" stroke="#111" stroke-width="3"/><circle cx="260" cy="95" r="16" fill="#334155" stroke="#111" stroke-width="3"/></svg>`,
+        91: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="170" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="155" y="45" width="30" height="40" fill="#10b981" stroke="#111" stroke-width="2"/><line x1="185" y1="50" x2="230" y2="45" stroke="#111" stroke-width="4"/><line x1="230" y1="45" x2="260" y2="105" stroke="#b45309" stroke-width="5"/><polygon points="245,105 275,105 260,85" fill="#fde68a" stroke="#111" stroke-width="2"/></svg>`,
+        92: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="150" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="135" y="45" width="30" height="40" fill="#3b82f6" stroke="#111" stroke-width="2"/><line x1="165" y1="50" x2="215" y2="60" stroke="#111" stroke-width="4"/><line x1="190" y1="75" x2="310" y2="75" stroke="#b45309" stroke-width="10"/><rect x="210" y="60" width="45" height="15" fill="#fff" stroke="#111" stroke-width="1.5"/></svg>`,
+        93: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><polygon points="160,25 240,25 285,60 260,80 240,60 240,110 160,110 160,60 140,80 115,60" fill="#3b82f6" stroke="#111" stroke-width="3"/><path d="M180 25 C180 40, 220 40, 220 25" fill="#1e40af" stroke="#111" stroke-width="2"/></svg>`,
+        94: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><polygon points="160,25 240,25 280,60 255,80 235,60 235,110 165,110 165,60 145,80 120,60" fill="#ef4444" stroke="#111" stroke-width="3"/><line x1="200" y1="40" x2="200" y2="110" stroke="#111" stroke-width="3"/><rect x="175" y="70" width="14" height="18" fill="#b91c1c" stroke="#111" stroke-width="1.5"/><rect x="211" y="70" width="14" height="18" fill="#b91c1c" stroke="#111" stroke-width="1.5"/></svg>`,
+        95: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><polygon points="200,15 110,50 290,50" fill="#b91c1c" stroke="#111" stroke-width="3"/><rect x="125" y="50" width="150" height="65" fill="#fde68a" stroke="#111" stroke-width="3"/><text x="200" y="68" font-size="14" font-weight="bold" font-family="sans-serif" text-anchor="middle">SCHOOL</text><rect x="185" y="75" width="30" height="40" fill="#64748b" stroke="#111" stroke-width="2"/><rect x="140" y="70" width="22" height="22" fill="#93c5fd" stroke="#111" stroke-width="2"/><rect x="238" y="70" width="22" height="22" fill="#93c5fd" stroke="#111" stroke-width="2"/></svg>`,
+        96: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><path d="M140 40 Q200 5 260 40 Z" fill="#ef4444" stroke="#111" stroke-width="3"/><line x1="200" y1="40" x2="200" y2="75" stroke="#111" stroke-width="3"/><circle cx="200" cy="55" r="14" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="188" y="70" width="24" height="30" fill="#f59e0b" stroke="#111" stroke-width="2"/><line x1="120" y1="30" x2="110" y2="50" stroke="#60a5fa" stroke-width="2"/><line x1="270" y1="30" x2="280" y2="50" stroke="#60a5fa" stroke-width="2"/></svg>`,
+        97: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="200" cy="65" r="45" fill="#fed7aa" stroke="#111" stroke-width="3"/><circle cx="185" cy="55" r="5" fill="#111"/><circle cx="215" cy="55" r="5" fill="#111"/><path d="M182 75 Q200 95 218 75" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/></svg>`,
+        98: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="200" cy="65" r="45" fill="#fed7aa" stroke="#111" stroke-width="3"/><circle cx="185" cy="55" r="5" fill="#111"/><circle cx="215" cy="55" r="5" fill="#111"/><path d="M182 85 Q200 68 218 85" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/></svg>`,
+        99: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><circle cx="160" cy="30" r="15" fill="#fed7aa" stroke="#111" stroke-width="2"/><rect x="145" y="45" width="30" height="40" fill="#3b82f6" stroke="#111" stroke-width="2"/><line x1="152" y1="85" x2="152" y2="120" stroke="#111" stroke-width="5"/><line x1="168" y1="85" x2="168" y2="120" stroke="#111" stroke-width="5"/><rect x="200" y="50" width="55" height="60" rx="12" fill="#10b981" stroke="#111" stroke-width="3"/><path d="M218 50 C218 35, 238 35, 238 50" fill="none" stroke="#111" stroke-width="3"/></svg>`,
+        100: `<svg viewBox="0 0 400 130" class="w-full max-h-36"><polygon points="135,20 200,30 200,110 135,95" fill="#fef08a" stroke="#111" stroke-width="3"/><polygon points="200,30 265,20 265,95 200,110" fill="#fef08a" stroke="#111" stroke-width="3"/><line x1="145" y1="45" x2="190" y2="50" stroke="#94a3b8" stroke-width="2"/><line x1="145" y1="65" x2="190" y2="70" stroke="#94a3b8" stroke-width="2"/><line x1="210" y1="50" x2="255" y2="45" stroke="#94a3b8" stroke-width="2"/><line x1="210" y1="70" x2="255" y2="65" stroke="#94a3b8" stroke-width="2"/></svg>`
+      };
+      return svgs[id] || `<div class="text-5xl">🎨</div>`;
+    }
+
+    const QUESTIONS = [
+      // PART 1: ALPHABETICAL ORDER (Q1-10)
+      { id: 1, type: "sort", words: ["apple", "cat", "ball"], answer: ["apple", "ball", "cat"], prompt: "Sort these 3 words in Alphabetical (ABC) order:" },
+      { id: 2, type: "sort", words: ["dog", "elephant", "fish"], answer: ["dog", "elephant", "fish"], prompt: "Sort these 3 words in Alphabetical order:" },
+      { id: 3, type: "sort", words: ["hat", "giraffe", "ice"], answer: ["giraffe", "hat", "ice"], prompt: "Sort these 3 words in Alphabetical order:" },
+      { id: 4, type: "sort", words: ["kite", "lion", "jam"], answer: ["jam", "kite", "lion"], prompt: "Sort these 3 words in Alphabetical order:" },
+      { id: 5, type: "sort", words: ["monkey", "orange", "nest"], answer: ["monkey", "nest", "orange"], prompt: "Sort these 3 words in Alphabetical order:" },
+      { id: 6, type: "sort", words: ["queen", "pig", "rabbit"], answer: ["pig", "queen", "rabbit"], prompt: "Sort these 3 words in Alphabetical order:" },
+      { id: 7, type: "sort", words: ["sun", "tiger", "umbrella"], answer: ["sun", "tiger", "umbrella"], prompt: "Sort these 3 words in Alphabetical order:" },
+      { id: 8, type: "sort", words: ["van", "window", "zebra"], answer: ["van", "window", "zebra"], prompt: "Sort these 3 words in Alphabetical order:" },
+      { id: 9, type: "sort", words: ["book", "bear", "bag"], answer: ["bag", "bear", "book"], prompt: "Words start with 'b'! Look at the second letter (a, e, o):" },
+      { id: 10, type: "sort", words: ["pen", "pig", "pot"], answer: ["pen", "pig", "pot"], prompt: "Words start with 'p'! Look at the second letter (e, i, o):" },
+
+      // PART 2: DEFINITIONS (Q11-20)
+      { id: 11, type: "mcq", clue: "You wear this on your feet before your shoes.", options: ["sock", "hat", "glove", "scarf"], answer: "sock", prompt: "Guess the British English clothing item:" },
+      { id: 12, type: "mcq", clue: "A warm knitted piece of clothing worn on the upper body.", options: ["jumper", "trousers", "boots", "socks"], answer: "jumper", prompt: "What do British children wear when it gets cold?" },
+      { id: 13, type: "mcq", clue: "A small piece of thick fabric placed on the floor.", options: ["mat", "curtain", "blanket", "towel"], answer: "mat", prompt: "What is this item for your feet or room?" },
+      { id: 14, type: "mcq", clue: "A sweet food made from cocoa beans.", options: ["chocolate", "bread", "cheese", "soup"], answer: "chocolate", prompt: "What delicious treat is this?" },
+      { id: 15, type: "mcq", clue: "A building where children go to learn and cast spells.", options: ["school", "hospital", "cinema", "park"], answer: "school", prompt: "Where do we go every morning to learn?" },
+      { id: 16, type: "mcq", clue: "An animal with four legs, a tail, and says 'meow'.", options: ["cat", "dog", "duck", "sheep"], answer: "cat", prompt: "Identify this friendly animal friend:" },
+      { id: 17, type: "mcq", clue: "You use this to draw straight lines.", options: ["ruler", "pencil", "rubber", "scissors"], answer: "ruler", prompt: "Which tool lives inside your pencil case?" },
+      { id: 18, type: "mcq", clue: "A place with trees, grass, and swings where you can play.", options: ["park", "kitchen", "library", "bedroom"], answer: "park", prompt: "Where do children love running outdoors?" },
+      { id: 19, type: "mcq", clue: "You open this to protect yourself from rain.", options: ["umbrella", "coat", "book", "bag"], answer: "umbrella", prompt: "What keeps you dry when raindrops fall?" },
+      { id: 20, type: "mcq", clue: "The colour of grass and frog's skin.", options: ["green", "blue", "yellow", "purple"], answer: "green", prompt: "Which vibrant natural colour is this?" },
+
+      // PART 3: PREFIX 'UN-' (Q21-30)
+      { id: 21, type: "prefix", base: "happy", answer: "unhappy", prompt: "Cast 'un-' to make the opposite of: 'happy'" },
+      { id: 22, type: "prefix", base: "kind", answer: "unkind", prompt: "Cast 'un-' to make the opposite of: 'kind'" },
+      { id: 23, type: "prefix", base: "tidy", answer: "untidy", prompt: "Cast 'un-' to make the opposite of: 'tidy'" },
+      { id: 24, type: "prefix", base: "lucky", answer: "unlucky", prompt: "Cast 'un-' to make the opposite of: 'lucky'" },
+      { id: 25, type: "prefix", base: "well", answer: "unwell", prompt: "Cast 'un-' to make the opposite of: 'well'" },
+      { id: 26, type: "prefix", base: "fair", answer: "unfair", prompt: "Cast 'un-' to make the opposite of: 'fair'" },
+      { id: 27, type: "prefix", base: "safe", answer: "unsafe", prompt: "Cast 'un-' to make the opposite of: 'safe'" },
+      { id: 28, type: "prefix", base: "friendly", answer: "unfriendly", prompt: "Cast 'un-' to make the opposite of: 'friendly'" },
+      { id: 29, type: "prefix", base: "clean", answer: "unclean", prompt: "Cast 'un-' to make the opposite of: 'clean'" },
+      { id: 30, type: "prefix", base: "healthy", answer: "unhealthy", prompt: "Cast 'un-' to make the opposite of: 'healthy'" },
+
+      // PART 4: POSSESSIVE APOSTROPHE 'S (Q31-40)
+      { id: 31, type: "mcq", clue: "The bag belongs to Tom.", options: ["Tom's bag", "Toms bag", "Tom bag's", "Tom is bag"], answer: "Tom's bag", prompt: "How do you show ownership correctly?" },
+      { id: 32, type: "mcq", clue: "The toy belongs to the dog.", options: ["the dog's toy", "the dogs toy", "the dog toy's", "the dogs's toy"], answer: "the dog's toy", prompt: "Whose toy is it?" },
+      { id: 33, type: "mcq", clue: "The book belongs to the teacher.", options: ["the teacher's book", "the teachers book", "the teacher book's", "the teacher's books"], answer: "the teacher's book", prompt: "Singular possessive spell:" },
+      { id: 34, type: "mcq", clue: "The pencil belongs to Lan.", options: ["Lan's pencil", "Lans pencil", "Lan pencil's", "Lan is pencil"], answer: "Lan's pencil", prompt: "Show that Lan owns this pencil:" },
+      { id: 35, type: "mcq", clue: "The car belongs to dad.", options: ["dad's car", "dads car", "dad car's", "dads' car"], answer: "dad's car", prompt: "Choose the correct possessive apostrophe:" },
+      { id: 36, type: "mcq", clue: "The hat belongs to the girl.", options: ["the girl's hat", "the girls hat", "the girl hat's", "the girl' hat"], answer: "the girl's hat", prompt: "The hat belongs to one girl:" },
+      { id: 37, type: "mcq", clue: "The ball belongs to the boy.", options: ["the boy's ball", "the boys ball", "the boy ball's", "the boy' ball"], answer: "the boy's ball", prompt: "Whose ball is bouncing?" },
+      { id: 38, type: "mcq", clue: "The milk belongs to the cat.", options: ["the cat's milk", "the cats milk", "the cat milk's", "the cat' is milk"], answer: "the cat's milk", prompt: "Show ownership for the kitty:" },
+      { id: 39, type: "mcq", clue: "The bike belongs to Ben.", options: ["Ben's bike", "Bens bike", "Ben bike's", "Ben is bike"], answer: "Ben's bike", prompt: "Ben rides his bike:" },
+      { id: 40, type: "mcq", clue: "The dress belongs to mum.", options: ["mum's dress", "mums dress", "mum dress's", "mum' dress"], answer: "mum's dress", prompt: "Which dress is this?" },
+
+      // PART 5: POSSESSIVE PRONOUNS (Q41-50)
+      { id: 41, type: "mcq", clue: "This is my book. It is _______.", options: ["mine", "my", "me", "I"], answer: "mine", prompt: "Replace 'my book' with a possessive pronoun:" },
+      { id: 42, type: "mcq", clue: "That is your pencil. It is _______.", options: ["yours", "your", "you", "you're"], answer: "yours", prompt: "Complete the sentence:" },
+      { id: 43, type: "mcq", clue: "This is his bag. It is _______.", options: ["his", "him", "he", "his's"], answer: "his", prompt: "Possessive pronoun for a boy:" },
+      { id: 44, type: "mcq", clue: "That is her ruler. It is _______.", options: ["hers", "her", "she", "her's"], answer: "hers", prompt: "Possessive pronoun for a girl:" },
+      { id: 45, type: "mcq", clue: "These are our toys. They are _______.", options: ["ours", "our", "we", "us"], answer: "ours", prompt: "Belonging to us:" },
+      { id: 46, type: "mcq", clue: "Those are their books. They are _______.", options: ["theirs", "their", "them", "they"], answer: "theirs", prompt: "Belonging to them:" },
+      { id: 47, type: "mcq", clue: "Is this pen _______ (your pen)?", options: ["yours", "your", "you", "yours's"], answer: "yours", prompt: "Choose the pronoun:" },
+      { id: 48, type: "mcq", clue: "The red jumper is _______ (my jumper).", options: ["mine", "my", "me", "I"], answer: "mine", prompt: "Which one means 'my jumper'?" },
+      { id: 49, type: "mcq", clue: "The blue hat is _______ (her hat).", options: ["hers", "her", "she", "hers'"], answer: "hers", prompt: "Which one means 'her hat'?" },
+      { id: 50, type: "mcq", clue: "The green ball is _______ (his ball).", options: ["his", "him", "he", "his's"], answer: "his", prompt: "Which one means 'his ball'?" },
+
+      // PART 6: PREPOSITIONS (Q51-55)
+      { id: 51, type: "mcq", clue: "The book is resting flat upon the desk.", options: ["on", "under", "in", "between"], answer: "on", prompt: "The book is _____ the table." },
+      { id: 52, type: "mcq", clue: "The cat is sleeping beneath the chair.", options: ["under", "on", "above", "behind"], answer: "under", prompt: "The cat is _____ the chair." },
+      { id: 53, type: "mcq", clue: "The ball is between the two cardboard boxes.", options: ["between", "in", "under", "on"], answer: "between", prompt: "The ball is _____ the two boxes." },
+      { id: 54, type: "mcq", clue: "The pencil is located inside the pencil case.", options: ["in", "on", "under", "next to"], answer: "in", prompt: "The pencil is _____ the pencil case." },
+      { id: 55, type: "mcq", clue: "The dog is standing right beside the boy.", options: ["next to", "under", "between", "inside"], answer: "next to", prompt: "The dog is _____ the boy." },
+
+      // PART 7: PRESENT CONTINUOUS TENSE (Q56-60)
+      { id: 56, type: "mcq", clue: "Lan is in the kitchen right now preparing soup.", options: ["is cooking", "are cooking", "cooks", "cooking"], answer: "is cooking", prompt: "Lan (singular) _____ dinner right now." },
+      { id: 57, type: "mcq", clue: "Tom and Ben are sitting with their books at this moment.", options: ["are reading", "is reading", "reads", "reading"], answer: "are reading", prompt: "The boys (plural) _____ books." },
+      { id: 58, type: "mcq", clue: "Look! A little girl in the swimming pool.", options: ["is swimming", "are swimming", "swim", "is swiming"], answer: "is swimming", prompt: "She _____ in the water." },
+      { id: 59, type: "mcq", clue: "The students are on the grass playing football.", options: ["are playing", "is playing", "play", "playing"], answer: "are playing", prompt: "They _____ football in the garden." },
+      { id: 60, type: "mcq", clue: "I have my notebook and magic pen open right now.", options: ["am writing", "is writing", "are writing", "writing"], answer: "am writing", prompt: "I _____ a letter." },
+
+      // PART 8: PUNCTUATION & CAPITALIZATION (Q61-65)
+      { id: 61, type: "fixPunctuation", raw: "the cat is sleeping on the mat", answer: "The cat is sleeping on the mat.", prompt: "Fix Capital Letter & Full Stop:" },
+      { id: 62, type: "fixPunctuation", raw: "lan and tom are playing football", answer: "Lan and Tom are playing football.", prompt: "Capitalize names & begin sentence, add full stop:" },
+      { id: 63, type: "fixPunctuation", raw: "i have an apple a banana and an orange", answer: "I have an apple, a banana and an orange.", prompt: "Capitalize 'I', add comma list and full stop:" },
+      { id: 64, type: "fixPunctuation", raw: "is this your jumper", answer: "Is this your jumper?", prompt: "This is a question! Fix Capital & Question mark:" },
+      { id: 65, type: "fixPunctuation", raw: "we live in london", answer: "We live in London.", prompt: "Capitalize sentence starter and city 'London':" },
+
+      // PART 9: CAPTION WRITING (Q66-100)
+      { id: 66, type: "caption", targetKeywords: ["ball", "box"], acceptedPatterns: [/the ball is in the box/i, /a ball is in a box/i, /the ball is on the box/i, /a red ball is in the box/i, /there is a ball in the box/i], prompt: "Look at the picture and write a complete sentence:" },
+      { id: 67, type: "caption", targetKeywords: ["ball", "table"], acceptedPatterns: [/the ball is under the table/i, /a ball is under the table/i, /a red ball is under the table/i, /there is a ball under the table/i], prompt: "Look at the picture and write a complete sentence:" },
+      { id: 68, type: "caption", targetKeywords: ["ball", "boxes"], acceptedPatterns: [/the ball is between the boxes/i, /the ball is between the two boxes/i, /a ball is between two boxes/i, /a ball is between the boxes/i], prompt: "Look at the picture and write a complete sentence:" },
+      { id: 69, type: "caption", targetKeywords: ["ball", "bag"], acceptedPatterns: [/the ball is next to the bag/i, /a ball is next to the bag/i, /the ball is beside the bag/i, /a ball is beside a bag/i], prompt: "Look at the picture and write a complete sentence:" },
+      { id: 70, type: "caption", targetKeywords: ["books", "table"], acceptedPatterns: [/the books are on the table/i, /three books are on the table/i, /there are books on the table/i, /there are three books on the table/i], prompt: "Look at the picture and write a complete sentence:" },
+      { id: 71, type: "caption", targetKeywords: ["pencils"], acceptedPatterns: [/there are two pencils/i, /two pencils are on the table/i, /i can see two pencils/i, /there are 2 pencils/i], prompt: "Look at the picture and write a complete sentence:" },
+      { id: 72, type: "caption", targetKeywords: ["tom", "bag"], acceptedPatterns: [/this is tom's bag/i, /it is tom's bag/i, /that is tom's bag/i, /the bag is tom's/i], prompt: "Look at the label on the bag and write who owns it:" },
+      { id: 73, type: "caption", targetKeywords: ["balls"], acceptedPatterns: [/there are two balls/i, /i can see two balls/i, /one ball is big and one ball is small/i, /there are two blue balls/i], prompt: "Look at the picture and describe the balls:" },
+      { id: 74, type: "caption", targetKeywords: ["ruler"], acceptedPatterns: [/the ruler is blue/i, /this is a blue ruler/i, /there is a ruler/i, /there is a blue ruler/i, /it is a blue ruler/i], prompt: "Describe this school item:" },
+      { id: 75, type: "caption", targetKeywords: ["cat", "box"], acceptedPatterns: [/the cat is in the box/i, /a cat is in the box/i, /the red cat is in the box/i, /there is a cat in the box/i], prompt: "Where is the cat?" },
+      { id: 76, type: "caption", targetKeywords: ["bags"], acceptedPatterns: [/there are two bags/i, /i can see two bags/i, /one bag is green and one bag is red/i], prompt: "Look at the two school bags:" },
+      { id: 77, type: "caption", targetKeywords: ["kite"], acceptedPatterns: [/the kite is flying/i, /this is a red kite/i, /there is a kite in the sky/i, /the kite is in the sky/i], prompt: "Describe what is soaring in the wind:" },
+      { id: 78, type: "caption", targetKeywords: ["stars"], acceptedPatterns: [/there are four stars/i, /i can see four stars/i, /there are 4 stars/i, /the stars are yellow/i], prompt: "Count and describe the stars in the night sky:" },
+      { id: 79, type: "caption", targetKeywords: ["tom", "lan", "bags"], acceptedPatterns: [/these are tom and lan's bags/i, /tom and lan have bags/i, /there are two bags for tom and lan/i, /tom's bag is green and lan's bag is red/i], prompt: "Describe Tom and Lan's bags:" },
+      { id: 80, type: "caption", targetKeywords: ["balloons"], acceptedPatterns: [/there are three balloons/i, /i can see three balloons/i, /there are 3 balloons/i], prompt: "Describe the floating balloons:" },
+      { id: 81, type: "caption", targetKeywords: ["cat", "mat"], acceptedPatterns: [/the cat is on the mat/i, /a cat is on the mat/i, /the orange cat is on the mat/i, /there is a cat on the mat/i], prompt: "Where is the sleepy cat resting?" },
+      { id: 82, type: "caption", targetKeywords: ["cat", "table"], acceptedPatterns: [/the cat is under the table/i, /a cat is under the table/i, /there is a cat under the table/i], prompt: "Where is the cat hiding?" },
+      { id: 83, type: "caption", targetKeywords: ["cat", "bags"], acceptedPatterns: [/the cat is between the bags/i, /the cat is between two bags/i, /a cat is between the bags/i], prompt: "Where is the cat sitting?" },
+      { id: 84, type: "caption", targetKeywords: ["boy", "waving"], acceptedPatterns: [/the boy is waving/i, /a boy is waving/i, /the boy is waving his hand/i, /he is waving/i], prompt: "What action is the boy doing with his hand?" },
+      { id: 85, type: "caption", targetKeywords: ["girl", "jumping"], acceptedPatterns: [/the girl is jumping/i, /a girl is jumping/i, /she is jumping/i, /the girl is jumping happily/i], prompt: "What is the energetic girl doing?" },
+      { id: 86, type: "caption", targetKeywords: ["cooking"], acceptedPatterns: [/the man is cooking/i, /dad is cooking/i, /he is cooking/i, /the chef is cooking/i], prompt: "What is happening at the stove?" },
+      { id: 87, type: "caption", targetKeywords: ["reading"], acceptedPatterns: [/they are reading/i, /the children are reading/i, /the students are reading/i, /they are reading books/i], prompt: "What are the two children doing?" },
+      { id: 88, type: "caption", targetKeywords: ["writing"], acceptedPatterns: [/the girl is writing/i, /she is writing/i, /the teacher is writing/i, /the girl is writing on the board/i], prompt: "What is she doing with the chalk/pen?" },
+      { id: 89, type: "caption", targetKeywords: ["singing"], acceptedPatterns: [/the boy is singing/i, /he is singing/i, /a boy is singing a song/i], prompt: "Notes are floating in the air! What is he doing?" },
+      { id: 90, type: "caption", targetKeywords: ["bus"], acceptedPatterns: [/this is a blue bus/i, /the bus is blue/i, /there is a bus/i, /there is a blue bus/i], prompt: "Describe this vehicle:" },
+      { id: 91, type: "caption", targetKeywords: ["sweeping"], acceptedPatterns: [/the boy is sweeping/i, /he is sweeping the floor/i, /the boy is sweeping the floor/i], prompt: "What chore is he doing with the broom?" },
+      { id: 92, type: "caption", targetKeywords: ["washing"], acceptedPatterns: [/he is washing the table/i, /the boy is cleaning the table/i, /the boy is wiping the table/i], prompt: "What is he doing to the table with a cloth?" },
+      { id: 93, type: "caption", targetKeywords: ["jumper", "blue"], acceptedPatterns: [/this is a blue jumper/i, /the jumper is blue/i, /it is a blue jumper/i], prompt: "British English clothing: Describe this cozy jumper:" },
+      { id: 94, type: "caption", targetKeywords: ["coat", "red"], acceptedPatterns: [/the coat is red/i, /this is a red coat/i, /it is a red coat/i], prompt: "Describe the warm red coat:" },
+      { id: 95, type: "caption", targetKeywords: ["school"], acceptedPatterns: [/this is a school/i, /there is a school/i, /the building is a school/i], prompt: "Where do students gather to study?" },
+      { id: 96, type: "caption", targetKeywords: ["umbrella", "rain"], acceptedPatterns: [/the boy has an umbrella/i, /he is holding an umbrella/i, /it is raining/i], prompt: "Describe the boy in the stormy weather:" },
+      { id: 97, type: "caption", targetKeywords: ["happy"], acceptedPatterns: [/the boy is happy/i, /he is happy/i, /the face is happy/i, /he is smiling/i], prompt: "Look at the cheerful smile on his face:" },
+      { id: 98, type: "caption", targetKeywords: ["sad"], acceptedPatterns: [/the boy is sad/i, /he is sad/i, /the face is sad/i, /the boy is unhappy/i], prompt: "Look at the downturned mouth on his face:" },
+      { id: 99, type: "caption", targetKeywords: ["bag"], acceptedPatterns: [/the boy is carrying a bag/i, /the boy has a green bag/i, /he is holding a bag/i], prompt: "What is the boy carrying on his journey?" },
+      { id: 100, type: "caption", targetKeywords: ["book", "open"], acceptedPatterns: [/the book is open/i, /there is an open book/i, /this is an open book/i, /it is an open book/i], prompt: "Final Spell! Describe the magical open book:" }
+    ];
+
+    /* ========================================================================
+       3. WEB AUDIO SYNTHESIZER (NO EXTERNAL AUDIO FILES NEEDED)
+       ======================================================================== */
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSound(type) {
+      if (!gameState.soundEnabled) return;
+      try {
+        initAudio();
+        const ctx = audioCtx;
+        const now = ctx.currentTime;
+
+        if (type === "success") {
+          // Play a cheerful chime (Arpeggio: C5 -> E5 -> G5 -> C6)
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.35);
+          });
+        } else if (type === "wrong") {
+          // Gentle warm "oops" low chord (Pedagogical - not scary)
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(160, now + 0.25);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === "tap") {
+          // Subtle click sound
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(600, now);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        } else if (type === "chest") {
+          // Fanfare for chest opening
+          [440, 554, 659, 880].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+            gain.gain.setValueAtTime(0.25, now + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.5);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.12);
+            osc.stop(now + idx * 0.12 + 0.6);
+          });
+        }
+      } catch (e) {
+        console.warn("Audio unavailable:", e);
+      }
+    }
+
+    // Native Speech Synthesis (British English Voice for Cambridge)
+    function speakText(text) {
+      if (!window.speechSynthesis || !gameState.soundEnabled) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9; // Slightly slower for primary student
+      utterance.pitch = 1.05;
+
+      const voices = window.speechSynthesis.getVoices();
+      // Look for en-GB voice
+      const gbVoice = voices.find(v => v.lang === "en-GB" || v.name.includes("UK") || v.name.includes("British"));
+      if (gbVoice) {
+        utterance.voice = gbVoice;
+      }
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function speakCurrentPrompt() {
+      const q = QUESTIONS[gameState.currentQuestionIndex];
+      let toSpeak = q.prompt;
+      if (q.clue) toSpeak += ". " + q.clue;
+      if (q.words) toSpeak += ". " + q.words.join(", ");
+      speakText(toSpeak);
+    }
+
+    /* ========================================================================
+       4. GAME STATE PERSISTENCE (LOCAL STORAGE)
+       ======================================================================== */
+    function saveProgress() {
+      try {
+        localStorage.setItem(GAME_CONFIG.storageKey, JSON.stringify(gameState));
+      } catch (e) {
+        console.warn("Storage write failed", e);
+      }
+    }
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(GAME_CONFIG.storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          gameState = { ...gameState, ...parsed };
+        }
+      } catch (e) {
+        console.warn("Storage read failed", e);
+      }
+      applyFontScale();
+      updateTopBarUI();
+    }
+
+    function resetAllProgressConfirmation() {
+      // In-app modal replacement for window.confirm
+      if (document.getElementById("feedbackBox")) {
+        const fb = document.getElementById("feedbackBox");
+        fb.className = "mt-4 px-4 py-2.5 rounded-xl scale-text-xs font-bold transition-all duration-300 bg-rose-950/90 text-rose-300 border border-rose-500 opacity-100 transform translate-y-0";
+        fb.innerHTML = `
+          <span>Are you sure you want to reset all progress?</span>
+          <button onclick="confirmReset()" class="ml-3 px-2 py-1 bg-rose-600 text-white rounded font-black hover:bg-rose-500">Yes, Reset</button>
+          <button onclick="hideFeedback()" class="ml-1 px-2 py-1 bg-slate-700 text-slate-200 rounded">Cancel</button>
+        `;
+      }
+    }
+
+    function confirmReset() {
+      localStorage.removeItem(GAME_CONFIG.storageKey);
+      gameState = {
+        currentQuestionIndex: 0,
+        score: 0,
+        streak: 0,
+        lives: 3,
+        maxLives: 3,
+        fontScaleIndex: 0,
+        soundEnabled: true,
+        completedQuestions: {},
+        unlockedArtifacts: [1],
+        pendingChest: false
+      };
+      closeArtifactsModal();
+      applyFontScale();
+      renderCurrentQuestion();
+      showFeedback("🔮 Magic scrolls cleared! Starting a fresh journey.", "info");
+    }
+
+    /* ========================================================================
+       5. USER INTERFACE UPDATERS & DYNAMIC STYLES
+       ======================================================================== */
+    function updateTopBarUI() {
+      const qIndex = gameState.currentQuestionIndex;
+      const total = GAME_CONFIG.totalQuestions;
+      const completedCount = Object.keys(gameState.completedQuestions).length;
+
+      // Score and streak
+      document.getElementById("scoreDisplay").innerText = gameState.score;
+      document.getElementById("streakDisplay").innerText = gameState.streak;
+
+      // Hearts
+      document.getElementById("heartDisplay").innerText = `${gameState.lives}/${gameState.maxLives}`;
+
+      // Progress Bar
+      const percent = Math.min(100, Math.round(((qIndex + 1) / total) * 100));
+      document.getElementById("questProgressBar").style.width = `${percent}%`;
+      document.getElementById("questProgressText").innerText = `${qIndex + 1}/${total}`;
+
+      // Wizard Ranks & Badges
+      let rank = "Novice Spellcaster";
+      let level = 1;
+      let avatar = "🧙‍♂️";
+
+      if (completedCount >= 100) {
+        rank = "Grand Word Wizard Minh 👑";
+        level = 5;
+        avatar = "🧙‍♂️";
+      } else if (completedCount >= 65) {
+        rank = "Master Scribe";
+        level = 4;
+        avatar = "🧙‍♂️";
+      } else if (completedCount >= 30) {
+        rank = "Sentence Enchanter";
+        level = 3;
+        avatar = "🧙‍♂️";
+      } else if (completedCount >= 10) {
+        rank = "Potion Mixer";
+        level = 2;
+        avatar = "🧙‍♂️";
+      }
+
+      document.getElementById("rankTitle").innerText = rank;
+      document.getElementById("levelBadge").innerText = `Lv.${level}`;
+      document.getElementById("playerAvatar").innerText = avatar;
+
+      // Audio Toggle Icon
+      const voiceBtn = document.getElementById("voiceToggleBtn");
+      if (voiceBtn) {
+        voiceBtn.innerText = gameState.soundEnabled ? "🔊" : "🔇";
+      }
+    }
+
+    function cycleFontScale() {
+      playSound("tap");
+      gameState.fontScaleIndex = (gameState.fontScaleIndex + 1) % 3;
+      applyFontScale();
+      saveProgress();
+    }
+
+    function applyFontScale() {
+      const scales = [1, 1.15, 1.3];
+      const labels = ["A+", "A++", "A Normal"];
+      document.documentElement.style.setProperty("--app-font-scale", scales[gameState.fontScaleIndex]);
+      const lbl = document.getElementById("fontScaleLabel");
+      if (lbl) lbl.innerText = labels[gameState.fontScaleIndex];
+    }
+
+    function toggleAudio() {
+      gameState.soundEnabled = !gameState.soundEnabled;
+      const btn = document.getElementById("voiceToggleBtn");
+      if (btn) btn.innerText = gameState.soundEnabled ? "🔊" : "🔇";
+      if (gameState.soundEnabled) playSound("tap");
+      saveProgress();
+    }
+
+    function triggerSparkles(x, y) {
+      const container = document.getElementById("mirrorContainer");
+      if (!container) return;
+      const colors = ["#f59e0b", "#fbbf24", "#38bdf8", "#ec4899", "#a855f7"];
+
+      for (let i = 0; i < 16; i++) {
+        const spark = document.createElement("div");
+        spark.className = "sparkle-particle";
+        const size = Math.random() * 8 + 4;
+        spark.style.width = `${size}px`;
+        spark.style.height = `${size}px`;
+        spark.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        spark.style.left = `${x || 50}%`;
+        spark.style.top = `${y || 50}%`;
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * 120 + 30;
+        spark.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+        spark.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+
+        container.appendChild(spark);
+        setTimeout(() => spark.remove(), 1300);
+      }
+    }
+
+    /* ========================================================================
+       6. QUESTION RENDERERS (BY PART TYPE)
+       ======================================================================== */
+    let currentQuestionState = {
+      userSortedWords: [],
+      userSelectedOption: null,
+      prefixValue: "",
+      captionValue: "",
+      punctuatedValue: ""
+    };
+
+    function getCurrentRealm(qIndex) {
+      const qNum = qIndex + 1;
+      return REALMS.find(r => qNum >= r.range[0] && qNum <= r.range[1]) || REALMS[0];
+    }
+
+    function renderCurrentQuestion() {
+      const qIndex = gameState.currentQuestionIndex;
+      const q = QUESTIONS[qIndex];
+      const realm = getCurrentRealm(qIndex);
+
+      hideFeedback();
+
+      // Update Arena Banner
+      document.getElementById("partEmoji").innerText = realm.emoji;
+      document.getElementById("partName").innerText = realm.part;
+      document.getElementById("questionNumTag").innerText = `Spell #${q.id}`;
+      document.getElementById("partDescTag").innerText = realm.desc;
+      document.getElementById("questionPrompt").innerText = q.prompt;
+
+      // Handle Clue Box
+      const clueBox = document.getElementById("promptClueBox");
+      const clueText = document.getElementById("promptClueText");
+      if (q.clue) {
+        clueBox.classList.remove("hidden");
+        clueText.innerText = `"${q.clue}"`;
+      } else {
+        clueBox.classList.add("hidden");
+      }
+
+      // Reset Active Play Area
+      const playZone = document.getElementById("interactivePlayZone");
+      playZone.innerHTML = "";
+      currentQuestionState = {
+        userSortedWords: [],
+        userSelectedOption: null,
+        prefixValue: "",
+        captionValue: "",
+        punctuatedValue: ""
+      };
+
+      // Primary Action Button UI
+      const primaryBtn = document.getElementById("primaryActionBtn");
+      const actionIcon = document.getElementById("actionBtnIcon");
+      const actionText = document.getElementById("actionBtnText");
+      actionIcon.innerText = "✨";
+      actionText.innerText = "Cast Spell!";
+      primaryBtn.disabled = false;
+
+      // Dispatch Renderers
+      if (q.type === "sort") {
+        renderSortGame(q, playZone);
+      } else if (q.type === "mcq") {
+        renderMcqGame(q, playZone);
+      } else if (q.type === "prefix") {
+        renderPrefixGame(q, playZone);
+      } else if (q.type === "fixPunctuation") {
+        renderPunctuationGame(q, playZone);
+      } else if (q.type === "caption") {
+        renderCaptionGame(q, playZone);
+      }
+
+      updateTopBarUI();
+    }
+
+    // 1. SORT GAME (PART 1)
+    function renderSortGame(q, area) {
+      currentQuestionState.userSortedWords = [];
+      const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+
+      area.innerHTML = `
+        <div class="flex flex-col items-center w-full max-w-lg">
+          <!-- Bucket of Target Order -->
+          <div class="w-full min-h-[64px] p-3 rounded-2xl bg-indigo-950/80 border-2 border-dashed border-amber-400/60 mb-4 flex flex-wrap items-center justify-center gap-2.5 shadow-inner" id="sortedTargetBox">
+            <span class="text-slate-400 text-xs italic font-sans" id="targetPlaceholder">Tap words below to arrange them here...</span>
+          </div>
+
+          <!-- Clickable Word Runes -->
+          <div class="flex flex-wrap items-center justify-center gap-3" id="availableWordsBox">
+            ${shuffled.map(w => `
+              <button onclick="handleSortWordTap('${w}', this)" class="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-magic font-bold scale-text-lg border-2 border-indigo-600/70 shadow-md hover:scale-105 active:scale-95 transition transform">
+                ${w}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function handleSortWordTap(word, btnElement) {
+      playSound("tap");
+      const targetBox = document.getElementById("sortedTargetBox");
+      const placeholder = document.getElementById("targetPlaceholder");
+      if (placeholder) placeholder.remove();
+
+      currentQuestionState.userSortedWords.push(word);
+      btnElement.disabled = true;
+      btnElement.classList.add("opacity-30", "pointer-events-none");
+
+      const pill = document.createElement("div");
+      pill.className = "px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-xl scale-text-base flex items-center gap-2 shadow animate-scale";
+      pill.innerHTML = `<span>${currentQuestionState.userSortedWords.length}. ${word}</span>`;
+      targetBox.appendChild(pill);
+    }
+
+    // 2. MCQ GAME (PARTS 2, 4, 5, 6, 7)
+    function renderMcqGame(q, area) {
+      area.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full max-w-xl">
+          ${q.options.map(opt => `
+            <button onclick="handleOptionSelect('${opt}', this)" class="mcq-option-btn w-full p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border-2 border-indigo-700/60 text-slate-100 font-bold scale-text-base text-center transition-all duration-200 transform hover:scale-[1.02] active:scale-95 shadow flex items-center justify-center gap-3">
+              <span class="w-3 h-3 rounded-full bg-indigo-500/50 inline-block indicator-dot"></span>
+              <span>${opt}</span>
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function handleOptionSelect(optionText, btnElement) {
+      playSound("tap");
+      currentQuestionState.userSelectedOption = optionText;
+      document.querySelectorAll(".mcq-option-btn").forEach(b => {
+        b.classList.remove("border-amber-400", "bg-indigo-900/60", "ring-2", "ring-amber-400");
+        const dot = b.querySelector(".indicator-dot");
+        if (dot) dot.className = "w-3 h-3 rounded-full bg-indigo-500/50 inline-block indicator-dot";
+      });
+
+      btnElement.classList.add("border-amber-400", "bg-indigo-900/60", "ring-2", "ring-amber-400");
+      const activeDot = btnElement.querySelector(".indicator-dot");
+      if (activeDot) activeDot.className = "w-3 h-3 rounded-full bg-amber-400 inline-block indicator-dot animate-ping";
+    }
+
+    // 3. PREFIX 'UN-' GAME (PART 3)
+    function renderPrefixGame(q, area) {
+      area.innerHTML = `
+        <div class="flex flex-col items-center max-w-md w-full">
+          <div class="flex items-center space-x-2 my-2">
+            <!-- Glowing UN Rune -->
+            <button onclick="togglePrefixRune(this)" id="prefixRuneBtn" class="px-5 py-3 rounded-2xl bg-indigo-800 hover:bg-indigo-700 border-2 border-indigo-400 text-amber-300 font-magic font-black scale-text-xl shadow-lg transition transform hover:scale-105 active:scale-95">
+              + un-
+            </button>
+            <span class="text-2xl text-slate-500 font-bold">+</span>
+            <div class="px-6 py-3 rounded-2xl bg-slate-900 border-2 border-slate-700 text-slate-200 font-magic font-bold scale-text-xl shadow">
+              ${q.base}
+            </div>
+          </div>
+
+          <!-- Result Preview Box -->
+          <div class="mt-4 px-6 py-3.5 rounded-2xl bg-indigo-950/80 border-2 border-amber-400/50 w-full text-center">
+            <span class="scale-text-xs text-indigo-300 uppercase font-black block mb-1">Your Enchanted Word:</span>
+            <span id="prefixResultText" class="font-magic font-black text-amber-300 scale-text-2xl">
+              ${q.base}
+            </span>
+          </div>
+        </div>
+      `;
+      currentQuestionState.prefixValue = q.base;
+    }
+
+    function togglePrefixRune(btn) {
+      playSound("tap");
+      const q = QUESTIONS[gameState.currentQuestionIndex];
+      const resultEl = document.getElementById("prefixResultText");
+
+      if (currentQuestionState.prefixValue.startsWith("un")) {
+        currentQuestionState.prefixValue = q.base;
+        btn.classList.remove("bg-amber-500", "text-slate-950", "border-amber-300");
+        btn.classList.add("bg-indigo-800", "text-amber-300", "border-indigo-400");
+      } else {
+        currentQuestionState.prefixValue = "un" + q.base;
+        btn.classList.add("bg-amber-500", "text-slate-950", "border-amber-300");
+        btn.classList.remove("bg-indigo-800", "text-amber-300", "border-indigo-400");
+        triggerSparkles(50, 50);
+      }
+      resultEl.innerText = currentQuestionState.prefixValue;
+    }
+
+    // 4. PUNCTUATION & CAPITALIZATION (PART 8)
+    function renderPunctuationGame(q, area) {
+      area.innerHTML = `
+        <div class="flex flex-col items-center max-w-lg w-full">
+          <div class="p-3 bg-indigo-950/70 border border-indigo-800 rounded-xl mb-3 text-slate-300 scale-text-xs font-semibold">
+            Original rough sentence: <span class="italic text-rose-300">"${q.raw}"</span>
+          </div>
+
+          <div class="w-full relative">
+            <input type="text" id="punctuationInput" value="" autocomplete="off" spellcheck="false"
+              placeholder="Type corrected sentence with Capital and Full stop..." 
+              class="w-full py-3.5 px-4 rounded-xl bg-slate-900 border-2 border-indigo-500 focus:border-amber-400 text-slate-100 scale-text-sm sm:scale-text-base font-medium outline-none shadow-inner transition"/>
+          </div>
+
+          <!-- Quick helper runes for tablet typing -->
+          <div class="flex items-center gap-2 mt-3 scale-text-xs text-slate-400">
+            <span>Quick punctuation:</span>
+            <button onclick="insertQuickChar('.')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 font-bold hover:bg-slate-700">.</button>
+            <button onclick="insertQuickChar(',')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 font-bold hover:bg-slate-700">,</button>
+            <button onclick="insertQuickChar('?')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 font-bold hover:bg-slate-700">?</button>
+            <button onclick="insertQuickChar('\'')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 font-bold hover:bg-slate-700">'</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function insertQuickChar(ch) {
+      playSound("tap");
+      const input = document.getElementById("punctuationInput") || document.getElementById("captionInput");
+      if (input) {
+        input.value += ch;
+        input.focus();
+      }
+    }
+
+    // 5. CAPTION WRITING (PART 9)
+    function renderCaptionGame(q, area) {
+      const illustrationHtml = generateSvgIllustration(q.id);
+      area.innerHTML = `
+        <div class="flex flex-col items-center max-w-xl w-full">
+          <div class="w-full bg-slate-900/95 rounded-2xl p-2.5 sm:p-3 border border-indigo-700/50 shadow-inner mb-3.5 flex items-center justify-center">
+            ${illustrationHtml}
+          </div>
+
+          <p class="scale-text-xs sm:scale-text-sm text-amber-300 mb-2 font-semibold">
+            ✨ Wizard Rule: Start with a <b>Capital letter</b> and end with a <b>Full stop (.)</b>
+          </p>
+
+          <div class="w-full relative">
+            <input type="text" id="captionInput" autocomplete="off" spellcheck="false"
+              placeholder="Write one complete sentence about the picture..." 
+              class="w-full py-3.5 px-4 rounded-xl bg-slate-900 border-2 border-indigo-500/80 focus:border-amber-400 text-slate-100 scale-text-sm sm:scale-text-base font-semibold outline-none shadow-inner transition"/>
+          </div>
+
+          <!-- 4 Cambridge Criteria Badges -->
+          <div class="flex flex-wrap items-center justify-center gap-2 mt-3 scale-text-xs text-slate-300">
+            <span id="crit1" class="px-2.5 py-1 rounded-lg bg-slate-800 font-bold">🖼️ Matches picture</span>
+            <span id="crit2" class="px-2.5 py-1 rounded-lg bg-slate-800 font-bold">📝 Complete sentence</span>
+            <span id="crit3" class="px-2.5 py-1 rounded-lg bg-slate-800 font-bold">🔤 Correct spelling</span>
+            <span id="crit4" class="px-2.5 py-1 rounded-lg bg-slate-800 font-bold">🔠 Capital & Full stop</span>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ========================================================================
+       7. PEDAGOGICAL CHECKING LOGIC & FEEDBACK ENGINE
+       ======================================================================== */
+    let isWaitingForNext = false;
+
+    function handlePrimaryAction() {
+      if (isWaitingForNext) {
+        goToNextQuestion();
+        return;
+      }
+
+      const q = QUESTIONS[gameState.currentQuestionIndex];
+      let isCorrect = false;
+      let feedbackMsg = "";
+
+      if (q.type === "sort") {
+        if (currentQuestionState.userSortedWords.length < q.words.length) {
+          showFeedback("🪄 Tap all the words into the box first!", "warning");
+          return;
+        }
+        isCorrect = JSON.stringify(currentQuestionState.userSortedWords) === JSON.stringify(q.answer);
+        feedbackMsg = isCorrect 
+          ? "🌟 Splendid Alphabetical Magic! Perfectly sorted." 
+          : `Almost there! The correct ABC order is: ${q.answer.join(" ➔ ")}`;
+
+      } else if (q.type === "mcq") {
+        if (!currentQuestionState.userSelectedOption) {
+          showFeedback("🪄 Select one magical choice before casting!", "warning");
+          return;
+        }
+        isCorrect = currentQuestionState.userSelectedOption === q.answer;
+        feedbackMsg = isCorrect 
+          ? "✨ Brilliant! You chose the exact right word." 
+          : `Good try! The correct British English word was: "${q.answer}".`;
+
+      } else if (q.type === "prefix") {
+        isCorrect = currentQuestionState.prefixValue.toLowerCase() === q.answer.toLowerCase();
+        feedbackMsg = isCorrect 
+          ? `🌟 Extraordinary! "${q.answer}" reverses the spell perfectly.` 
+          : `Don't forget to tap "+ un-" to make the opposite "${q.answer}"!`;
+
+      } else if (q.type === "fixPunctuation") {
+        const input = document.getElementById("punctuationInput");
+        const val = input ? input.value.trim() : "";
+        if (!val) {
+          showFeedback("🪄 Write the fixed sentence first!", "warning");
+          return;
+        }
+        // Normalize whitespace
+        const cleanVal = val.replace(/\s+/g, " ");
+        isCorrect = cleanVal.toLowerCase() === q.answer.toLowerCase() &&
+                    cleanVal.charAt(0) === q.answer.charAt(0) &&
+                    (cleanVal.endsWith(".") || cleanVal.endsWith("?"));
+        feedbackMsg = isCorrect 
+          ? "🛡️ Masterful Punctuation! Shield secured." 
+          : `Remember capital letter at start & dot at end: "${q.answer}"`;
+
+      } else if (q.type === "caption") {
+        const input = document.getElementById("captionInput");
+        const val = input ? input.value.trim() : "";
+        if (!val) {
+          showFeedback("🪄 Write a sentence describing the illustration!", "warning");
+          return;
+        }
+
+        // Pedagogical Cambridge 4 Criteria Checker
+        const hasCapital = /^[A-Z]/.test(val);
+        const hasPunctuation = /[.!?]$/.test(val);
+        const wordCount = val.split(/\s+/).length;
+        const matchesAccepted = q.acceptedPatterns.some(p => p.test(val));
+
+        // Keyword soft-match fallback
+        const hasKeywords = q.targetKeywords.every(kw => new RegExp(`\\b${kw}`, "i").test(val));
+
+        if (hasCapital && hasPunctuation && wordCount >= 3 && (matchesAccepted || hasKeywords)) {
+          isCorrect = true;
+          feedbackMsg = "👑 Magnificent Sentence! Full points awarded for grammar & punctuation.";
+        } else {
+          isCorrect = false;
+          if (!hasCapital || !hasPunctuation) {
+            feedbackMsg = "💡 Don't forget: Start with a CAPITAL letter and end with a FULL STOP (.)";
+          } else if (!hasKeywords && !matchesAccepted) {
+            feedbackMsg = `💡 Look closer at the picture! Make sure to mention ${q.targetKeywords.join(" and ")}.`;
+          } else {
+            feedbackMsg = "💡 Try writing a complete sentence like: 'The cat is on the mat.'";
+          }
+        }
+      }
+
+      evaluateAnswerOutcome(isCorrect, feedbackMsg);
+    }
+
+    function evaluateAnswerOutcome(isCorrect, message) {
+      const mirror = document.getElementById("mirrorContainer");
+      const primaryBtn = document.getElementById("primaryActionBtn");
+      const actionIcon = document.getElementById("actionBtnIcon");
+      const actionText = document.getElementById("actionBtnText");
+
+      if (isCorrect) {
+        playSound("success");
+        triggerSparkles(50, 40);
+        showFeedback(message, "success");
+
+        // Reward EXP & Combo
+        gameState.score += (10 + gameState.streak * 2);
+        gameState.streak += 1;
+        gameState.completedQuestions[QUESTIONS[gameState.currentQuestionIndex].id] = true;
+
+        // Magic Mirror Glow
+        mirror.classList.add("magic-mirror-active-glow");
+        setTimeout(() => mirror.classList.remove("magic-mirror-active-glow"), 900);
+
+        // Turn action button into "Next Spell"
+        isWaitingForNext = true;
+        actionIcon.innerText = "➔";
+        actionText.innerText = "Next Spell!";
+        primaryBtn.classList.remove("from-amber-500", "via-amber-400", "to-yellow-500");
+        primaryBtn.classList.add("from-emerald-500", "to-teal-500", "text-white");
+
+      } else {
+        playSound("wrong");
+        showFeedback(message, "error");
+        gameState.streak = 0; // Reset streak, but preserve score
+        gameState.lives = Math.max(1, gameState.lives - 1); // Second chance mechanic
+
+        // Gentle animation
+        mirror.classList.add("ring-4", "ring-rose-500/40");
+        setTimeout(() => mirror.classList.remove("ring-4", "ring-rose-500/40"), 600);
+      }
+
+      saveProgress();
+      updateTopBarUI();
+    }
+
+    function goToNextQuestion() {
+      isWaitingForNext = false;
+      const currentIdx = gameState.currentQuestionIndex;
+      const nextIdx = currentIdx + 1;
+
+      // Check for Realm Completion (Mystery Chest Trigger)
+      const currentRealm = getCurrentRealm(currentIdx);
+      if (nextIdx < GAME_CONFIG.totalQuestions) {
+        const nextRealm = getCurrentRealm(nextIdx);
+        if (currentRealm.id !== nextRealm.id) {
+          triggerRealmCelebration(currentRealm);
+          return;
+        }
+      } else {
+        // All 100 questions conquered!
+        triggerGrandMasterVictory();
+        return;
+      }
+
+      gameState.currentQuestionIndex = nextIdx;
+      // Replenish life slightly on progress
+      gameState.lives = Math.min(gameState.maxLives, gameState.lives + 1);
+      saveProgress();
+      renderCurrentQuestion();
+    }
+
+    function skipQuestion() {
+      playSound("tap");
+      gameState.streak = 0;
+      if (gameState.currentQuestionIndex < GAME_CONFIG.totalQuestions - 1) {
+        gameState.currentQuestionIndex++;
+        saveProgress();
+        renderCurrentQuestion();
+        showFeedback("Skipped to next spell! You can return anytime via Realms Map.", "info");
+      }
+    }
+
+    function revealMagicalHint() {
+      const q = QUESTIONS[gameState.currentQuestionIndex];
+      let hintText = "";
+
+      if (q.type === "sort") {
+        hintText = `Alphabet guide: The first word begins with letter '${q.answer[0].charAt(0).toUpperCase()}'.`;
+      } else if (q.type === "mcq") {
+        hintText = `The correct answer has ${q.answer.length} letters.`;
+      } else if (q.type === "prefix") {
+        hintText = "Just add 'un' directly to the front of the word!";
+      } else if (q.type === "fixPunctuation") {
+        hintText = `First letter is '${q.answer.charAt(0)}' and last mark is '${q.answer.slice(-1)}'.`;
+      } else if (q.type === "caption") {
+        hintText = `Include words like: ${q.targetKeywords.join(", ")}. Don't forget the capital and dot!`;
+      }
+
+      if (gameState.score > 0) gameState.score = Math.max(0, gameState.score - 1);
+      updateTopBarUI();
+      saveProgress();
+      showFeedback(`💡 Hint: ${hintText}`, "info");
+    }
+
+    function showFeedback(text, type) {
+      const fb = document.getElementById("feedbackBox");
+      if (!fb) return;
+      fb.className = "mt-4 px-4 py-2.5 rounded-xl scale-text-sm font-bold transition-all duration-300 opacity-100 transform translate-y-0 max-w-lg ";
+
+      if (type === "success") {
+        fb.classList.add("bg-emerald-950/90", "text-emerald-300", "border", "border-emerald-500");
+      } else if (type === "error") {
+        fb.classList.add("bg-rose-950/90", "text-rose-200", "border", "border-rose-500");
+      } else if (type === "warning") {
+        fb.classList.add("bg-amber-950/90", "text-amber-200", "border", "border-amber-500");
+      } else {
+        fb.classList.add("bg-indigo-950/90", "text-indigo-200", "border", "border-indigo-500");
+      }
+      fb.innerText = text;
+    }
+
+    function hideFeedback() {
+      const fb = document.getElementById("feedbackBox");
+      if (fb) fb.className = "mt-4 px-4 py-2.5 rounded-xl scale-text-sm font-bold opacity-0 pointer-events-none";
+    }
+
+    /* ========================================================================
+       8. MYSTERY CHESTS, ARTIFACTS & REALM MODALS
+       ======================================================================== */
+    let pendingCompletedRealm = null;
+
+    function triggerRealmCelebration(realm) {
+      pendingCompletedRealm = realm;
+      playSound("chest");
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+      const modal = document.getElementById("chestModal");
+      document.getElementById("chestModalTitle").innerText = `${realm.name} Conquered!`;
+      document.getElementById("chestModalSubtitle").innerText = `Minh has completed all spells in this realm! Tap the chest:`;
+      document.getElementById("chestRewardArea").classList.add("hidden");
+      document.getElementById("claimRewardBtn").classList.add("hidden");
+      document.getElementById("chestIconBox").classList.remove("hidden");
+
+      modal.classList.remove("hidden");
+      setTimeout(() => modal.classList.remove("opacity-0"), 20);
+    }
+
+    function openMysteryChest() {
+      playSound("chest");
+      confetti({ particleCount: 120, spread: 90 });
+
+      document.getElementById("chestIconBox").classList.add("hidden");
+      const rewardArea = document.getElementById("chestRewardArea");
+      const claimBtn = document.getElementById("claimRewardBtn");
+
+      if (pendingCompletedRealm) {
+        document.getElementById("unlockedArtifactIcon").innerText = pendingCompletedRealm.artifact.icon;
+        document.getElementById("unlockedArtifactName").innerText = pendingCompletedRealm.artifact.name;
+        document.getElementById("unlockedArtifactDesc").innerText = pendingCompletedRealm.artifact.desc;
+
+        if (!gameState.unlockedArtifacts.includes(pendingCompletedRealm.id)) {
+          gameState.unlockedArtifacts.push(pendingCompletedRealm.id);
+        }
+      }
+
+      rewardArea.classList.remove("hidden");
+      claimBtn.classList.remove("hidden");
+      saveProgress();
+    }
+
+    function claimRewardAndContinue() {
+      playSound("tap");
+      const modal = document.getElementById("chestModal");
+      modal.classList.add("opacity-0");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+        gameState.currentQuestionIndex++;
+        saveProgress();
+        renderCurrentQuestion();
+      }, 300);
+    }
+
+    function triggerGrandMasterVictory() {
+      playSound("chest");
+      confetti({ particleCount: 200, spread: 120, origin: { y: 0.5 } });
+      document.getElementById("finalScoreText").innerText = gameState.score;
+      const modal = document.getElementById("victoryModal");
+      modal.classList.remove("hidden");
+      setTimeout(() => modal.classList.remove("opacity-0"), 50);
+    }
+
+    function dismissVictoryModal() {
+      const modal = document.getElementById("victoryModal");
+      modal.classList.add("opacity-0");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+        gameState.currentQuestionIndex = 0;
+        saveProgress();
+        renderCurrentQuestion();
+      }, 400);
+    }
+
+    // MAP MODAL LOGIC
+    function toggleMapModal() {
+      playSound("tap");
+      const modal = document.getElementById("mapModal");
+      const isOpen = !modal.classList.contains("hidden");
+
+      if (isOpen) {
+        modal.classList.add("opacity-0");
+        setTimeout(() => modal.classList.add("hidden"), 300);
+      } else {
+        renderMapGrid();
+        modal.classList.remove("hidden");
+        setTimeout(() => modal.classList.remove("opacity-0"), 20);
+      }
+    }
+
+    function renderMapGrid() {
+      const grid = document.getElementById("realmListGrid");
+      grid.innerHTML = "";
+
+      REALMS.forEach(r => {
+        const isCurrent = gameState.currentQuestionIndex >= (r.range[0] - 1) && gameState.currentQuestionIndex <= (r.range[1] - 1);
+        const card = document.createElement("div");
+        card.className = `p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer ${
+          isCurrent 
+            ? "bg-indigo-900/80 border-amber-400 ring-2 ring-amber-400/50 shadow-lg scale-[1.02]" 
+            : "bg-slate-900/70 border-slate-700/80 hover:bg-slate-800"
+        }`;
+        card.onclick = () => {
+          gameState.currentQuestionIndex = r.range[0] - 1;
+          saveProgress();
+          toggleMapModal();
+          renderCurrentQuestion();
+        };
+
+        card.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl">${r.emoji}</span>
+            <div class="flex-grow">
+              <div class="flex items-center justify-between">
+                <h4 class="font-magic font-bold text-amber-300 scale-text-sm">${r.name}</h4>
+                <span class="scale-text-xs text-indigo-300 font-bold bg-indigo-950 px-2 py-0.5 rounded">Q${r.range[0]}-${r.range[1]}</span>
+              </div>
+              <p class="scale-text-xs text-slate-400 mt-0.5 line-clamp-1">${r.desc}</p>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // ARTIFACTS BAG MODAL
+    function openArtifactsModal() {
+      playSound("tap");
+      const modal = document.getElementById("artifactsModal");
+      const grid = document.getElementById("artifactsGrid");
+      grid.innerHTML = "";
+
+      REALMS.forEach(r => {
+        const isUnlocked = gameState.unlockedArtifacts.includes(r.id);
+        const item = document.createElement("div");
+        item.className = `p-3 rounded-2xl border flex flex-col items-center text-center transition ${
+          isUnlocked 
+            ? "bg-indigo-950/80 border-amber-400 shadow-md" 
+            : "bg-slate-900/40 border-slate-800 opacity-40 grayscale"
+        }`;
+        item.innerHTML = `
+          <span class="text-3xl mb-1">${isUnlocked ? r.artifact.icon : "🔒"}</span>
+          <span class="scale-text-xs font-bold text-amber-300">${isUnlocked ? r.artifact.name : "Locked Relic"}</span>
+        `;
+        grid.appendChild(item);
+      });
+
+      modal.classList.remove("hidden");
+      setTimeout(() => modal.classList.remove("opacity-0"), 20);
+    }
+
+    function closeArtifactsModal() {
+      playSound("tap");
+      const modal = document.getElementById("artifactsModal");
+      modal.classList.add("opacity-0");
+      setTimeout(() => modal.classList.add("hidden"), 300);
+    }
+
+    // Apply Background Image to Body
+    function applyAppBackground() {
+      const body = document.getElementById("appBody");
+      if (body && ASSET_IMAGES.bgHome) {
+        body.style.setProperty("--bg-custom", `url('${ASSET_IMAGES.bgHome}')`);
+      }
+    }
+
+    // Keyboard support: Enter to submit
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        if (!document.getElementById("chestModal").classList.contains("hidden")) {
+          if (document.getElementById("claimRewardBtn").classList.contains("hidden")) {
+            openMysteryChest();
+          } else {
+            claimRewardAndContinue();
+          }
+        } else if (!document.getElementById("victoryModal").classList.contains("hidden")) {
+          dismissVictoryModal();
+        } else {
+          handlePrimaryAction();
+        }
+      }
+    });
+
+    window.onload = function() {
+      applyAppBackground();
+      loadProgress();
+      renderCurrentQuestion();
+    };
+  </script>
+</body>
+</html>
