@@ -6,10 +6,10 @@
   <title>Word Wizard Adventure - Học Viện Phù Thủy Cambridge Stage 2</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Fredoka & Quicksand cho trẻ em -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,400;0,700;1,700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
   <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -23,13 +23,13 @@
       overflow: hidden;
     }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Quicksand', -apple-system, sans-serif;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       background-color: #0b0f19;
       background-image: 
-        radial-gradient(circle at center, rgba(11, 15, 25, 0.45) 0%, rgba(3, 7, 18, 0.8) 100%),
+        radial-gradient(circle at center, rgba(11, 15, 25, 0.3) 0%, rgba(3, 7, 18, 0.65) 100%),
         url('background_home.png');
       background-size: cover;
       background-position: center;
@@ -37,14 +37,18 @@
       background-attachment: fixed;
     }
     .font-magic {
-      font-family: 'Comic Neue', cursive, sans-serif;
+      font-family: 'Fredoka', cursive, sans-serif;
     }
     
-    .magic-glow {
-      box-shadow: 0 0 25px rgba(245, 158, 11, 0.45), inset 0 0 15px rgba(245, 158, 11, 0.2);
+    /* Hiệu ứng gương thần trong suốt (Glassmorphism) */
+    .magic-glass-card {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 2px solid rgba(251, 191, 36, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(251, 191, 36, 0.15);
     }
-    
-    /* Animation rung lắc cho rương kho báu */
+
     @keyframes chestWiggle {
       0%, 100% { transform: rotate(0deg) scale(1); }
       20% { transform: rotate(-8deg) scale(1.06); }
@@ -59,13 +63,13 @@
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
   </style>
 </head>
 <body class="flex flex-col text-slate-100 antialiased h-screen overflow-hidden">
 
   <!-- TOP APP BAR -->
-  <header class="flex-none px-3 py-2 bg-slate-950/85 backdrop-blur-md border-b border-amber-500/25 z-30">
+  <header class="flex-none px-3 py-2 bg-slate-950/70 backdrop-blur-md border-b border-amber-500/20 z-30">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <!-- Player Profile & Rank -->
       <div class="flex items-center gap-2 min-w-0">
@@ -75,11 +79,11 @@
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-1">
-            <h1 class="text-xs sm:text-sm font-bold text-amber-300 truncate">Minh The Wizard</h1>
-            <span id="playerRankTitle" class="hidden md:inline-block text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.2 rounded border border-purple-600/40 font-semibold truncate">Novice</span>
+            <h1 class="text-xs sm:text-sm font-bold text-amber-300 font-magic tracking-wide truncate">Minh The Wizard</h1>
+            <span id="playerRankTitle" class="hidden md:inline-block text-[10px] bg-purple-950/80 text-purple-300 px-1.5 py-0.2 rounded border border-purple-600/40 font-semibold truncate">Novice</span>
           </div>
-          <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-            <div class="w-16 sm:w-24 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+          <div class="flex items-center gap-1.5 text-[10px] text-slate-300">
+            <div class="w-16 sm:w-24 bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
               <div id="topProgressBar" class="bg-gradient-to-r from-amber-400 to-purple-500 h-full w-0 transition-all duration-300"></div>
             </div>
             <span id="qCounterMini" class="font-mono">1/100</span>
@@ -87,19 +91,19 @@
         </div>
       </div>
 
-      <!-- Stats: Gems, Streak, Pets -->
-      <div class="flex items-center gap-2 sm:gap-4 bg-slate-900/90 px-2.5 py-1 rounded-full border border-slate-800 text-xs shadow-inner">
-        <div class="flex items-center gap-1 text-cyan-400 font-semibold" title="Magic Gems">
+      <!-- Stats -->
+      <div class="flex items-center gap-2 sm:gap-4 bg-slate-900/80 px-2.5 py-1 rounded-full border border-slate-700/60 text-xs shadow-inner">
+        <div class="flex items-center gap-1 text-cyan-300 font-bold" title="Magic Gems">
           <span>💎</span>
           <span id="starCounter">0</span>
         </div>
         <div class="w-px h-3 bg-slate-700"></div>
-        <div class="flex items-center gap-1 text-amber-400 font-semibold" title="Streak">
+        <div class="flex items-center gap-1 text-amber-300 font-bold" title="Streak">
           <span>🔥</span>
           <span id="streakCounter">0</span>
         </div>
         <div class="w-px h-3 bg-slate-700"></div>
-        <div class="flex items-center gap-1 text-purple-300 font-semibold" title="Vault Pets">
+        <div class="flex items-center gap-1 text-purple-300 font-bold" title="Vault Pets">
           <span>🐾</span>
           <span id="petCountDisplay">0/9</span>
         </div>
@@ -111,13 +115,13 @@
           <span>🗺️</span>
           <span class="hidden sm:inline">Realms</span>
         </button>
-        <button onclick="toggleInventoryModal()" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-lg border border-slate-700 text-xs transition" title="Pet Vault">
+        <button onclick="toggleInventoryModal()" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-amber-300 rounded-lg border border-slate-700 text-xs transition" title="Pet Vault">
           🎒
         </button>
-        <button onclick="adjustFontScale(0.1)" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs font-bold transition" title="Font Scale">
+        <button onclick="adjustFontScale(0.1)" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs font-bold transition" title="Font Scale">
           A+
         </button>
-        <button onclick="toggleMute()" id="muteBtn" class="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs transition" title="Mute Audio">
+        <button onclick="toggleMute()" id="muteBtn" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs transition" title="Mute Audio">
           🔊
         </button>
       </div>
@@ -128,19 +132,19 @@
   <main class="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 min-h-0 relative z-10">
     <div class="w-full max-w-3xl flex-1 flex flex-col justify-between max-h-[calc(100dvh-4.5rem)]">
       
-      <!-- MAGIC MIRROR CARD -->
-      <div id="magicMirrorCard" class="relative flex-1 flex flex-col bg-slate-900/90 backdrop-blur-xl border-2 border-amber-500/40 rounded-2xl p-3 sm:p-5 shadow-2xl magic-glow transition-all duration-300 overflow-hidden">
+      <!-- MAGIC GLASS MIRROR CARD (TRONG SUỐT NỔI BẬT NỀN) -->
+      <div id="magicMirrorCard" class="relative flex-1 flex flex-col magic-glass-card rounded-2xl p-3 sm:p-5 transition-all duration-300 overflow-hidden">
         
         <!-- Header -->
-        <div class="flex-none flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2">
+        <div class="flex-none flex items-center justify-between border-b border-amber-500/20 pb-2 mb-2">
           <div class="flex items-center gap-2 min-w-0">
             <span id="realmIcon" class="text-lg">✨</span>
             <div class="truncate">
-              <span id="realmTag" class="text-[11px] font-black uppercase tracking-wider text-amber-400 block truncate">PART 1: SPELLING REALM</span>
-              <span id="realmDesc" class="text-[10px] text-slate-400 block truncate">Listen closely and spell the magic rune</span>
+              <span id="realmTag" class="text-[11px] font-black uppercase tracking-wider text-amber-300 font-magic block truncate">PART 1: SPELLING REALM</span>
+              <span id="realmDesc" class="text-[10px] text-slate-300 block truncate">Listen closely and spell the magic rune</span>
             </div>
           </div>
-          <button id="btnHeaderSpeak" onclick="speakCurrentTarget()" class="flex-shrink-0 px-2 py-1 bg-purple-950/80 hover:bg-purple-900 text-purple-300 rounded-lg text-xs font-semibold border border-purple-500/30 flex items-center gap-1 transition">
+          <button id="btnHeaderSpeak" onclick="speakCurrentTarget()" class="flex-shrink-0 px-2.5 py-1 bg-purple-950/80 hover:bg-purple-900 text-purple-200 rounded-lg text-xs font-bold border border-purple-500/40 flex items-center gap-1 transition shadow">
             <span>📢</span>
             <span class="hidden sm:inline">Listen UK</span>
           </button>
@@ -150,45 +154,41 @@
         <div id="questionContainer" class="flex-1 flex flex-col items-center justify-center text-center min-h-0 overflow-y-auto px-1 py-1"></div>
 
         <!-- VÙNG TƯƠNG TÁC -->
-        <div id="interactiveArea" class="flex-none pt-2 mt-auto border-t border-slate-800/60 flex flex-col items-center gap-2"></div>
+        <div id="interactiveArea" class="flex-none pt-2 mt-auto border-t border-amber-500/20 flex flex-col items-center gap-2"></div>
 
       </div>
 
     </div>
   </main>
 
-  <!-- MODAL: ĐẬP RƯƠNG MA THUẬT (MYSTERY CHEST) DÙNG ASSET ẢNH THẬT -->
-  <div id="mysteryChestModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
-    <div class="relative bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-950 border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+  <!-- MODAL: ĐẬP RƯƠNG MA THUẬT (MYSTERY CHEST) -->
+  <div id="mysteryChestModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
+    <div class="relative bg-slate-900/90 backdrop-blur-xl border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
       
       <div class="absolute -top-10 w-32 h-32 bg-amber-400/20 rounded-full blur-2xl pointer-events-none"></div>
 
-      <h3 class="text-xs uppercase tracking-widest text-amber-400 font-extrabold mb-1">🎉 REALM CLEARED!</h3>
-      <h2 id="chestModalTitle" class="text-base sm:text-lg font-black text-white mb-2">Mystery Chest Discovered!</h2>
+      <h3 class="text-xs uppercase tracking-widest text-amber-400 font-black mb-1 font-magic">🎉 REALM CLEARED!</h3>
+      <h2 id="chestModalTitle" class="text-base sm:text-lg font-black text-white mb-2 font-magic">Mystery Chest Discovered!</h2>
 
       <!-- Trạng thái 1: Rương Đóng Rung Lắc -->
       <div id="chestWrapper" onclick="unlockMysteryChest()" class="my-3 cursor-pointer flex flex-col items-center group">
         <div class="w-36 h-36 flex items-center justify-center select-none">
           <img src="chest_closed.png" alt="Magic Chest" class="max-h-full max-w-full object-contain chest-animate transition-transform active:scale-95 drop-shadow-2xl" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-7xl chest-animate\'>🎁</div>'">
         </div>
-        <div class="mt-3 text-xs font-bold text-amber-300 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-400/40 animate-pulse">
+        <div class="mt-3 text-xs font-bold text-amber-300 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-400/40 animate-pulse font-magic">
           👉 Tap Chest to Crack Open! 👈
         </div>
       </div>
 
-      <!-- Trạng thái 2: Rương Mở Nắp & Thú Cưng Xuất Hiện -->
+      <!-- Trạng thái 2: Rương Mở Nắp & Thú Cưng 3D Xuất Hiện -->
       <div id="chestRewardArea" class="hidden flex-col items-center w-full">
-        <!-- Ảnh rương mở nắp -->
-        <div class="w-28 h-24 mb-1 flex items-center justify-center">
+        <div class="w-28 h-20 mb-1 flex items-center justify-center">
           <img src="chest_open.png" alt="Chest Opened" class="max-h-full max-w-full object-contain drop-shadow-xl" onerror="this.style.display='none'">
         </div>
-        <!-- Hình ảnh Thú cưng 3D mở khóa -->
-        <div id="rewardPetImageSlot" class="w-28 h-28 my-1 flex items-center justify-center">
-          <!-- Render động -->
-        </div>
-        <h4 id="rewardPetName" class="text-base font-black text-amber-300">Baby Dragon</h4>
-        <p id="rewardPetDesc" class="text-xs text-slate-300 mt-1 mb-3">A loyal magical companion has joined Minh's Vault!</p>
-        <button onclick="closeChestModal()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-sm shadow-lg transition active:scale-95">
+        <div id="rewardPetImageSlot" class="w-32 h-32 my-1 flex items-center justify-center"></div>
+        <h4 id="rewardPetName" class="text-base font-black text-amber-300 font-magic">Baby Dragon</h4>
+        <p id="rewardPetDesc" class="text-xs text-slate-200 mt-1 mb-3">A loyal magical companion has joined Minh's Vault!</p>
+        <button onclick="closeChestModal()" class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-lg transition active:scale-95 font-magic">
           Continue Adventure ➔
         </button>
       </div>
@@ -198,9 +198,9 @@
 
   <!-- MODAL: BẢN ĐỒ REALMS -->
   <div id="realmMapModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-slate-900 border-2 border-amber-500/50 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+    <div class="bg-slate-900/95 backdrop-blur-xl border-2 border-amber-500/50 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
-        <h3 class="text-sm font-bold text-amber-400 flex items-center gap-1.5">
+        <h3 class="text-sm font-bold text-amber-300 font-magic flex items-center gap-1.5">
           <span>🗺️</span> 9 Magic Realms of Cambridge Stage 2
         </h3>
         <button onclick="toggleRealmMap()" class="text-slate-400 hover:text-slate-100 text-base font-bold px-2 py-0.5">✕</button>
@@ -214,11 +214,11 @@
     </div>
   </div>
 
-  <!-- MODAL: BALO PHÙ THỦY (PET VAULT) DÙNG ASSET ẢNH THẬT -->
+  <!-- MODAL: BALO PHÙ THỦY (PET VAULT) -->
   <div id="inventoryModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-slate-900 border-2 border-purple-500/50 rounded-2xl max-w-md w-full p-4 shadow-2xl flex flex-col max-h-[85vh]">
+    <div class="bg-slate-900/95 backdrop-blur-xl border-2 border-purple-500/50 rounded-2xl max-w-md w-full p-4 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-        <h3 class="text-sm font-bold text-purple-300 flex items-center gap-1.5">
+        <h3 class="text-sm font-bold text-purple-300 font-magic flex items-center gap-1.5">
           <span>🎒</span> Minh's Magic Pet Vault
         </h3>
         <button onclick="toggleInventoryModal()" class="text-slate-400 hover:text-slate-100 text-base font-bold">✕</button>
@@ -229,7 +229,7 @@
 
   <!-- JAVASCRIPT GAME ENGINE -->
   <script>
-    // --- 1. DỮ LIỆU REALMS VÀ CÁC THÚ CƯNG 3D ASSETS ---
+    // --- 1. DỮ LIỆU REALMS VÀ CÁC THÚ CƯNG 3D ASSETS ĐỦ 9 REALMS ---
     const REALMS = [
       { 
         id: 1, name: "Spelling Realm", range: [1, 15], icon: "✍️", desc: "Listen carefully & spell the magic rune", 
@@ -265,7 +265,7 @@
       },
       { 
         id: 9, name: "Story Caption Citadel", range: [66, 100], icon: "🎨", desc: "Look at the picture & write a sentence", 
-        pet: { name: "Grand Archmage Phoenix", img: "pet_09_phoenix.png", icon: "🔥", desc: "Supreme master of Cambridge Stage 2!" } 
+        pet: { name: "Grand Archmage Phoenix", img: "pet_09_phoenix.png", icon: "🔥", desc: "Supreme master of English Stage 2!" } 
       }
     ];
 
@@ -373,8 +373,8 @@
       { id: 76, part: 9, img: "caption_076.png", prompt: "Look at the picture and write a complete sentence:" },
       { id: 77, part: 9, img: "caption_077.png", prompt: "Look at the picture and write a complete sentence:" },
       { id: 78, part: 9, img: "caption_078.png", prompt: "Look at the picture and write a complete sentence:" },
-      { id: 79, part: 9, prompt: "Look at the picture and write a complete sentence:" },
-      { id: 80, part: 9, prompt: "Look at the picture and write a complete sentence:" },
+      { id: 79, part: 9, img: "caption_079.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 80, part: 9, img: "caption_080.png", prompt: "Look at the picture and write a complete sentence:" },
       { id: 81, part: 9, prompt: "Look at the picture and write a complete sentence:" },
       { id: 82, part: 9, prompt: "Look at the picture and write a complete sentence:" },
       { id: 83, part: 9, prompt: "Look at the picture and write a complete sentence:" },
@@ -536,7 +536,7 @@
       document.documentElement.style.setProperty('--app-font-scale', fontScale);
     }
 
-    // --- 4. RENDER CÂU HỎI THEO BỐ CỤC 1 MÀN HÌNH ---
+    // --- 4. RENDER CÂU HỎI ---
     function getCurrentRealm(qId) {
       return REALMS.find(r => qId >= r.range[0] && qId <= r.range[1]) || REALMS[0];
     }
@@ -564,23 +564,23 @@
       if (q.part === 1) {
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
-            <span class="text-xs sm:text-sm font-semibold text-purple-300">Listen closely and spell the word:</span>
-            <button onclick="playNativeWordAudio('${q.target}')" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full font-bold shadow-lg flex items-center gap-2 transition active:scale-95 my-1">
+            <span class="text-xs sm:text-sm font-semibold text-purple-200">Listen closely and spell the word:</span>
+            <button onclick="playNativeWordAudio('${q.target}')" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full font-bold shadow-lg flex items-center gap-2 transition active:scale-95 my-1 font-magic">
               <span class="text-xl">🔊</span>
               <span class="text-sm">Hear British Voice</span>
             </button>
             <div class="tracking-widest text-lg sm:text-xl font-mono text-amber-300 font-bold">
-              ${'_ '.repeat(q.len).trim()} <span class="text-xs text-slate-400 font-normal">(${q.len} letters)</span>
+              ${'_ '.repeat(q.len).trim()} <span class="text-xs text-slate-300 font-normal">(${q.len} letters)</span>
             </div>
-            <p class="text-xs text-slate-400 italic">Hint: ${q.hint}</p>
+            <p class="text-xs text-slate-300 italic">Hint: ${q.hint}</p>
           </div>
         `;
         iArea.innerHTML = `
           <div class="flex items-center gap-2 w-full max-w-sm">
             <input type="text" id="spellingInput" autocomplete="off" autocapitalize="off" spellcheck="false"
               placeholder="Type word here..." 
-              class="flex-1 bg-slate-950/80 border-2 border-purple-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300 tracking-wider">
-            <button onclick="checkSpelling()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
+              class="flex-1 bg-slate-950/70 border-2 border-purple-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300 tracking-wider">
+            <button onclick="checkSpelling()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Cast ✨
             </button>
           </div>
@@ -597,19 +597,19 @@
       } else if (q.part === 2) {
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
-            <span class="text-xs sm:text-sm font-semibold text-cyan-300">Fill in the missing letter rune:</span>
-            <div class="text-3xl sm:text-4xl font-mono font-black text-amber-300 tracking-widest bg-slate-950/60 px-6 py-2.5 rounded-2xl border border-slate-800">
+            <span class="text-xs sm:text-sm font-semibold text-cyan-200">Fill in the missing letter rune:</span>
+            <div class="text-3xl sm:text-4xl font-mono font-black text-amber-300 tracking-widest bg-slate-950/50 px-6 py-2.5 rounded-2xl border border-slate-700/60">
               ${q.display}
             </div>
-            <p class="text-xs text-slate-400 italic">Clue: ${q.hint}</p>
+            <p class="text-xs text-slate-300 italic">Clue: ${q.hint}</p>
           </div>
         `;
         iArea.innerHTML = `
           <div class="flex items-center gap-2 w-full max-w-xs">
             <input type="text" id="missingInput" maxlength="1" autocomplete="off" autocapitalize="off"
               placeholder="?" 
-              class="w-14 h-12 bg-slate-950/80 border-2 border-cyan-500/50 focus:border-amber-400 focus:outline-none rounded-xl text-center text-xl font-black text-amber-300">
-            <button onclick="checkMissingLetter()" class="flex-1 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
+              class="w-14 h-12 bg-slate-950/70 border-2 border-cyan-500/50 focus:border-amber-400 focus:outline-none rounded-xl text-center text-xl font-black text-amber-300">
+            <button onclick="checkMissingLetter()" class="flex-1 py-2.5 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Unlock 🔓
             </button>
           </div>
@@ -625,8 +625,8 @@
       } else if (q.part === 3) {
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
-            <span class="text-xs sm:text-sm font-semibold text-indigo-300">Cast the plural spell:</span>
-            <div class="text-xl sm:text-2xl font-bold text-amber-200">
+            <span class="text-xs sm:text-sm font-semibold text-indigo-200">Cast the plural spell:</span>
+            <div class="text-xl sm:text-2xl font-bold text-amber-200 font-magic">
               ${q.prompt}
             </div>
           </div>
@@ -635,8 +635,8 @@
           <div class="flex items-center gap-2 w-full max-w-sm">
             <input type="text" id="pluralInput" autocomplete="off" autocapitalize="off"
               placeholder="Write plural form..." 
-              class="flex-1 bg-slate-950/80 border-2 border-indigo-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300">
-            <button onclick="checkPlural()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95">
+              class="flex-1 bg-slate-950/70 border-2 border-indigo-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300">
+            <button onclick="checkPlural()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Transform ✨
             </button>
           </div>
@@ -654,7 +654,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
             <span class="text-xs sm:text-sm font-semibold text-amber-300">Select the correct magic choice:</span>
-            <div class="text-base sm:text-lg font-bold text-slate-100 leading-snug px-2">
+            <div class="text-base sm:text-lg font-bold text-slate-100 leading-snug px-2 font-magic">
               ${q.prompt}
             </div>
           </div>
@@ -662,7 +662,7 @@
         let buttonsHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md">`;
         q.options.forEach(opt => {
           buttonsHtml += `
-            <button onclick="checkMultipleChoice('${opt}')" class="px-3 py-2 bg-slate-800/90 hover:bg-purple-900/60 active:bg-purple-700 border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-300 font-bold rounded-xl text-sm transition shadow-sm">
+            <button onclick="checkMultipleChoice('${opt}')" class="px-3 py-2.5 bg-slate-800/80 hover:bg-purple-900/60 active:bg-purple-700 border border-slate-700 hover:border-amber-400 text-slate-100 hover:text-amber-300 font-bold rounded-xl text-sm transition shadow-sm font-magic">
               ${opt}
             </button>
           `;
@@ -675,13 +675,13 @@
         selectedJumbleWords = [];
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
-            <span class="text-xs font-semibold text-purple-300">Tap words in correct order:</span>
-            <div id="jumbleAnswerBox" class="min-h-[42px] w-full bg-slate-950/80 border-2 border-dashed border-amber-500/40 rounded-xl flex flex-wrap items-center justify-center gap-1.5 p-1.5 text-sm font-bold text-amber-300">
-              <span class="text-xs text-slate-500 font-normal">Tap words below...</span>
+            <span class="text-xs font-semibold text-purple-200">Tap words in correct order:</span>
+            <div id="jumbleAnswerBox" class="min-h-[42px] w-full bg-slate-950/70 border-2 border-dashed border-amber-500/40 rounded-xl flex flex-wrap items-center justify-center gap-1.5 p-1.5 text-sm font-bold text-amber-300">
+              <span class="text-xs text-slate-400 font-normal">Tap words below...</span>
             </div>
             <div id="jumbleWordPool" class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
               ${q.words.map((w, idx) => `
-                <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 rounded-lg text-xs font-bold text-slate-200 transition">
+                <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-3 py-1.5 bg-slate-800/90 hover:bg-slate-700 active:scale-95 border border-slate-600 rounded-lg text-xs font-bold text-slate-100 transition font-magic">
                   ${w}
                 </button>
               `).join('')}
@@ -690,10 +690,10 @@
         `;
         iArea.innerHTML = `
           <div class="flex items-center gap-2">
-            <button onclick="resetJumble()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">
+            <button onclick="resetJumble()" class="px-3 py-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition">
               🔄 Reset
             </button>
-            <button onclick="checkJumble()" class="px-5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black rounded-lg text-xs shadow-md transition active:scale-95">
+            <button onclick="checkJumble()" class="px-5 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black rounded-lg text-xs shadow-md transition active:scale-95 font-magic">
               Check Sentence ✨
             </button>
           </div>
@@ -704,7 +704,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-1.5 w-full max-w-md">
             <span class="text-xs font-semibold text-amber-300">Look at the picture and write a complete sentence:</span>
-            <div class="relative w-full max-h-[28vh] sm:max-h-[32vh] rounded-xl overflow-hidden border-2 border-amber-500/40 shadow-lg bg-slate-950 flex items-center justify-center">
+            <div class="relative w-full max-h-[28vh] sm:max-h-[32vh] rounded-xl overflow-hidden border-2 border-amber-500/40 shadow-lg bg-slate-950/80 flex items-center justify-center">
               <img src="${imgSrc}" alt="Story Illustration" 
                 class="w-full h-full object-contain max-h-[28vh] sm:max-h-[32vh]"
                 onerror="handleImageError(this, ${q.id})">
@@ -716,14 +716,14 @@
             <div class="flex items-center gap-2 w-full">
               <input type="text" id="captionInput" autocomplete="off" spellcheck="false"
                 placeholder="E.g., The red ball is under the table." 
-                class="flex-1 bg-slate-950/85 border-2 border-amber-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-100">
-              <button onclick="checkCaption()" class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition active:scale-95 whitespace-nowrap">
+                class="flex-1 bg-slate-950/75 border-2 border-amber-500/50 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-100">
+              <button onclick="checkCaption()" class="px-4 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition active:scale-95 whitespace-nowrap font-magic">
                 Submit 🌟
               </button>
             </div>
-            <div class="flex items-center justify-between w-full text-[10px] text-slate-400 px-1">
+            <div class="flex items-center justify-between w-full text-[10px] text-slate-300 px-1">
               <span>Rule: Capital letter at start & Period (.) at end</span>
-              <button onclick="speakText('${q.prompt}')" class="text-purple-400 hover:underline">🔊 Read prompt</button>
+              <button onclick="speakText('${q.prompt}')" class="text-purple-300 hover:underline">🔊 Read prompt</button>
             </div>
           </div>
         `;
@@ -823,7 +823,7 @@
 
       const ansBox = document.getElementById("jumbleAnswerBox");
       ansBox.innerHTML = selectedJumbleWords.map(item => `
-        <span class="px-2 py-0.5 bg-purple-900/80 border border-purple-500/40 rounded text-amber-200 text-xs font-bold">
+        <span class="px-2 py-0.5 bg-purple-900/85 border border-purple-500/40 rounded text-amber-200 text-xs font-bold font-magic">
           ${item.word}
         </span>
       `).join('');
@@ -835,7 +835,7 @@
         if (btn) btn.classList.remove("hidden");
       });
       selectedJumbleWords = [];
-      document.getElementById("jumbleAnswerBox").innerHTML = `<span class="text-xs text-slate-500 font-normal">Tap words below...</span>`;
+      document.getElementById("jumbleAnswerBox").innerHTML = `<span class="text-xs text-slate-400 font-normal">Tap words below...</span>`;
     }
 
     function checkJumble() {
@@ -880,7 +880,7 @@
       else if (q.prompt) speakText(q.prompt);
     }
 
-    // --- 6. LOGIC ĐẬP RƯƠNG KHO BÁU (MYSTERY CHEST) ---
+    // --- 6. LOGIC ĐẬP RƯƠNG KHO BÁU ---
     function triggerMysteryChest(realm) {
       pendingRewardRealm = realm;
       const modal = document.getElementById("mysteryChestModal");
@@ -913,9 +913,8 @@
       rewardArea.classList.add("flex");
 
       const pet = pendingRewardRealm.pet;
-      
-      // Hiển thị ảnh Thú Cưng thật nếu có, nếu không thì hiện Emoji
       const petSlot = document.getElementById("rewardPetImageSlot");
+      
       if (pet.img) {
         petSlot.innerHTML = `<img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain animate-bounce drop-shadow-xl" onerror="this.parentElement.innerHTML='<span class=\\'text-6xl\\'>${pet.icon}</span>'">`;
       } else {
@@ -950,11 +949,11 @@
             <div class="flex items-center gap-2">
               <span class="text-xl">${r.icon}</span>
               <div>
-                <h4 class="text-xs font-bold text-amber-300">Part ${r.id}: ${r.name}</h4>
-                <p class="text-[10px] text-slate-400">Questions ${r.range[0]} - ${r.range[1]}</p>
+                <h4 class="text-xs font-bold text-amber-300 font-magic">Part ${r.id}: ${r.name}</h4>
+                <p class="text-[10px] text-slate-300">Questions ${r.range[0]} - ${r.range[1]}</p>
               </div>
             </div>
-            <span class="text-xs font-bold text-purple-400">Go ➔</span>
+            <span class="text-xs font-bold text-purple-300 font-magic">Go ➔</span>
           </div>
         `).join('');
       }
@@ -986,10 +985,10 @@
           }
 
           return `
-            <div class="flex flex-col items-center justify-center p-2 rounded-xl border ${isUnlocked ? 'bg-purple-950/70 border-amber-400/60 text-amber-300 shadow-md' : 'bg-slate-950/60 border-slate-800 text-slate-600 opacity-40'} text-center">
+            <div class="flex flex-col items-center justify-center p-2.5 rounded-xl border ${isUnlocked ? 'bg-purple-950/70 border-amber-400/60 text-amber-300 shadow-md' : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-40'} text-center">
               ${visualContent}
-              <span class="text-[11px] font-black truncate w-full">${isUnlocked ? pet.name : 'Locked Pet'}</span>
-              <span class="text-[9px] text-slate-400">Realm ${r.id}</span>
+              <span class="text-[11px] font-black truncate w-full font-magic">${isUnlocked ? pet.name : 'Locked Pet'}</span>
+              <span class="text-[9px] text-slate-300">Realm ${r.id}</span>
             </div>
           `;
         }).join('');
