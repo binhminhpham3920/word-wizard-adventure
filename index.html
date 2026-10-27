@@ -28,13 +28,11 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       background-color: #0b0f19;
-      background-image: 
-        radial-gradient(circle at center, rgba(11, 15, 25, 0.15) 0%, rgba(3, 7, 18, 0.4) 100%),
-        url('background_home.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
+      transition: background-image 0.5s ease-in-out;
     }
     .font-magic {
       font-family: 'Fredoka', cursive, sans-serif;
@@ -42,9 +40,9 @@
     
     /* KHUNG TRONG SUỐT VỚI VIỀN XANH NGỌC SÁNG */
     .magic-glass-card {
-      background: rgba(15, 23, 42, 0.35);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 2.5px solid rgba(56, 189, 248, 0.85);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45), inset 0 0 25px rgba(56, 189, 248, 0.25);
     }
@@ -66,10 +64,10 @@
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
   </style>
 </head>
-<body class="flex flex-col text-slate-100 antialiased h-screen overflow-hidden">
+<body class="flex flex-col text-slate-100 antialiased h-screen overflow-hidden" id="appBody" style="background-image: radial-gradient(circle at center, rgba(11, 15, 25, 0.2) 0%, rgba(3, 7, 18, 0.5) 100%), url('background_realm_01.png');">
 
   <!-- TOP APP BAR -->
-  <header class="flex-none px-3 py-2 bg-slate-950/70 backdrop-blur-md border-b border-cyan-500/30 z-30">
+  <header class="flex-none px-3 py-2 bg-slate-950/75 backdrop-blur-md border-b border-cyan-500/30 z-30">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2 min-w-0">
         <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-sm shadow-md flex-shrink-0">
@@ -90,7 +88,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-4 bg-slate-900/80 px-2.5 py-1 rounded-full border border-slate-700 text-xs shadow-inner">
+      <div class="flex items-center gap-2 sm:gap-3 bg-slate-900/85 px-2.5 py-1 rounded-full border border-slate-700 text-xs shadow-inner">
         <div class="flex items-center gap-1 text-cyan-300 font-bold" title="Magic Gems">
           <span>💎</span>
           <span id="starCounter">0</span>
@@ -108,15 +106,16 @@
       </div>
 
       <div class="flex items-center gap-1 sm:gap-1.5">
+        <button onclick="togglePotionLab()" class="px-2 py-1 bg-purple-950/90 hover:bg-purple-900 text-purple-200 rounded-lg text-xs font-semibold border border-purple-500/40 flex items-center gap-1 transition" title="Potion Lab">
+          <span>🧪</span>
+          <span class="hidden sm:inline">Lab</span>
+        </button>
         <button onclick="toggleRealmMap()" class="px-2 py-1 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 rounded-lg text-xs font-semibold border border-indigo-500/40 flex items-center gap-1 transition">
           <span>🗺️</span>
           <span class="hidden sm:inline">Realms</span>
         </button>
         <button onclick="toggleInventoryModal()" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 rounded-lg border border-slate-700 text-xs transition" title="Pet Vault">
           🎒
-        </button>
-        <button onclick="adjustFontScale(0.1)" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs font-bold transition" title="Font Scale">
-          A+
         </button>
         <button onclick="toggleMute()" id="muteBtn" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs transition" title="Mute Audio">
           🔊
@@ -157,6 +156,64 @@
 
     </div>
   </main>
+
+  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) -->
+  <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
+    <div class="relative bg-slate-900/95 backdrop-blur-xl border-2 border-purple-400 rounded-3xl p-5 max-w-md w-full text-center shadow-2xl flex flex-col items-center">
+      <div class="flex items-center justify-between w-full pb-2 border-b border-purple-500/30 mb-3">
+        <h3 class="text-sm font-bold text-purple-300 font-magic flex items-center gap-1.5">
+          <span>🧪</span> Wizard Potion Lab & Transformation
+        </h3>
+        <button onclick="togglePotionLab()" class="text-slate-400 hover:text-slate-100 text-base font-bold">✕</button>
+      </div>
+
+      <!-- Vạc thuốc hiển thị động -->
+      <div id="cauldronArea" class="my-2 flex flex-col items-center">
+        <div class="w-32 h-32 flex items-center justify-center">
+          <img src="potion_cauldron.png" alt="Magic Cauldron" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-2xl" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-7xl\'>🧪</div>'">
+        </div>
+        <p class="text-xs text-amber-300 font-semibold mt-1">Brewing magical formulas to cast transformations!</p>
+      </div>
+
+      <!-- Khu vực chọn nguyên liệu -->
+      <div class="w-full bg-slate-950/60 p-3 rounded-2xl border border-slate-800 my-2">
+        <span class="text-xs text-cyan-200 font-bold block mb-2">Tap 3 ingredients to brew:</span>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="selectIngredient('stardust')" id="ing_stardust" class="p-2 bg-slate-800 hover:bg-purple-900 rounded-xl border border-slate-700 text-xs font-bold text-cyan-200 transition flex flex-col items-center gap-1">
+            <img src="ingredient_stardust.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span>🌟</span>'">
+            <span>Stardust</span>
+          </button>
+          <button onclick="selectIngredient('moonflower')" id="ing_moonflower" class="p-2 bg-slate-800 hover:bg-purple-900 rounded-xl border border-slate-700 text-xs font-bold text-cyan-200 transition flex flex-col items-center gap-1">
+            <img src="ingredient_moonflower.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span>🌙</span>'">
+            <span>Moonflower</span>
+          </button>
+          <button onclick="selectIngredient('feather')" id="ing_feather" class="p-2 bg-slate-800 hover:bg-purple-900 rounded-xl border border-slate-700 text-xs font-bold text-cyan-200 transition flex flex-col items-center gap-1">
+            <img src="ingredient_feather.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span>🪶</span>'">
+            <span>Phoenix Feather</span>
+          </button>
+        </div>
+        <div id="selectedIngredientsBox" class="mt-2 min-h-[30px] bg-slate-900 rounded-lg flex items-center justify-center gap-2 text-xs font-mono text-amber-300">
+          None selected (0/3)
+        </div>
+      </div>
+
+      <!-- Khu vực hiển thị kết quả biến hình sau khi pha chế -->
+      <div id="transformationResultArea" class="hidden flex-col items-center my-2">
+        <div id="transformImageSlot" class="w-32 h-32 flex items-center justify-center my-1"></div>
+        <h4 id="transformTitle" class="text-sm font-black text-amber-300 font-magic">Magic Hat transformed into White Dove!</h4>
+      </div>
+
+      <div class="flex gap-2 w-full mt-2">
+        <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition">
+          🔄 Reset Lab
+        </button>
+        <button onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 text-white font-black rounded-xl text-sm shadow-lg transition active:scale-95 font-magic">
+          🪄 Stir Cauldron & Transform!
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- MODAL: ĐẬP RƯƠNG MA THUẬT -->
   <div id="mysteryChestModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
@@ -355,6 +412,7 @@
     let fontScale = 1;
     let selectedJumbleWords = [];
     let pendingRewardRealm = null;
+    let selectedPotionIngredients = [];
 
     function loadProgress() {
       try {
@@ -404,6 +462,14 @@
       document.getElementById("playerBadge").innerText = rank.badge;
     }
 
+    // --- CẬP NHẬT BACKGROUND ĐỘNG THEO REALM ---
+    function updateRealmBackground(realmId) {
+      const body = document.getElementById("appBody");
+      const bgImg = `background_realm_0${realmId}.png`;
+      body.style.backgroundImage = `radial-gradient(circle at center, rgba(11, 15, 25, 0.15) 0%, rgba(3, 7, 18, 0.4) 100%), url('${bgImg}')`;
+    }
+
+    // --- DUAL AUDIO ENGINE CHUẨN UK ---
     function playNativeWordAudio(word) {
       if (isMuted) return;
       const cleanWord = word.trim().toLowerCase();
@@ -491,6 +557,8 @@
     function renderCurrentQuestion() {
       const q = QUESTIONS[currentQIndex];
       const realm = getCurrentRealm(q.id);
+
+      updateRealmBackground(realm.id);
 
       document.getElementById("realmIcon").innerText = realm.icon;
       document.getElementById("realmTag").innerText = `PART ${realm.id}: ${realm.name.toUpperCase()} (Q${q.id})`;
@@ -823,6 +891,78 @@
       const q = QUESTIONS[currentQIndex];
       if (q.target) playNativeWordAudio(q.target);
       else if (q.prompt) speakText(q.prompt);
+    }
+
+    // --- LOGIC PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) ---
+    const TRANSFORMATIONS = [
+      { name: "Magic Hat transformed into White Dove!", img: "transform_hat_to_dove.png", icon: "🕊️" },
+      { name: "Magic Hat transformed into Fluffy White Rabbit!", img: "transform_hat_to_rabbit.png", icon: "🐇" },
+      { name: "Magic Tea Mug transformed into Royal Frog Prince!", img: "transform_mug_to_frog.png", icon: "🐸" },
+      { name: "Ancient Scroll transformed into Cute Baby Dragon!", img: "transform_scroll_to_dragon.png", icon: "🐉" }
+    ];
+
+    function togglePotionLab() {
+      const modal = document.getElementById("potionLabModal");
+      modal.classList.toggle("hidden");
+      resetPotionLab();
+    }
+
+    function selectIngredient(type) {
+      if (selectedPotionIngredients.length < 3 && !selectedPotionIngredients.includes(type)) {
+        selectedPotionIngredients.push(type);
+        playSound('correct');
+        updatePotionLabBox();
+      }
+    }
+
+    function updatePotionLabBox() {
+      const box = document.getElementById("selectedIngredientsBox");
+      if (selectedPotionIngredients.length === 0) {
+        box.innerHTML = "None selected (0/3)";
+      } else {
+        box.innerHTML = selectedPotionIngredients.map(i => `<span class="px-2 py-0.5 bg-purple-900 border border-purple-500 rounded text-cyan-200 capitalize">${i}</span>`).join(' + ');
+      }
+    }
+
+    function resetPotionLab() {
+      selectedPotionIngredients = [];
+      updatePotionLabBox();
+      document.getElementById("cauldronArea").classList.remove("hidden");
+      document.getElementById("transformationResultArea").classList.add("hidden");
+      document.getElementById("transformationResultArea").classList.remove("flex");
+    }
+
+    function brewAndTransform() {
+      if (selectedPotionIngredients.length < 3) {
+        alert("Please pick 3 magic ingredients to brew your potion!");
+        return;
+      }
+      playSound('fanfare');
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } });
+      }
+
+      document.getElementById("cauldronArea").classList.add("hidden");
+      const resArea = document.getElementById("transformationResultArea");
+      resArea.classList.remove("hidden");
+      resArea.classList.add("flex");
+
+      // Chọn ngẫu nhiên một phép biến hóa
+      const randomTrans = TRANSFORMATIONS[Math.floor(Math.random() * TRANSFORMATIONS.length)];
+      const imgSlot = document.getElementById("transformImageSlot");
+      
+      if (randomTrans.img) {
+        imgSlot.innerHTML = `<img src="${randomTrans.img}" alt="Transformation" class="max-h-full max-w-full object-contain animate-bounce drop-shadow-xl" onerror="this.parentElement.innerHTML='<span class=\\'text-7xl\\'>${randomTrans.icon}</span>'">`;
+      } else {
+        imgSlot.innerHTML = `<span class="text-7xl animate-bounce">${randomTrans.icon}</span>`;
+      }
+
+      document.getElementById("transformTitle").innerText = randomTrans.name;
+      speakText("Wonderful! Magic spell successful! " + randomTrans.name);
+      
+      // Thưởng kim cương khi pha chế thành công
+      starsEarned += 3;
+      saveProgress();
     }
 
     function triggerMysteryChest(realm) {
