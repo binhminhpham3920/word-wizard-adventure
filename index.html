@@ -69,6 +69,7 @@
       animation: floatSlow 2.5s infinite ease-in-out;
     }
 
+    /* KHUNG CỬA SỔ CẮT ẢNH 3 BƯỚC CHUẨN XÁC */
     .magic-viewport-box {
       position: relative;
       width: 220px;
@@ -82,6 +83,7 @@
       flex-shrink: 0;
       transition: all 0.35s ease;
     }
+    /* Khi bấm nút View 3 Steps để xem toàn cảnh cả tấm ảnh ngang */
     .magic-viewport-box.full-view-mode {
       width: 100%;
       max-width: 440px;
@@ -89,6 +91,7 @@
       min-height: 165px;
     }
 
+    /* Thẻ ảnh bên trong phóng rộng 300% khung chứa và dịch chuyển bằng thuộc tính left */
     .sprite-strip-3x {
       position: absolute;
       top: 0;
@@ -115,16 +118,6 @@
     }
     .poof-flash-ring.active {
       animation: flashBurst 0.55s ease-out forwards;
-    }
-
-    @keyframes lootPopupAnim {
-      0% { transform: translateY(20px) scale(0.8); opacity: 0; }
-      20% { transform: translateY(0px) scale(1.05); opacity: 1; }
-      80% { transform: translateY(0px) scale(1); opacity: 1; }
-      100% { transform: translateY(-25px) scale(0.9); opacity: 0; }
-    }
-    .loot-popup {
-      animation: lootPopupAnim 2s ease-in-out forwards;
     }
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -223,10 +216,7 @@
     </div>
   </main>
 
-  <!-- THÔNG BÁO RƠI NGUYÊN LIỆU KHI LÀM ĐÚNG -->
-  <div id="lootPopupContainer" class="fixed top-20 right-5 z-50 flex flex-col items-end pointer-events-none space-y-2"></div>
-
-  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) -->
+  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB - 100% ENGLISH) -->
   <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[96vh] overflow-y-auto">
       
@@ -234,12 +224,7 @@
         <h3 class="text-sm sm:text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
           <span>🧪</span> Wizard Potion Lab & Magic Show
         </h3>
-        <div class="flex items-center gap-2">
-          <button onclick="toggleRecipeBook()" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-black font-magic flex items-center gap-1 shadow transition">
-            <span>📖</span> Recipe Book
-          </button>
-          <button onclick="togglePotionLab()" class="text-slate-400 hover:text-white text-lg font-bold px-2">✕</button>
-        </div>
+        <button onclick="togglePotionLab()" class="text-slate-400 hover:text-white text-lg font-bold px-2">✕</button>
       </div>
 
       <!-- Khu vực Vạc Thuốc -->
@@ -248,7 +233,7 @@
           <div id="cauldronGlow" class="absolute inset-0 bg-purple-500/30 rounded-full blur-xl transition-all duration-300"></div>
           <img id="cauldronImgEl" src="potion_cauldron.png" alt="Magic Cauldron" class="relative z-10 max-h-full max-w-full object-contain drop-shadow-2xl" onerror="tryAlternativePath(this, 'potion_cauldron.png', '🧪')">
         </div>
-        <p id="cauldronStatusText" class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients from your loot to brew!</p>
+        <p id="cauldronStatusText" class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients to cast a transformation spell!</p>
       </div>
 
       <!-- KHU VỰC SÂN KHẤU BIẾN HÌNH 3 BƯỚC -->
@@ -268,18 +253,21 @@
           </div>
         </div>
 
+        <!-- Khung Cửa Sổ Cắt Ảnh 3 Bước (Sẽ được JS nạp thẻ img trực tiếp khi bấm nút) -->
         <div id="magicSpriteStage" class="magic-viewport-box my-1">
           <div id="poofFlashRing" class="poof-flash-ring absolute inset-0 opacity-0 z-20 pointer-events-none"></div>
           <div id="spriteImgSlot" class="w-full h-full relative"></div>
         </div>
 
         <h4 id="transformTitle" class="text-base sm:text-lg font-black text-amber-300 font-magic mt-2.5 drop-shadow text-center leading-tight">Magic Hat transformed into White Dove!</h4>
-        <span id="rewardGemBadge" class="text-xs text-emerald-300 font-bold mt-1 bg-emerald-950/70 px-3 py-0.5 rounded-full border border-emerald-500/40">+5 Magic Gems 💎 (First discovery!)</span>
+        <span class="text-xs text-emerald-300 font-bold mt-1 bg-emerald-950/70 px-3 py-0.5 rounded-full border border-emerald-500/40">+3 Magic Gems 💎</span>
       </div>
 
       <!-- Kệ 6 Nguyên Liệu Phép Thuật -->
       <div class="w-full bg-slate-950/75 p-2.5 sm:p-3 rounded-2xl border border-cyan-500/30 my-1.5 flex-shrink-0">
-        <div id="ingredientsGrid" class="grid grid-cols-3 gap-2"></div>
+        <div id="ingredientsGrid" class="grid grid-cols-3 gap-2">
+          <!-- Render động từ JS -->
+        </div>
         <div id="selectedIngredientsBox" class="mt-2 min-h-[32px] bg-slate-900/90 border border-slate-700 rounded-xl flex flex-wrap items-center justify-center gap-1.5 px-2 py-1 text-[11px] sm:text-xs font-bold text-amber-300">
           Tap 3 ingredients above (0/3)
         </div>
@@ -287,50 +275,13 @@
 
       <div class="flex gap-2 w-full mt-1 flex-shrink-0">
         <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition border border-slate-600">
-          🔄 Reset
+          🔄 Reset Lab
         </button>
         <button id="btnStirCauldron" onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
           🪄 Stir Cauldron & Transform!
         </button>
       </div>
 
-    </div>
-  </div>
-
-  <!-- MODAL: SÁCH BÍ KÍP PHÙ THỦY (RECIPE BOOK) -->
-  <div id="recipeBookModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-gradient-to-b from-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400 rounded-3xl p-5 max-w-md w-full text-center shadow-2xl flex flex-col items-center">
-      <div class="flex items-center justify-between w-full pb-2 border-b border-amber-500/30 mb-3">
-        <h3 class="text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
-          <span>📖</span> Wizard Recipe Book
-        </h3>
-        <button onclick="toggleRecipeBook()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
-      </div>
-
-      <div id="recipeBookTimerBar" class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
-        <div id="recipeBookTimerFill" class="bg-amber-400 h-full w-full transition-all duration-1000"></div>
-      </div>
-
-      <div class="w-full space-y-2.5 text-left text-xs sm:text-sm font-semibold text-slate-200 my-1">
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
-          <span>🕊️ <b>White Dove:</b> Stardust + Moonflower + Phoenix Feather</span>
-        </div>
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
-          <span>🐇 <b>White Rabbit:</b> Stardust + Butterfly Wing + Unicorn Horn</span>
-        </div>
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
-          <span>🐸 <b>Frog Prince:</b> Moonflower + Butterfly Wing + Dragon Scale</span>
-        </div>
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
-          <span>🐉 <b>Baby Dragon:</b> Phoenix Feather + Dragon Scale + Unicorn Horn</span>
-        </div>
-      </div>
-
-      <p id="recipeBookFeeNote" class="text-[11px] text-cyan-300 mt-2 font-medium">First peek is FREE! Subsequent peeks cost 3 Gems (💎).</p>
-
-      <button onclick="toggleRecipeBook()" class="mt-4 w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-sm font-magic shadow">
-        Got it! Memorized! ➔
-      </button>
     </div>
   </div>
 
@@ -413,7 +364,7 @@
       }
     }
 
-    // Hàm thông minh dò tìm đúng thư mục chứa ảnh biến hình trên GitHub
+    // Dò tìm thư mục con nếu ảnh biến hình nằm trong folder con
     function handleSpriteImgError(imgEl, filename, fallbackEmoji) {
       let idx = parseInt(imgEl.dataset.tryIdx || "0", 10) + 1;
       if (idx < SUBFOLDERS.length) {
@@ -421,7 +372,7 @@
         imgEl.src = SUBFOLDERS[idx] + filename;
       } else {
         imgEl.onerror = null;
-        imgEl.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center text-7xl select-none bg-slate-900">${fallbackEmoji}</div>`;
+        imgEl.outerHTML = `<div class="w-full h-full flex items-center justify-center text-7xl select-none bg-slate-900">${fallbackEmoji}</div>`;
       }
     }
 
@@ -559,20 +510,8 @@
     let currentTransformTimers = [];
     let currentTransformationObj = null;
     let isFullStripMode = false;
-    let recipeBookPeekCount = 0;
-    let recipeBookTimerInterval = null;
 
-    let playerInventory = {
-      "Stardust": 2,
-      "Moonflower": 2,
-      "Phoenix Feather": 2,
-      "Butterfly Wing": 2,
-      "Dragon Scale": 2,
-      "Unicorn Horn": 2
-    };
-
-    let discoveredTransformations = [];
-
+    // --- HỆ THỐNG ÂM THANH TRUNG TÂM ---
     let globalAudioCtx = null;
     function getAudioCtx() {
       if (!globalAudioCtx) {
@@ -593,17 +532,10 @@
         const savedStars = localStorage.getItem("word_wizard_stars");
         const savedStreak = localStorage.getItem("word_wizard_streak");
         const savedPets = localStorage.getItem("word_wizard_pets");
-        const savedInv = localStorage.getItem("word_wizard_inventory");
-        const savedDisco = localStorage.getItem("word_wizard_discovered");
-        const savedPeeks = localStorage.getItem("word_wizard_peeks");
-
         if (savedIndex !== null) currentQIndex = parseInt(savedIndex, 10) || 0;
         if (savedStars !== null) starsEarned = parseInt(savedStars, 10) || 0;
         if (savedStreak !== null) streakCount = parseInt(savedStreak, 10) || 0;
         if (savedPets !== null) unlockedPets = JSON.parse(savedPets) || [1];
-        if (savedInv !== null) playerInventory = JSON.parse(savedInv) || playerInventory;
-        if (savedDisco !== null) discoveredTransformations = JSON.parse(savedDisco) || [];
-        if (savedPeeks !== null) recipeBookPeekCount = parseInt(savedPeeks, 10) || 0;
       } catch (e) {}
       updateTopBarUI();
     }
@@ -614,9 +546,6 @@
         localStorage.setItem("word_wizard_stars", starsEarned);
         localStorage.setItem("word_wizard_streak", streakCount);
         localStorage.setItem("word_wizard_pets", JSON.stringify(unlockedPets));
-        localStorage.setItem("word_wizard_inventory", JSON.stringify(playerInventory));
-        localStorage.setItem("word_wizard_discovered", JSON.stringify(discoveredTransformations));
-        localStorage.setItem("word_wizard_peeks", recipeBookPeekCount);
       } catch (e) {}
       updateTopBarUI();
     }
@@ -627,9 +556,6 @@
         starsEarned = 0;
         streakCount = 0;
         unlockedPets = [1];
-        playerInventory = { "Stardust": 2, "Moonflower": 2, "Phoenix Feather": 2, "Butterfly Wing": 2, "Dragon Scale": 2, "Unicorn Horn": 2 };
-        discoveredTransformations = [];
-        recipeBookPeekCount = 0;
         saveProgress();
         toggleRealmMap();
         renderCurrentQuestion();
@@ -791,24 +717,26 @@
             o.start(now + idx * 0.1);
             o.stop(now + idx * 0.1 + 0.4);
           });
+        } else {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(130, now + 0.3);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
         }
       } catch (e) {}
     }
 
-    const INGREDIENT_NAMES = ["Stardust", "Moonflower", "Phoenix Feather", "Butterfly Wing", "Dragon Scale", "Unicorn Horn"];
-    const INGREDIENT_ICONS = { "Stardust": "🌟", "Moonflower": "🌙", "Phoenix Feather": "🪶", "Butterfly Wing": "🦋", "Dragon Scale": "🛡️", "Unicorn Horn": "🦄" };
-
-    function triggerLootDrop() {
-      const randIng = INGREDIENT_NAMES[Math.floor(Math.random() * INGREDIENT_NAMES.length)];
-      playerInventory[randIng] = (playerInventory[randIng] || 0) + 1;
-      saveProgress();
-
-      const popupContainer = document.getElementById("lootPopupContainer");
-      const popup = document.createElement("div");
-      popup.className = "loot-popup bg-purple-950/95 border-2 border-amber-400 text-amber-200 px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-bold font-magic";
-      popup.innerHTML = `<span>🎁 Loot Drop!</span> <span class="text-base">${INGREDIENT_ICONS[randIng]}</span> <span>+1 ${randIng}</span>`;
-      popupContainer.appendChild(popup);
-      setTimeout(() => popup.remove(), 2000);
+    function toggleMute() {
+      isMuted = !isMuted;
+      document.getElementById("muteBtn").innerText = isMuted ? "🔇" : "🔊";
+      if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
     }
 
     function getCurrentRealm(qId) {
@@ -831,8 +759,11 @@
       iArea.innerHTML = "";
 
       const btnSpeak = document.getElementById("btnHeaderSpeak");
-      if (q.part === 2) btnSpeak.classList.add("hidden");
-      else btnSpeak.classList.remove("hidden");
+      if (q.part === 2) {
+        btnSpeak.classList.add("hidden");
+      } else {
+        btnSpeak.classList.remove("hidden");
+      }
 
       if (q.part === 1) {
         qContainer.innerHTML = `
@@ -1025,8 +956,6 @@
       starsEarned += rewardStars;
       streakCount++;
 
-      triggerLootDrop();
-
       if (typeof confetti === 'function') {
         confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
       }
@@ -1153,7 +1082,7 @@
       else if (q.prompt) speakText(q.prompt);
     }
 
-    // --- LOGIC POTION LAB & CƠ CHẾ DÒ TÌM THƯ MỤC ẢNH ĐẢM BẢO HIỆN HÌNH ---
+    // --- LOGIC POTION LAB & 3-STEP SPRITE ANIMATION (KHỞI TẠO ĐỘNG 100%) ---
     const LAB_INGREDIENTS = [
       { id: "stardust", name: "Stardust", img: "ingredient_stardust.png", icon: "🌟" },
       { id: "moonflower", name: "Moonflower", img: "ingredient_moonflower.png", icon: "🌙" },
@@ -1187,14 +1116,9 @@
       const grid = document.getElementById("ingredientsGrid");
       grid.innerHTML = LAB_INGREDIENTS.map(item => {
         const isSel = selectedPotionIngredients.includes(item.name);
-        const count = playerInventory[item.name] || 0;
-        const hasStock = count > 0;
-
         return `
-          <button onclick="${hasStock ? `selectIngredient('${item.name}')` : `alert('Out of ${item.name}! Answer English questions to loot more!')`}" 
-            class="p-2 rounded-xl border ${isSel ? 'bg-purple-900/90 border-amber-400 scale-95 shadow-lg' : (hasStock ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700' : 'bg-slate-950/40 border-slate-900 opacity-40')} text-xs font-bold text-amber-200 transition flex flex-col items-center gap-1 relative">
-            <span class="absolute top-1 right-1 px-1.5 py-0.2 bg-slate-900/90 text-[10px] rounded-full border border-slate-700 text-cyan-300 font-mono">${count}</span>
-            <div class="w-10 h-10 flex items-center justify-center relative mt-1">
+          <button onclick="selectIngredient('${item.name}')" class="p-2 rounded-xl border ${isSel ? 'bg-purple-900/90 border-amber-400 scale-95 shadow-lg' : 'bg-slate-900/90 hover:bg-slate-800 border-slate-700'} text-xs font-bold text-amber-200 transition flex flex-col items-center gap-1">
+            <div class="w-10 h-10 flex items-center justify-center relative">
               <img src="${item.img}" alt="${item.name}" class="max-h-full max-w-full object-contain drop-shadow" onerror="tryAlternativePath(this, '${item.img}', '${item.icon}')">
             </div>
             <span class="truncate w-full font-magic text-[11px]">${item.name}</span>
@@ -1215,10 +1139,6 @@
 
     function selectIngredient(name) {
       if (selectedPotionIngredients.includes(name)) return;
-      if (playerInventory[name] <= 0) {
-        alert(`You don't have any ${name}! Answer English questions to loot more.`);
-        return;
-      }
       if (selectedPotionIngredients.length < 3) {
         selectedPotionIngredients.push(name);
         playSound('plop');
@@ -1243,7 +1163,7 @@
       isFullStripMode = false;
       renderLabIngredients();
       updatePotionLabBox();
-      document.getElementById("cauldronStatusText").innerText = "Pick 3 magical ingredients from your loot to brew!";
+      document.getElementById("cauldronStatusText").innerText = "Pick 3 magical ingredients to cast a transformation spell!";
       document.getElementById("cauldronArea").classList.remove("hidden");
       document.getElementById("transformationResultArea").classList.add("hidden");
       document.getElementById("transformationResultArea").classList.remove("flex");
@@ -1251,15 +1171,11 @@
 
     function brewAndTransform() {
       if (selectedPotionIngredients.length < 3) {
+        playSound('wrong');
         alert("Please pick 3 magic ingredients to brew your potion!");
         speakText("Pick three magic ingredients first!");
         return;
       }
-
-      selectedPotionIngredients.forEach(ing => {
-        playerInventory[ing] = Math.max(0, (playerInventory[ing] || 1) - 1);
-      });
-      saveProgress();
 
       clearTransformTimers();
       isFullStripMode = false;
@@ -1268,43 +1184,13 @@
       resArea.classList.remove("hidden");
       resArea.classList.add("flex");
 
-      const sortedSelected = [...selectedPotionIngredients].sort();
-      const matchedRecipe = FIXED_RECIPES.find(recipe => {
-        const sortedRecipe = [...recipe.ingredients].sort();
-        return sortedRecipe[0] === sortedSelected[0] && sortedRecipe[1] === sortedSelected[1] && sortedRecipe[2] === sortedSelected[2];
-      });
+      currentTransformationObj = TRANSFORMATIONS[Math.floor(Math.random() * TRANSFORMATIONS.length)];
+      runThreeStepSpriteAnimation(currentTransformationObj);
 
-      if (matchedRecipe) {
-        currentTransformationObj = matchedRecipe.result;
-        const isFirstTime = !discoveredTransformations.includes(currentTransformationObj.name);
-        if (isFirstTime) {
-          discoveredTransformations.push(currentTransformationObj.name);
-          starsEarned += 5;
-          document.getElementById("rewardGemBadge").innerText = "+5 Magic Gems 💎 (First discovery reward!)";
-        } else {
-          document.getElementById("rewardGemBadge").innerText = "+3 Magic Gems 💎";
-          starsEarned += 3;
-        }
-        saveProgress();
-        runThreeStepSpriteAnimation(currentTransformationObj);
-      } else {
-        runFunnyFizzleAnimation();
-      }
+      starsEarned += 3;
+      saveProgress();
     }
 
-    function runFunnyFizzleAnimation() {
-      const slot = document.getElementById("spriteImgSlot");
-      const badge = document.getElementById("stageStepBadge");
-      const titleEl = document.getElementById("transformTitle");
-      
-      slot.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-purple-950 text-cyan-200 p-3 text-center"><span class="text-5xl mb-1">💨</span><span class="text-xs font-bold font-magic text-amber-300">Poof! Funny Purple Smoke!</span></div>`;
-      badge.innerText = `❌ Wrong Recipe!`;
-      titleEl.innerText = `The potion fizzled into giggle smoke! Check the Recipe Book!`;
-      playSound('wrong');
-      speakText("Oops! Wrong recipe!");
-    }
-
-    // Cơ chế an toàn tuyệt đối: Dùng mảng SUBFOLDERS dò tìm file ảnh biến hình trên GitHub
     function runThreeStepSpriteAnimation(transObj) {
       clearTransformTimers();
       isFullStripMode = false;
@@ -1318,18 +1204,20 @@
       stage.classList.remove("full-view-mode");
       btnStrip.innerText = "👁️ View 3 Steps";
 
-      // Khởi tạo thẻ img và tự động kích hoạt hàm dò tìm thư mục nếu không thấy ở gốc
+      // TẠO MỚI THẺ IMG NGAY LÚC BẤM NÚT ĐỂ KHÔNG BAO GIỜ BỊ LỖI SRC RỖNG
       slot.innerHTML = `
         <img id="activeSpriteImg" src="${transObj.img}" alt="${transObj.name}" 
           class="sprite-strip-3x" style="left: 0%;"
           onerror="handleSpriteImgError(this, '${transObj.img}', '${transObj.icon}')">
       `;
 
+      // STEP 1 (0.0s): Hiện phần 1/3 bên trái (left: 0%)
       badge.innerText = `✨ Step 1/3: Charging ${transObj.beforeName}...`;
       titleEl.innerText = `Casting spell on ${transObj.beforeName}...`;
       playSound('charge');
       triggerStageFlash();
 
+      // STEP 2 (1.0s): Trượt sang phần 1/3 ở giữa (left: -100%)
       const t1 = setTimeout(() => {
         if (isFullStripMode) return;
         const img = document.getElementById("activeSpriteImg");
@@ -1340,6 +1228,7 @@
         triggerStageFlash();
       }, 1000);
 
+      // STEP 3 (2.0s): Trượt sang phần 1/3 bên phải (left: -200%)
       const t2 = setTimeout(() => {
         if (isFullStripMode) return;
         const img = document.getElementById("activeSpriteImg");
@@ -1386,51 +1275,6 @@
         playSound('correct');
       }
     }
-
-    function toggleRecipeBook() {
-      const modal = document.getElementById("recipeBookModal");
-      modal.classList.toggle("hidden");
-      
-      if (!modal.classList.contains("hidden")) {
-        const feeNote = document.getElementById("recipeBookFeeNote");
-        if (recipeBookPeekCount === 0) {
-          feeNote.innerText = "First peek is FREE! Subsequent peeks cost 3 Gems (💎).";
-        } else {
-          if (starsEarned < 3) {
-            alert("You need at least 3 Magic Gems (💎) to open the Recipe Book again!");
-            modal.classList.add("hidden");
-            return;
-          }
-          starsEarned -= 3;
-          recipeBookPeekCount++;
-          feeNote.innerText = `Recipe Book opened! (-3 Gems 💎). Total peeks: ${recipeBookPeekCount}`;
-          saveProgress();
-        }
-
-        let timeLeft = 10;
-        const fillBar = document.getElementById("recipeBookTimerFill");
-        fillBar.style.width = "100%";
-        
-        if (recipeBookTimerInterval) clearInterval(recipeBookTimerInterval);
-        recipeBookTimerInterval = setInterval(() => {
-          timeLeft--;
-          fillBar.style.width = `${(timeLeft / 10) * 100}%`;
-          if (timeLeft <= 0) {
-            clearInterval(recipeBookTimerInterval);
-            modal.classList.add("hidden");
-          }
-        }, 1000);
-      } else {
-        if (recipeBookTimerInterval) clearInterval(recipeBookTimerInterval);
-      }
-    }
-
-    const FIXED_RECIPES = [
-      { ingredients: ["Stardust", "Moonflower", "Phoenix Feather"], result: { name: "Magic Hat transformed into White Dove!", beforeName: "Wizard Hat", afterName: "White Dove", img: "transform_hat_to_dove.png", icon: "🕊️" } },
-      { ingredients: ["Stardust", "Butterfly Wing", "Unicorn Horn"], result: { name: "Magic Hat transformed into Fluffy White Rabbit!", beforeName: "Wizard Hat", afterName: "White Rabbit", img: "transform_hat_to_rabbit.png", icon: "🐇" } },
-      { ingredients: ["Moonflower", "Butterfly Wing", "Dragon Scale"], result: { name: "Magic Tea Mug transformed into Royal Frog Prince!", beforeName: "Tea Mug", afterName: "Frog Prince", img: "transform_mug_to_frog.png", icon: "🐸" },
-      { ingredients: ["Phoenix Feather", "Dragon Scale", "Unicorn Horn"], result: { name: "Ancient Scroll transformed into Cute Baby Dragon!", beforeName: "Spell Scroll", afterName: "Baby Dragon", img: "transform_scroll_to_dragon.png", icon: "🐉" } }
-    ];
 
     function triggerMysteryChest(realm) {
       pendingRewardRealm = realm;
