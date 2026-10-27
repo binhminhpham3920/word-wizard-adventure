@@ -79,7 +79,6 @@
       animation: floatSlow 2.5s infinite ease-in-out;
     }
 
-    /* TIA CHỚP NỔ KHÓI (FLASH BURST) */
     @keyframes flashBurst {
       0% { opacity: 1; transform: scale(0.7); }
       40% { opacity: 0.95; transform: scale(1.1); }
@@ -190,7 +189,7 @@
 
   <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) -->
   <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-2 sm:p-4">
-    <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[95vh] overflow-y-auto">
+    <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[96vh] overflow-y-auto">
       
       <div class="flex items-center justify-between w-full pb-2 border-b border-amber-500/30 mb-2">
         <h3 class="text-sm sm:text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
@@ -209,50 +208,50 @@
       </div>
 
       <!-- KHU VỰC SÂN KHẤU CẮT KHUNG 3 BƯỚC (SPRITE VIEWPORT) -->
-      <div id="transformationResultArea" class="hidden flex-col items-center my-1.5 bg-gradient-to-b from-purple-950/85 to-slate-900/95 border-2 border-amber-400/80 rounded-2xl p-3 w-full shadow-2xl relative overflow-hidden">
+      <div id="transformationResultArea" class="hidden flex-col items-center my-1.5 bg-gradient-to-b from-purple-950/85 to-slate-900/95 border-2 border-amber-400/80 rounded-2xl p-3 w-full shadow-2xl relative">
         
         <div class="flex items-center justify-between w-full px-1 mb-2 gap-1 flex-wrap">
-          <span id="stageStepBadge" class="text-xs font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-3 py-0.5 rounded-full font-magic shadow">
-            ✨ Giây 1: Tụ Phép...
+          <span id="stageStepBadge" class="text-[11px] sm:text-xs font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-3 py-0.5 rounded-full font-magic shadow">
+            ✨ Step 1: Charging...
           </span>
           <div class="flex items-center gap-1.5">
-            <button onclick="replayMagicAnimation()" class="text-xs bg-purple-800 hover:bg-purple-700 text-amber-200 px-2.5 py-1 rounded-lg border border-purple-400/50 font-bold transition shadow">
-              🔄 Xem lại phép
+            <button onclick="replayMagicAnimation()" class="text-[11px] sm:text-xs bg-purple-800 hover:bg-purple-700 text-amber-200 px-2.5 py-1 rounded-lg border border-purple-400/50 font-bold transition shadow">
+              🔄 Replay
             </button>
-            <button onclick="toggleFullStripView()" id="btnToggleStrip" class="text-xs bg-slate-800 hover:bg-slate-700 text-cyan-200 px-2.5 py-1 rounded-lg border border-cyan-400/50 font-bold transition shadow whitespace-nowrap">
-              👁️ Xem toàn cảnh
+            <button onclick="toggleFullStripView()" id="btnToggleStrip" class="text-[11px] sm:text-xs bg-slate-800 hover:bg-slate-700 text-cyan-200 px-2.5 py-1 rounded-lg border border-cyan-400/50 font-bold transition shadow whitespace-nowrap">
+              👁️ View 3 Steps
             </button>
           </div>
         </div>
 
-        <!-- Vùng cắt khung ảnh, chống bóp méo với shrink-0 -->
-        <div id="magicSpriteStage" class="relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] rounded-3xl overflow-hidden bg-white border-4 border-amber-400 shadow-[0_0_35px_rgba(251,191,36,0.7)] flex-shrink-0 transition-all duration-300">
+        <!-- Vùng cắt khung ảnh, KHÓA CỨNG KÍCH THƯỚC min-height để không bị xẹp -->
+        <div id="magicSpriteStage" class="relative w-[200px] h-[200px] min-h-[200px] sm:w-[240px] sm:h-[240px] sm:min-h-[240px] rounded-3xl overflow-hidden bg-slate-900 border-4 border-amber-400 shadow-[0_0_35px_rgba(251,191,36,0.7)] flex-shrink-0 transition-all duration-300">
           <div id="poofFlashRing" class="poof-flash-ring absolute inset-0 opacity-0 z-20 pointer-events-none"></div>
           
           <!-- Thẻ ảnh dài 300% dùng để trượt qua lại -->
           <img id="activeSpriteImg" src="" data-filename="" data-emoji="" alt="Transformation" 
                class="absolute top-0 left-0 h-full w-[300%] max-w-none object-cover transition-transform duration-500 ease-in-out origin-center" 
                style="transform: translateX(0%);"
-               onerror="tryAlternativePath(this, this.getAttribute('data-filename'), this.getAttribute('data-emoji'))">
+               onerror="showSpriteFallback(this)">
         </div>
 
-        <h4 id="transformTitle" class="text-base sm:text-lg font-black text-amber-300 font-magic mt-2 drop-shadow text-center leading-tight">Magic Hat transformed into White Dove!</h4>
+        <h4 id="transformTitle" class="text-base sm:text-lg font-black text-amber-300 font-magic mt-3 drop-shadow text-center leading-tight">Magic Hat transformed into White Dove!</h4>
         <span class="text-xs text-emerald-300 font-bold mt-1 bg-emerald-950/70 px-3 py-0.5 rounded-full border border-emerald-500/40">+3 Magic Gems 💎</span>
       </div>
 
       <!-- Kệ 6 Nguyên Liệu Phép Thuật -->
-      <div class="w-full bg-slate-950/75 p-2.5 sm:p-3 rounded-2xl border border-cyan-500/30 my-1.5">
+      <div class="w-full bg-slate-950/75 p-2.5 sm:p-3 rounded-2xl border border-cyan-500/30 my-1.5 flex-shrink-0">
         <div id="ingredientsGrid" class="grid grid-cols-3 gap-2">
           <!-- Render động từ JS -->
         </div>
-        <div id="selectedIngredientsBox" class="mt-2 min-h-[32px] bg-slate-900/90 border border-slate-700 rounded-xl flex flex-wrap items-center justify-center gap-1.5 px-2 py-1 text-xs font-bold text-amber-300">
+        <div id="selectedIngredientsBox" class="mt-2 min-h-[32px] bg-slate-900/90 border border-slate-700 rounded-xl flex flex-wrap items-center justify-center gap-1.5 px-2 py-1 text-[11px] sm:text-xs font-bold text-amber-300">
           Tap 3 ingredients above (0/3)
         </div>
       </div>
 
-      <div class="flex gap-2 w-full mt-1">
+      <div class="flex gap-2 w-full mt-1 flex-shrink-0">
         <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition border border-slate-600">
-          🔄 Reset Lab
+          🔄 Reset
         </button>
         <button id="btnStirCauldron" onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
           🪄 Stir Cauldron & Transform!
@@ -338,6 +337,21 @@
       } else {
         imgEl.onerror = null;
         imgEl.outerHTML = `<span class="text-5xl select-none absolute inset-0 flex items-center justify-center">${fallbackEmoji}</span>`;
+      }
+    }
+
+    function showSpriteFallback(imgEl) {
+      let idx = parseInt(imgEl.dataset.tryIdx || "0", 10) + 1;
+      const filename = imgEl.getAttribute('data-filename');
+      const emoji = imgEl.getAttribute('data-emoji');
+      
+      if (idx < SUBFOLDERS.length) {
+        imgEl.dataset.tryIdx = idx;
+        imgEl.src = SUBFOLDERS[idx] + filename;
+      } else {
+        imgEl.onerror = null;
+        // Hiện Emoji lớn giữa khung nền tối
+        imgEl.outerHTML = `<div class="absolute inset-0 flex items-center justify-center text-7xl select-none bg-slate-900">${emoji}</div>`;
       }
     }
 
@@ -489,7 +503,6 @@
       return globalAudioCtx;
     }
 
-    // Tự động mở khóa audio khi chạm màn hình
     window.addEventListener('pointerdown', () => { getAudioCtx(); }, { once: true });
 
     function loadProgress() {
@@ -742,7 +755,7 @@
           <div class="flex items-center gap-2 w-full max-w-sm">
             <input type="text" id="spellingInput" autocomplete="off" autocapitalize="off" spellcheck="false"
               placeholder="Type word here..." 
-              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-cyan-200 tracking-wider">
+              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300 tracking-wider">
             <button onclick="checkSpelling()" class="px-5 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Cast ✨
             </button>
@@ -761,7 +774,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
             <span class="text-sm sm:text-base font-bold text-cyan-200">Fill in the missing letter rune:</span>
-            <div class="text-4xl sm:text-5xl font-mono font-black text-cyan-300 tracking-widest bg-slate-950/70 px-8 py-3 rounded-2xl border border-cyan-500/60 shadow">
+            <div class="text-4xl sm:text-5xl font-mono font-black text-amber-300 tracking-widest bg-slate-950/70 px-8 py-3 rounded-2xl border border-cyan-500/60 shadow">
               ${q.display}
             </div>
             <p class="text-sm text-slate-100 font-semibold italic">Clue: ${q.hint}</p>
@@ -771,7 +784,7 @@
           <div class="flex items-center gap-2 w-full max-w-xs">
             <input type="text" id="missingInput" maxlength="1" autocomplete="off" autocapitalize="off"
               placeholder="?" 
-              class="w-16 h-14 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl text-center text-2xl font-black text-cyan-200">
+              class="w-16 h-14 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl text-center text-2xl font-black text-amber-300">
             <button onclick="checkMissingLetter()" class="flex-1 py-3 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Unlock 🔓
             </button>
@@ -789,7 +802,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
             <span class="text-sm sm:text-base font-bold text-cyan-200">Cast the plural spell:</span>
-            <div class="text-xl sm:text-2xl font-bold text-cyan-300 font-magic">
+            <div class="text-xl sm:text-2xl font-bold text-amber-300 font-magic">
               ${q.prompt}
             </div>
           </div>
@@ -798,7 +811,7 @@
           <div class="flex items-center gap-2 w-full max-w-sm">
             <input type="text" id="pluralInput" autocomplete="off" autocapitalize="off"
               placeholder="Write plural form..." 
-              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-cyan-200">
+              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300">
             <button onclick="checkPlural()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Transform ✨
             </button>
@@ -817,7 +830,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
             <span class="text-sm sm:text-base font-bold text-cyan-200">Select the correct magic choice:</span>
-            <div class="text-lg sm:text-xl font-bold text-white leading-snug px-2 font-magic drop-shadow">
+            <div class="text-lg sm:text-xl font-bold text-amber-200 leading-snug px-2 font-magic drop-shadow">
               ${q.prompt}
             </div>
           </div>
@@ -825,7 +838,7 @@
         let buttonsHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-md">`;
         q.options.forEach(opt => {
           buttonsHtml += `
-            <button onclick="checkMultipleChoice('${opt}')" class="px-4 py-3 bg-slate-900/90 hover:bg-cyan-950/80 active:bg-cyan-800 border-2 border-cyan-500/60 hover:border-cyan-300 text-white font-bold rounded-xl text-base transition shadow font-magic">
+            <button onclick="checkMultipleChoice('${opt}')" class="px-4 py-3 bg-slate-900/90 hover:bg-cyan-950/80 active:bg-cyan-800 border-2 border-cyan-500/60 hover:border-amber-300 text-amber-200 font-bold rounded-xl text-base transition shadow font-magic">
               ${opt}
             </button>
           `;
@@ -839,12 +852,12 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
             <span class="text-sm font-semibold text-cyan-200">Tap words in correct order:</span>
-            <div id="jumbleAnswerBox" class="min-h-[48px] w-full bg-slate-950/80 border-2 border-dashed border-cyan-400/60 rounded-xl flex flex-wrap items-center justify-center gap-2 p-2 text-base font-bold text-cyan-200">
+            <div id="jumbleAnswerBox" class="min-h-[48px] w-full bg-slate-950/80 border-2 border-dashed border-cyan-400/60 rounded-xl flex flex-wrap items-center justify-center gap-2 p-2 text-base font-bold text-amber-300">
               <span class="text-xs text-slate-300 font-normal">Tap words below...</span>
             </div>
             <div id="jumbleWordPool" class="flex flex-wrap items-center justify-center gap-2 pt-1">
               ${q.words.map((w, idx) => `
-                <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 border border-cyan-500/50 rounded-xl text-sm font-bold text-white transition font-magic shadow">
+                <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 border border-cyan-500/50 rounded-xl text-sm font-bold text-amber-200 transition font-magic shadow">
                   ${w}
                 </button>
               `).join('')}
@@ -879,7 +892,7 @@
             <div class="flex items-center gap-2 w-full">
               <input type="text" id="captionInput" autocomplete="off" spellcheck="false"
                 placeholder="E.g., The red ball is under the table." 
-                class="flex-1 bg-slate-950/85 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3.5 py-2 text-sm sm:text-base font-semibold text-white">
+                class="flex-1 bg-slate-950/85 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3.5 py-2 text-sm sm:text-base font-semibold text-amber-200">
               <button onclick="checkCaption()" class="px-5 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 whitespace-nowrap font-magic">
                 Submit 🌟
               </button>
@@ -1042,7 +1055,7 @@
       else if (q.prompt) speakText(q.prompt);
     }
 
-    // --- LOGIC POTION LAB & CẮT KHUNG SPRITE CẢI TIẾN ---
+    // --- LOGIC POTION LAB & CẮT KHUNG SPRITE ---
     const LAB_INGREDIENTS = [
       { id: "stardust", name: "Stardust", img: "ingredient_stardust.png", icon: "🌟" },
       { id: "moonflower", name: "Moonflower", img: "ingredient_moonflower.png", icon: "🌙" },
@@ -1153,7 +1166,6 @@
       saveProgress();
     }
 
-    // --- HỆ THỐNG CẮT KHUNG VÀ CHẠY HOẠT CẢNH ---
     function runThreeStepSpriteAnimation(transObj) {
       clearTransformTimers();
       isFullStripMode = false;
@@ -1164,44 +1176,43 @@
       const badge = document.getElementById("stageStepBadge");
       const titleEl = document.getElementById("transformTitle");
 
-      stage.classList.remove("w-full", "max-w-md", "h-[150px]");
-      stage.classList.add("w-[220px]", "h-[220px]", "sm:w-[240px]", "sm:h-[240px]");
+      stage.classList.remove("w-full", "max-w-md", "h-[120px]", "min-h-[120px]");
+      stage.classList.add("w-[200px]", "h-[200px]", "min-h-[200px]", "sm:w-[240px]", "sm:h-[240px]", "sm:min-h-[240px]");
       
       img.classList.remove("w-full", "object-contain");
       img.classList.add("w-[300%]", "object-cover");
-      btnStrip.innerText = "👁️ Xem toàn cảnh";
+      btnStrip.innerText = "👁️ View 3 Steps";
 
-      // Nạp ảnh
       img.dataset.tryIdx = "0";
       img.setAttribute("data-filename", transObj.img);
       img.setAttribute("data-emoji", transObj.icon);
       img.src = transObj.img;
-      img.onerror = function() { tryAlternativePath(this, this.getAttribute('data-filename'), this.getAttribute('data-emoji')); };
+      img.onerror = function() { showSpriteFallback(this); };
 
-      // GIÂY 1: Hiện Khung Đầu (0%)
+      // GIÂY 1 (0%)
       img.style.transform = "translateX(0%) scale(1)";
       stage.classList.add("animate-pulse"); 
-      badge.innerText = `🪄 Giây 1: ${transObj.beforeName} tụ phép...`;
-      titleEl.innerText = `Charging magic on ${transObj.beforeName}...`;
+      badge.innerText = `✨ Step 1: Charging...`;
+      titleEl.innerText = `Casting spell on ${transObj.beforeName}...`;
       playSound('charge');
       triggerStageFlash();
 
-      // GIÂY 2: Hiện Khung Giữa (-33.333%)
+      // GIÂY 2 (-33.333%)
       const t1 = setTimeout(() => {
         if (isFullStripMode) return;
         stage.classList.remove("animate-pulse");
         img.style.transform = "translateX(-33.333%) scale(1.05)";
-        badge.innerText = `💥 Giây 2: Nổ khói phép thuật!`;
-        titleEl.innerText = `✨ Magic Swirl & Sparks! ✨`;
+        badge.innerText = `💥 Step 2: Magic Swirl!`;
+        titleEl.innerText = `✨ Transforming... ✨`;
         playSound('swirl');
         triggerStageFlash();
       }, 1000);
 
-      // GIÂY 3: Hiện Khung Cuối (-66.666%)
+      // GIÂY 3 (-66.666%)
       const t2 = setTimeout(() => {
         if (isFullStripMode) return;
         img.style.transform = "translateX(-66.666%) scale(1)";
-        badge.innerText = `🎉 Giây 3: POOF! ${transObj.afterName} xuất hiện!`;
+        badge.innerText = `🎉 Step 3: POOF! Appears!`;
         titleEl.innerText = transObj.name;
         playSound('poof');
         triggerStageFlash();
@@ -1229,27 +1240,27 @@
 
       if (isFullStripMode) {
         clearTransformTimers();
-        stage.classList.remove("w-[220px]", "h-[220px]", "sm:w-[240px]", "sm:h-[240px]", "animate-pulse");
-        stage.classList.add("w-full", "max-w-md", "h-[150px]");
+        stage.classList.remove("w-[200px]", "h-[200px]", "min-h-[200px]", "sm:w-[240px]", "sm:h-[240px]", "sm:min-h-[240px]", "animate-pulse");
+        stage.classList.add("w-full", "max-w-md", "h-[120px]", "min-h-[120px]");
         
         img.classList.remove("w-[300%]", "object-cover");
         img.classList.add("w-full", "object-contain");
         img.style.transform = "translateX(0%)";
         
-        btn.innerText = "🎯 Hoạt cảnh 3 bước";
-        document.getElementById("stageStepBadge").innerText = "📜 Toàn cảnh cuộn phép thuật";
+        btn.innerText = "🎯 Zoom Object";
+        document.getElementById("stageStepBadge").innerText = "📜 Full Magic Scroll";
         playSound('correct');
       } else {
-        stage.classList.add("w-[220px]", "h-[220px]", "sm:w-[240px]", "sm:h-[240px]");
-        stage.classList.remove("w-full", "max-w-md", "h-[150px]");
+        stage.classList.add("w-[200px]", "h-[200px]", "min-h-[200px]", "sm:w-[240px]", "sm:h-[240px]", "sm:min-h-[240px]");
+        stage.classList.remove("w-full", "max-w-md", "h-[120px]", "min-h-[120px]");
         
         img.classList.add("w-[300%]", "object-cover");
         img.classList.remove("w-full", "object-contain");
         img.style.transform = "translateX(-66.666%)";
         
-        btn.innerText = "👁️ Xem toàn cảnh";
+        btn.innerText = "👁️ View 3 Steps";
         if (currentTransformationObj) {
-          document.getElementById("stageStepBadge").innerText = `🎉 Giây 3: POOF! ${currentTransformationObj.afterName} xuất hiện!`;
+          document.getElementById("stageStepBadge").innerText = `🎉 Step 3: POOF! Appears!`;
         }
         playSound('correct');
       }
