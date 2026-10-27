@@ -28,7 +28,6 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       background-color: #0b0f19;
-      /* Mặc định luôn có background_home.png làm lớp lót dự phòng */
       background-image: 
         radial-gradient(circle at center, rgba(11, 15, 25, 0.15) 0%, rgba(3, 7, 18, 0.45) 100%),
         url('background_home.png');
@@ -69,6 +68,72 @@
     }
     .float-anim {
       animation: floatSlow 2.5s infinite ease-in-out;
+    }
+
+    /* HIỆU ỨNG CHUYỂN CẢNH MA THUẬT CHO ẢNH 3 BƯỚC (SPRITE SHEET) */
+    .magic-stage-viewport {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 9999px;
+      overflow: hidden;
+      background: #ffffff;
+      border: 4px solid #fbbf24;
+      box-shadow: 0 0 35px rgba(245, 158, 11, 0.7), inset 0 0 20px rgba(168, 85, 247, 0.4);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    /* Chế độ xem toàn cảnh cả 3 bước phóng to */
+    .magic-stage-viewport.full-strip-mode {
+      width: 100%;
+      max-width: 440px;
+      height: 175px;
+      border-radius: 1.25rem;
+    }
+
+    .magic-sprite-strip {
+      width: 300%;
+      max-width: none !important;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+    }
+    .magic-stage-viewport.full-strip-mode .magic-sprite-strip {
+      width: 100%;
+      object-fit: contain;
+      transform: translateX(0%) !important;
+    }
+
+    /* Vị trí cắt từng khung hình (Trái - Giữa - Phải) */
+    .stage-pos-0 { transform: translateX(0%); }
+    .stage-pos-1 { transform: translateX(-33.3333%); }
+    .stage-pos-2 { transform: translateX(-66.6667%); }
+
+    /* Hiệu ứng chớp sáng và khói nổ khi chuyển bước */
+    @keyframes poofFlash {
+      0% { opacity: 1; transform: scale(0.6); }
+      50% { opacity: 0.95; transform: scale(1.25); }
+      100% { opacity: 0; transform: scale(1.7); }
+    }
+    .poof-smoke-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, #ffffff 20%, #fde047 60%, rgba(168, 85, 247, 0) 80%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 20;
+    }
+    .poof-smoke-overlay.active {
+      animation: poofFlash 0.6s ease-out forwards;
+    }
+
+    @keyframes cauldronBrewShake {
+      0%, 100% { transform: rotate(0deg) scale(1); filter: hue-rotate(0deg); }
+      25% { transform: rotate(-10deg) scale(1.12); filter: hue-rotate(45deg) brightness(1.2); }
+      50% { transform: rotate(10deg) scale(1.18); filter: hue-rotate(90deg) brightness(1.4); }
+      75% { transform: rotate(-8deg) scale(1.12); filter: hue-rotate(180deg) brightness(1.2); }
+    }
+    .cauldron-brewing {
+      animation: cauldronBrewShake 0.45s infinite ease-in-out !important;
     }
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -169,9 +234,9 @@
     </div>
   </main>
 
-  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB NÂNG CẤP) -->
-  <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
-    <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[92vh] overflow-y-auto">
+  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB VỚI HIỆU ỨNG BIẾN HÌNH ĐỘNG & ÂM THANH) -->
+  <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-2 sm:p-3">
+    <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[94vh] overflow-y-auto">
       
       <div class="flex items-center justify-between w-full pb-2 border-b border-amber-500/30 mb-2">
         <h3 class="text-sm sm:text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
@@ -182,37 +247,552 @@
 
       <!-- Khu vực Vạc Thuốc Sôi Sùng Sục -->
       <div id="cauldronArea" class="my-1 flex flex-col items-center">
-        <div class="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center float-anim">
-          <div class="absolute inset-0 bg-purple-500/20 rounded-full blur-xl"></div>
+        <div id="cauldronShakeBox" class="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center float-anim">
+          <div class="absolute inset-0 bg-purple-500/30 rounded-full blur-xl animate-pulse"></div>
           <img id="cauldronImgEl" src="potion_cauldron.png" alt="Magic Cauldron" class="relative z-10 max-h-full max-w-full object-contain drop-shadow-2xl" onerror="tryAlternativePath(this, 'potion_cauldron.png', '🧪')">
         </div>
-        <p class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients to cast a transformation spell!</p>
+        <p id="cauldronStatusText" class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients to cast a transformation spell!</p>
       </div>
 
-      <!-- Khu vực Hiển Thị Kết Quả Biến Hóa (Ẩn lúc đầu) -->
-      <div id="transformationResultArea" class="hidden flex-col items-center my-2 bg-purple-950/50 border-2 border-amber-400/60 rounded-2xl p-3 w-full shadow-inner">
-        <span class="text-[11px] font-black uppercase tracking-widest text-cyan-300 mb-1">✨ POOF! SPELL SUCCESSFUL! ✨</span>
-        <div id="transformImageSlot" class="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center my-1 float-anim"></div>
-        <h4 id="transformTitle" class="text-sm sm:text-base font-black text-amber-300 font-magic mt-1">Magic Hat transformed into White Dove!</h4>
-        <span class="text-xs text-emerald-300 font-bold mt-0.5">+3 Magic Gems 💎</span>
+      <!-- Khu vực Hiển Thị Kết Quả Biến Hóa (HIỆU ỨNG CHUYỂN CẢNH 3 BƯỚC TO RÕ) -->
+      <div id="transformationResultArea" class="hidden flex-col items-center my-1.5 bg-purple-950/60 border-2 border-amber-400/70 rounded-2xl p-3 w-full shadow-2xl relative overflow-hidden">
+        
+        <span id="spellStageBadge" class="text-xs font-black uppercase tracking-widest text-cyan-300 mb-2 bg-slate-900/90 px-3 py-1 rounded-full border border-cyan-400/40 shadow">
+          ✨ STAGE 1: CHARGING MAGIC... ✨
+        </span>
+
+        <!-- Khung kính tròn phóng to từng bước biến hình -->
+        <div id="magicStageViewport" class="magic-stage-viewport my-1 flex items-center justify-center">
+          <div id="poofSmokeOverlay" class="poof-smoke-overlay"></div>
+          <img id="transformSpriteImg" src="transform_hat_to_dove.png" alt="Magic Transformation" class="magic-sprite-strip stage-pos-0" onerror="tryAlternativePath(this, 'transform_hat_to_dove.png', '🕊️')">
+        </div>
+
+        <!-- Nút điều khiển xem lại hiệu ứng hoặc xem toàn cảnh 3 bước -->
+        <div class="flex items-center gap-2 mt-2">
+          <button onclick="replayCurrentTransformation()" class="px-2.5 py-1 bg-indigo-900/90 hover:bg-indigo-800 text-cyan-200 rounded-lg text-[11px] font-bold border border-indigo-400/40 transition flex items-center gap-1">
+            <span>✨</span> Replay Magic
+          </button>
+          <button onclick="toggleFullStripView()" id="btnToggleStrip" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-200 rounded-lg text-[11px] font-bold border border-slate-600 transition flex items-center gap-1">
+            <span>👁️</span> Show All 3 Steps
+          </button>
+        </div>
+
+        <h4 id="transformTitle" class="text-sm sm:text-base font-black text-amber-300 font-magic mt-2">Magic Hat transformed into White Dove!</h4>
+        <span class="text-xs text-emerald-300 font-bold">+3 Magic Gems 💎</span>
       </div>
 
       <!-- Kệ 6 Nguyên Liệu Phép Thuật -->
-      <div class="w-full bg-slate-950/70 p-3 rounded-2xl border border-cyan-500/30 my-2">
+      <div class="w-full bg-slate-950/70 p-2.5 sm:p-3 rounded-2xl border border-cyan-500/30 my-1.5">
         <div id="ingredientsGrid" class="grid grid-cols-3 gap-2">
           <!-- Render động từ JS -->
         </div>
         <!-- Ô hiển thị công thức đã chọn -->
-        <div id="selectedIngredientsBox" class="mt-2.5 min-h-[34px] bg-slate-900/90 border border-slate-700 rounded-xl flex flex-wrap items-center justify-center gap-1.5 px-2 py-1 text-xs font-bold text-amber-300">
+        <div id="selectedIngredientsBox" class="mt-2 min-h-[34px] bg-slate-900/90 border border-slate-700 rounded-xl flex flex-wrap items-center justify-center gap-1.5 px-2 py-1 text-xs font-bold text-amber-300">
           Tap 3 ingredients above (0/3)
         </div>
       </div>
 
       <div class="flex gap-2 w-full mt-1">
         <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition border border-slate-600">
-          🔄 Reset
+          🔄 Reset Lab
         </button>
-        <button onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
+        <button id="btnBrewSpell" onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
+          🪄 Stir Cauldron & Transform!
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: ĐẬP RƯƠNG MA THUẬT -->
+  <div id="mysteryChestModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
+    <div class="relative bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400 rounded-3xl p-5 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+      
+      <div class="absolute -top-10 w-32 h-32 bg-cyan-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <h3 class="text-xs uppercase tracking-widest text-cyan-300 font-black mb-1 font-magic">🎉 REALM CLEARED!</h3>
+      <h2 id="chestModalTitle" class="text-base sm:text-lg font-black text-white mb-2 font-magic">Mystery Chest Discovered!</h2>
+
+      <div id="chestWrapper" onclick="unlockMysteryChest()" class="my-3 cursor-pointer flex flex-col items-center group">
+        <div class="w-36 h-36 flex items-center justify-center select-none">
+          <img src="chest_closed.png" alt="Magic Chest" class="max-h-full max-w-full object-contain chest-animate transition-transform active:scale-95 drop-shadow-2xl" onerror="tryAlternativePath(this, 'chest_closed.png', '🎁')">
+        </div>
+        <div class="mt-3 text-xs font-bold text-cyan-200 bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-400/40 animate-pulse font-magic">
+          👉 Tap Chest to Crack Open! 👈
+        </div>
+      </div>
+
+      <div id="chestRewardArea" class="hidden flex-col items-center w-full">
+        <div class="w-28 h-20 mb-1 flex items-center justify-center">
+          <img src="chest_open.png" alt="Chest Opened" class="max-h-full max-w-full object-contain drop-shadow-xl" onerror="this.style.display='none'">
+        </div>
+        <div id="rewardPetImageSlot" class="w-32 h-32 my-1 flex items-center justify-center"></div>
+        <h4 id="rewardPetName" class="text-base font-black text-amber-300 font-magic">Baby Dragon</h4>
+        <p id="rewardPetDesc" class="text-xs text-slate-200 mt-1 mb-3">A loyal magical companion has joined Minh's Vault!</p>
+        <button onclick="closeChestModal()" class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-lg transition active:scale-95 font-magic">
+          Continue Adventure ➔
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: BẢN ĐỒ REALMS -->
+  <div id="realmMapModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-500/50 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+        <h3 class="text-sm font-bold text-cyan-300 font-magic flex items-center gap-1.5">
+          <span>🗺️</span> 9 Magic Realms of Cambridge Stage 2
+        </h3>
+        <button onclick="toggleRealmMap()" class="text-slate-400 hover:text-slate-100 text-base font-bold px-2 py-0.5">✕</button>
+      </div>
+      <div id="realmListGrid" class="p-3 overflow-y-auto space-y-2 flex-1"></div>
+      <div class="p-2 border-t border-slate-800 bg-slate-950/50 text-center">
+        <button onclick="confirmResetProgress()" class="text-[11px] text-rose-400 hover:text-rose-300 font-semibold px-3 py-1 rounded bg-rose-950/40 border border-rose-800/50">
+          ⚠️ Reset Adventure Progress
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: BALO PHÙ THỦY -->
+  <div id="inventoryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900/95 backdrop-blur-xl border-2 border-purple-500/50 rounded-2xl max-w-md w-full p-4 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+        <h3 class="text-sm font-bold text-purple-300 font-magic flex items-center gap-1.5">
+          <span>🎒</span> Minh's Magic Pet Vault
+        </h3>
+        <button onclick="toggleInventoryModal()" class="text-slate-400 hover:text-slate-100 text-base font-bold">✕</button>
+      </div>
+      <div id="vaultItemsGrid" class="grid grid-cols-3 gap-2.5 py-2 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT GAME ENGINE -->
+  <script>
+    const SUBFOLDERS = ["", "magic_assets/", "magic_set2_all_8/", "backgrounds_all_9_realms/", "assets/", "images/"];
+
+    function tryAlternativePath(imgEl, filename, fallbackEmoji) {
+      let idx = parseInt(imgEl.dataset.tryIdx || "0", 10) + 1;
+      if (idx < SUBFOLDERS.length) {
+        imgEl.dataset.tryIdx = idx;
+        imgEl.src = SUBFOLDERS[idx] + filename;
+      } else {
+        imgEl.onerror = null;
+        imgEl.outerHTML = `<span class="text-5xl select-none">${fallbackEmoji}</span>`;
+      }
+    }
+
+    const REALMS = [
+      { id: 1, name: "Spelling Realm", range: [1, 15], icon: "✍️", desc: "Listen carefully & spell the magic rune", pet: { name: "Baby Dragon", img: "pet_01_dragon.png", icon: "🐉", desc: "A fiery little dragon from Realm 1!" } },
+      { id: 2, name: "Missing Letter Runes", range: [16, 25], icon: "🧩", desc: "Look at the pattern & fill missing letters", pet: { name: "Snowy Owl", img: "pet_02_owl.png", icon: "🦉", desc: "Wise courier of the Cambridge sky!" } },
+      { id: 3, name: "Plural Enchantments", range: [26, 35], icon: "✨", desc: "Transform singular objects into plurals", pet: { name: "Shadow Cat", img: "pet_03_cat.png", icon: "🐈‍⬛", desc: "Quiet guardian with glowing eyes!" } },
+      { id: 4, name: "Pronoun Grove", range: [36, 40], icon: "🌿", desc: "Choose the correct hero pronoun", pet: { name: "Forest Pixie", img: "pet_04_pixie.png", icon: "🧚", desc: "Sprinkles fairy dust on grammar!" } },
+      { id: 5, name: "Preposition Pathway", range: [41, 45], icon: "🧭", desc: "Master where objects are placed", pet: { name: "Magic Compass", img: "pet_05_compass.png", icon: "🧭", desc: "Never loses the way in storyland!" } },
+      { id: 6, name: "Verb & Tense Tower", range: [46, 55], icon: "⏳", desc: "Past, present and action spells", pet: { name: "Time Griffin", img: "pet_06_griffin.png", icon: "🦅", desc: "Masters past, present & future!" } },
+      { id: 7, name: "Sentence Builder", range: [56, 60], icon: "🧱", desc: "Connect words with punctuation", pet: { name: "Silver Unicorn", img: "pet_07_unicorn.png", icon: "🦄", desc: "Brings harmony to long sentences!" } },
+      { id: 8, name: "Grammar Sorter", range: [61, 65], icon: "⚖️", desc: "Nouns, Verbs and Adjectives", pet: { name: "Scholar Fox", img: "pet_08_fox.png", icon: "🦊", desc: "Sharp eye for every part of speech!" } },
+      { id: 9, name: "Story Caption Citadel", range: [66, 100], icon: "🎨", desc: "Look at the picture & write a sentence", pet: { name: "Grand Archmage Phoenix", img: "pet_09_phoenix.png", icon: "🔥", desc: "Supreme master of English Stage 2!" } }
+    ];
+
+    const RANKS = [
+      { minGems: 0, title: "Novice Spellcaster", badge: "Lv.1" },
+      { minGems: 25, title: "Rune Apprentice", badge: "Lv.2" },
+      { minGems: 60, title: "Dragon Rider", badge: "Lv.3" },
+      { minGems: 100, title: "Cambridge Archmage", badge: "Lv.4" },
+      { minGems: 150, title: "Grand Grandmaster", badge: "Lv.MAX" }
+    ];
+
+    const QUESTIONS = [
+      { id: 1, part: 1, target: "cat", word: "cat", hint: "A furry pet that meows", len: 3 },
+      { id: 2, part: 1, target: "pen", word: "pen", hint: "Used for writing with ink", len: 3 },
+      { id: 3, part: 1, target: "jam", word: "jam", hint: "Sweet fruit spread for bread", len: 3 },
+      { id: 4, part: 1, target: "box", word: "box", hint: "A square container with a lid", len: 3 },
+      { id: 5, part: 1, target: "bell", word: "bell", hint: "It rings with a clear chime", len: 4 },
+      { id: 6, part: 1, target: "stop", word: "stop", hint: "Cease moving immediately", len: 4 },
+      { id: 7, part: 1, target: "stick", word: "stick", hint: "A small branch of wood", len: 5 },
+      { id: 8, part: 1, target: "one", word: "one", hint: "The number after zero", len: 3 },
+      { id: 9, part: 1, target: "they", word: "they", hint: "Used to refer to two or more people", len: 4 },
+      { id: 10, part: 1, target: "said", word: "said", hint: "Past tense of say", len: 4 },
+      { id: 11, part: 1, target: "book", word: "book", hint: "Pages with stories to read", len: 4 },
+      { id: 12, part: 1, target: "jumper", word: "jumper", hint: "Warm knitted sweater", len: 6 },
+      { id: 13, part: 1, target: "baker", word: "baker", hint: "Person who bakes fresh bread", len: 5 },
+      { id: 14, part: 1, target: "happy", word: "happy", hint: "Feeling cheerful and smiling", len: 5 },
+      { id: 15, part: 1, target: "school", word: "school", hint: "A magical place of daily learning", len: 6 },
+      { id: 16, part: 2, display: "b _ k e r", answer: "a", target: "baker", hint: "Someone who bakes bread" },
+      { id: 17, part: 2, display: "t e a c h _ r", answer: "e", target: "teacher", hint: "Guides students in wizard class" },
+      { id: 18, part: 2, display: "d o c t _ r", answer: "o", target: "doctor", hint: "Heals injured adventurers" },
+      { id: 19, part: 2, display: "f a r m _ r", answer: "e", target: "farmer", hint: "Grows crops in the sunny fields" },
+      { id: 20, part: 2, display: "n _ r s e", answer: "u", target: "nurse", hint: "Helps care for unwell wizards" },
+      { id: 21, part: 2, display: "p i l _ t", answer: "o", target: "pilot", hint: "Flies soaring machines in the sky" },
+      { id: 22, part: 2, display: "a c t _ r", answer: "o", target: "actor", hint: "Performs thrilling stage plays" },
+      { id: 23, part: 2, display: "s i n g _ r", answer: "e", target: "singer", hint: "Creates melodies with their voice" },
+      { id: 24, part: 2, display: "d a n c _ r", answer: "e", target: "dancer", hint: "Moves gracefully to the rhythm" },
+      { id: 25, part: 2, display: "w r i t _ r", answer: "e", target: "writer", hint: "Pens spellbinding storybooks" },
+      { id: 26, part: 3, prompt: "One dog, two ___", answer: "dogs", target: "dogs" },
+      { id: 27, part: 3, prompt: "One cat, two ___", answer: "cats", target: "cats" },
+      { id: 28, part: 3, prompt: "One book, two ___", answer: "books", target: "books" },
+      { id: 29, part: 3, prompt: "One box, two ___", answer: "boxes", target: "boxes" },
+      { id: 30, part: 3, prompt: "One bus, two ___", answer: "buses", target: "buses" },
+      { id: 31, part: 3, prompt: "One baby, two ___", answer: "babies", target: "babies" },
+      { id: 32, part: 3, prompt: "One city, two ___", answer: "cities", target: "cities" },
+      { id: 33, part: 3, prompt: "One child, two ___", answer: "children", target: "children" },
+      { id: 34, part: 3, prompt: "One foot, two ___", answer: "feet", target: "feet" },
+      { id: 35, part: 3, prompt: "One tooth, two ___", answer: "teeth", target: "teeth" },
+      { id: 36, part: 4, prompt: "___ is reading a book. (A boy)", options: ["He", "She", "It", "They"], answer: "He" },
+      { id: 37, part: 4, prompt: "___ is singing a song. (A girl)", options: ["He", "She", "It", "They"], answer: "She" },
+      { id: 38, part: 4, prompt: "___ is running fast. (A dog)", options: ["He", "She", "It", "They"], answer: "It" },
+      { id: 39, part: 4, prompt: "___ are playing football. (Minh and Nam)", options: ["We", "You", "He", "They"], answer: "They" },
+      { id: 40, part: 4, prompt: "Minh and I are happy. ___ are friends.", options: ["They", "We", "He", "You"], answer: "We" },
+      { id: 41, part: 5, prompt: "The cat is sleeping ___ the bed.", options: ["under", "in", "between"], answer: "under" },
+      { id: 42, part: 5, prompt: "The book is ___ the table.", options: ["on", "under", "in"], answer: "on" },
+      { id: 43, part: 5, prompt: "The pencil is ___ the pencil case.", options: ["in", "on", "behind"], answer: "in" },
+      { id: 44, part: 5, prompt: "The ball rolled ___ the two chairs.", options: ["between", "on", "in"], answer: "between" },
+      { id: 45, part: 5, prompt: "The broomstick is leaning ___ the wall.", options: ["against", "under", "in"], answer: "against" },
+      { id: 46, part: 6, prompt: "She ___ (play) tennis every Sunday.", options: ["plays", "play", "played"], answer: "plays" },
+      { id: 47, part: 6, prompt: "They ___ (watch) TV right now.", options: ["are watching", "watch", "watched"], answer: "are watching" },
+      { id: 48, part: 6, prompt: "Yesterday, Minh ___ (go) to the zoo.", options: ["went", "goes", "go"], answer: "went" },
+      { id: 49, part: 6, prompt: "He ___ (eat) an apple this morning.", options: ["ate", "eats", "eating"], answer: "ate" },
+      { id: 50, part: 6, prompt: "Tomorrow, we ___ (visit) our grandparents.", options: ["will visit", "visited", "visit"], answer: "will visit" },
+      { id: 51, part: 6, prompt: "Look! The dragon ___ (fly) in the sky.", options: ["is flying", "flew", "flies"], answer: "is flying" },
+      { id: 52, part: 6, prompt: "Birds ___ (sing) sweetly in spring.", options: ["sing", "sings", "sang"], answer: "sing" },
+      { id: 53, part: 6, prompt: "Last night, I ___ (see) a magic star.", options: ["saw", "see", "sees"], answer: "saw" },
+      { id: 54, part: 6, prompt: "Minh always ___ (brush) his teeth before bed.", options: ["brushes", "brush", "brushed"], answer: "brushes" },
+      { id: 55, part: 6, prompt: "We ___ (have) so much fun yesterday.", options: ["had", "have", "has"], answer: "had" },
+      { id: 56, part: 7, prompt: "Arrange into a complete sentence:", words: ["The", "wizard", "casts", "a", "spell."], answer: "The wizard casts a spell." },
+      { id: 57, part: 7, prompt: "Arrange into a complete sentence:", words: ["She", "reads", "books", "every", "night."], answer: "She reads books every night." },
+      { id: 58, part: 7, prompt: "Arrange into a complete sentence:", words: ["Dogs", "love", "to", "run", "outside."], answer: "Dogs love to run outside." },
+      { id: 59, part: 7, prompt: "Arrange into a complete sentence:", words: ["Where", "is", "my", "magic", "wand?"], answer: "Where is my magic wand?" },
+      { id: 60, part: 7, prompt: "Arrange into a complete sentence:", words: ["We", "are", "learning", "English", "together."], answer: "We are learning English together." },
+      { id: 61, part: 8, prompt: "What part of speech is 'castle'?", options: ["Noun", "Verb", "Adjective"], answer: "Noun" },
+      { id: 62, part: 8, prompt: "What part of speech is 'fly'?", options: ["Verb", "Noun", "Adjective"], answer: "Verb" },
+      { id: 63, part: 8, prompt: "What part of speech is 'sparkly'?", options: ["Adjective", "Noun", "Verb"], answer: "Adjective" },
+      { id: 64, part: 8, prompt: "Find the action verb in: 'Minh jumps high.'", options: ["jumps", "Minh", "high"], answer: "jumps" },
+      { id: 65, part: 8, prompt: "Find the adjective in: 'The brave wizard smiled.'", options: ["brave", "wizard", "smiled"], answer: "brave" },
+      { id: 66, part: 9, img: "caption_066.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 67, part: 9, img: "caption_067.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 68, part: 9, img: "caption_068.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 69, part: 9, img: "caption_069.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 70, part: 9, img: "caption_070.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 71, part: 9, img: "caption_071.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 72, part: 9, img: "caption_072.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 73, part: 9, img: "caption_073.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 74, part: 9, img: "caption_074.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 75, part: 9, img: "caption_075.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 76, part: 9, img: "caption_076.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 77, part: 9, img: "caption_077.png", prompt: "Look at the picture and write a complete sentence:" },
+      { id: 78, part: 9, img: "caption_078.png", prompt: "LookNguyên nhân bức ảnh bị bé và hiện cả dải trắng dài[cite: 13] là vì 4 file ảnh biến hình (`transform_hat_to_dove.png`, `transform_hat_to_rabbit.png`...)[cite: 9, 10] thực chất là **ảnh Sprite Sheet gồm 3 bước nối tiếp nhau theo chiều ngang** (Bước 1: Đồ vật $\rightarrow$ Bước 2: Bùng nổ phép thuật $\rightarrow$ Bước 3: Biến thành thú cưng)[cite: 13], nhưng khung hiển thị cũ lại đang ép cả bức ảnh ngang dài đó vào một ô vuông nhỏ `w-36 h-36`[cite: 13].
+
+Tôi đã nâng cấp lại hoàn toàn cơ chế **Biểu diễn Phép Thuật (Magic Show)** và **Hiệu ứng Âm thanh (Web Audio Synthesizer)** như sau:
+
+1. **Hiệu ứng chuyển cảnh 3 bước tự động (Animated Sprite Sequence) & Phóng to ảnh:** 
+   * Thay vì hiện cả tấm ảnh dài[cite: 13], hệ thống dùng kỹ thuật cắt khung hình động (CSS Sprite Animation) phóng to gấp 3 lần và **tự động chạy hoạt cảnh từng bước ngay trước mắt bé**: 
+     * **Giây 1:** Hiện chiếc Mũ/Cốc/Cuộn giấy rung lắc mạnh trong vạc thuốc.
+     * **Giây 2:** Chớp sáng lóa mắt (Magic Flash) + Khói phép thuật xoáy tròn biến hình.
+     * **Giây 3:** Bùng nổ pháo hoa và hiện ra chú Chim bồ câu / Thỏ trắng / Ếch hoàng tử / Rồng con cực kỳ to, rõ nét!
+   * Đồng thời có nút **"🔍 Xem toàn cảnh 3 bước"** nếu bé muốn ngắm cả bức tranh rộng.
+2. **Hiệu ứng âm thanh Phù Thủy (Rich Magic Sound Effects):**
+   * **Tiếng thả nguyên liệu (`plop`):** Tiếng "tõm" vui tai kèm bong bóng khi thả từng nguyên liệu vào vạc.
+   * **Tiếng khuấy vạc sôi (`bubbling`):** Tiếng nước thuốc sôi ùng ục và tia lửa điện ma thuật tăng dần độ cao khi bấm nút Khuấy.
+   * **Tiếng nổ phép thuật (`poof` & `magicChime`):** Tiếng "BÙM!" trầm ấm kết hợp tiếng chuông gió phép thuật ngân vang lấp lánh (*ting-ling-ling*) ngay khoảnh khắc con vật hiện ra.
+
+Dưới đây là toàn bộ file `index.html` hoàn chỉnh đã tích hợp hiệu ứng hoạt cảnh và âm thanh mới:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Word Wizard Adventure - Học Viện Phù Thủy Cambridge Stage 2</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+  <!-- Google Fonts: Fredoka & Quicksand -->
+  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+  <link href="[https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap)" rel="stylesheet">
+  <!-- Canvas Confetti -->
+  <script src="[https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js](https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js)"></script>
+
+  <style>
+    :root {
+      --app-font-scale: 1;
+    }
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    body {
+      font-family: 'Quicksand', -apple-system, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      background-color: #0b0f19;
+      background-image: 
+        radial-gradient(circle at center, rgba(11, 15, 25, 0.15) 0%, rgba(3, 7, 18, 0.45) 100%),
+        url('background_home.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      transition: background-image 0.5s ease-in-out;
+    }
+    .font-magic {
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+    
+    /* KHUNG TRONG SUỐT VỚI VIỀN XANH NGỌC SÁNG */
+    .magic-glass-card {
+      background: rgba(15, 23, 42, 0.32);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 2.5px solid rgba(56, 189, 248, 0.85);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45), inset 0 0 25px rgba(56, 189, 248, 0.25);
+    }
+
+    @keyframes chestWiggle {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      20% { transform: rotate(-8deg) scale(1.06); }
+      40% { transform: rotate(8deg) scale(1.08); }
+      60% { transform: rotate(-5deg) scale(1.06); }
+      80% { transform: rotate(5deg) scale(1.03); }
+    }
+    .chest-animate {
+      animation: chestWiggle 1.3s infinite ease-in-out;
+      transform-origin: bottom center;
+    }
+
+    @keyframes cauldronBrewing {
+      0%, 100% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg) brightness(1); }
+      25% { transform: scale(1.08) rotate(-5deg); filter: hue-rotate(45deg) brightness(1.2); }
+      50% { transform: scale(1.12) rotate(5deg); filter: hue-rotate(90deg) brightness(1.4); }
+      75% { transform: scale(1.08) rotate(-5deg); filter: hue-rotate(180deg) brightness(1.3); }
+    }
+    .brewing-active {
+      animation: cauldronBrewing 0.45s infinite ease-in-out;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .float-anim {
+      animation: floatSlow 2.5s infinite ease-in-out;
+    }
+
+    /* HIỆU ỨNG BIẾN HÌNH MA THUẬT (MAGIC MORPH & FLASH) */
+    @keyframes magicPopIn {
+      0% { transform: scale(0.3) rotate(-12deg); opacity: 0; filter: brightness(2.5) blur(6px); }
+      60% { transform: scale(1.08) rotate(3deg); opacity: 1; filter: brightness(1.2) blur(0px); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+    }
+    .magic-pop-anim {
+      animation: magicPopIn 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes flashBurst {
+      0% { opacity: 0.95; transform: scale(0.5); }
+      100% { opacity: 0; transform: scale(2.2); }
+    }
+    .flash-overlay {
+      animation: flashBurst 0.6s ease-out forwards;
+    }
+
+    /* KHUNG HIỂN THỊ HOẠT CẢNH 3 BƯỚC TỪ ẢNH NGANG */
+    .sprite-stage-viewport {
+      width: 220px;
+      height: 195px;
+      overflow: hidden;
+      position: relative;
+      border-radius: 1.25rem;
+      background: #ffffff;
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.6), inset 0 0 15px rgba(168, 85, 247, 0.25);
+      border: 3px solid #fbbf24;
+    }
+    .sprite-strip-img {
+      width: 300%;
+      max-width: none;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+    }
+    /* Chế độ xem toàn cảnh cả 3 bước */
+    .sprite-stage-viewport.full-strip-mode {
+      width: 100%;
+      max-width: 440px;
+      height: 165px;
+    }
+    .sprite-stage-viewport.full-strip-mode .sprite-strip-img {
+      width: 100%;
+      object-fit: contain;
+      transform: translateX(0%) !important;
+    }
+    
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+  </style>
+</head>
+<body class="flex flex-col text-slate-100 antialiased h-screen overflow-hidden" id="appBody">
+
+  <!-- TOP APP BAR -->
+  <header class="flex-none px-3 py-2 bg-slate-950/70 backdrop-blur-md border-b border-cyan-500/30 z-30">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-sm shadow-md flex-shrink-0">
+          🧙‍♂️
+          <span id="playerBadge" class="absolute -bottom-1 -right-1 text-[9px] bg-cyan-400 text-slate-950 px-1 rounded-full font-black">Lv.1</span>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1">
+            <h1 class="text-xs sm:text-sm font-bold text-cyan-200 font-magic tracking-wide truncate">Minh The Wizard</h1>
+            <span id="playerRankTitle" class="hidden md:inline-block text-[10px] bg-purple-950/90 text-purple-200 px-1.5 py-0.2 rounded border border-purple-500/40 font-semibold truncate">Novice</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[10px] text-slate-200">
+            <div class="w-16 sm:w-24 bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
+              <div id="topProgressBar" class="bg-gradient-to-r from-cyan-400 to-purple-400 h-full w-0 transition-all duration-300"></div>
+            </div>
+            <span id="qCounterMini" class="font-mono">1/100</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3 bg-slate-900/85 px-2.5 py-1 rounded-full border border-slate-700 text-xs shadow-inner">
+        <div class="flex items-center gap-1 text-cyan-300 font-bold" title="Magic Gems">
+          <span>💎</span>
+          <span id="starCounter">0</span>
+        </div>
+        <div class="w-px h-3 bg-slate-700"></div>
+        <div class="flex items-center gap-1 text-amber-300 font-bold" title="Streak">
+          <span>🔥</span>
+          <span id="streakCounter">0</span>
+        </div>
+        <div class="w-px h-3 bg-slate-700"></div>
+        <div class="flex items-center gap-1 text-purple-300 font-bold" title="Vault Pets">
+          <span>🐾</span>
+          <span id="petCountDisplay">0/9</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1 sm:gap-1.5">
+        <button onclick="togglePotionLab()" class="px-2.5 py-1 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-amber-200 rounded-lg text-xs font-bold border border-purple-400/50 flex items-center gap-1 transition shadow">
+          <span>🧪</span>
+          <span class="hidden sm:inline font-magic">Potion Lab</span>
+        </button>
+        <button onclick="toggleRealmMap()" class="px-2 py-1 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 rounded-lg text-xs font-semibold border border-indigo-500/40 flex items-center gap-1 transition">
+          <span>🗺️</span>
+          <span class="hidden sm:inline">Realms</span>
+        </button>
+        <button onclick="toggleInventoryModal()" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 rounded-lg border border-slate-700 text-xs transition" title="Pet Vault">
+          🎒
+        </button>
+        <button onclick="toggleMute()" id="muteBtn" class="p-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 text-xs transition" title="Mute Audio">
+          🔊
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 min-h-0 relative z-10">
+    <div class="w-full max-w-3xl flex-1 flex flex-col justify-between max-h-[calc(100dvh-4.5rem)]">
+      
+      <!-- MAGIC GLASS MIRROR CARD -->
+      <div id="magicMirrorCard" class="relative flex-1 flex flex-col magic-glass-card rounded-2xl p-3 sm:p-5 transition-all duration-300 overflow-hidden">
+        
+        <!-- Header -->
+        <div class="flex-none flex items-center justify-between border-b border-cyan-500/30 pb-2.5 mb-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span id="realmIcon" class="text-2xl">✨</span>
+            <div class="truncate">
+              <span id="realmTag" class="text-sm sm:text-base font-black uppercase tracking-wider text-amber-300 font-magic block truncate drop-shadow">PART 1: SPELLING REALM (Q1)</span>
+              <span id="realmDesc" class="text-xs text-cyan-100 block truncate font-semibold">Listen closely and spell the magic rune</span>
+            </div>
+          </div>
+          <!-- Nút Loa gọn gàng chỉ có biểu tượng -->
+          <button id="btnHeaderSpeak" onclick="speakCurrentTarget()" class="flex-shrink-0 w-10 h-10 bg-purple-900/90 hover:bg-purple-800 text-purple-200 rounded-xl text-lg font-bold border border-purple-400/50 flex items-center justify-center transition shadow-md active:scale-95" title="Listen UK Voice">
+            🔊
+          </button>
+        </div>
+
+        <!-- VÙNG NỘI DUNG CÂU HỎI -->
+        <div id="questionContainer" class="flex-1 flex flex-col items-center justify-center text-center min-h-0 overflow-y-auto px-1 py-1"></div>
+
+        <!-- VÙNG TƯƠNG TÁC -->
+        <div id="interactiveArea" class="flex-none pt-2.5 mt-auto border-t border-cyan-500/30 flex flex-col items-center gap-2"></div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB VỚI HIỆU ỨNG BIẾN HÌNH 3 BƯỚC & ÂM THANH) -->
+  <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[94vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between w-full pb-2 border-b border-amber-500/30 mb-2">
+        <h3 class="text-sm sm:text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
+          <span>🧪</span> Wizard Potion Lab & Magic Show
+        </h3>
+        <button onclick="togglePotionLab()" class="text-slate-400 hover:text-white text-lg font-bold px-2">✕</button>
+      </div>
+
+      <!-- Khu vực Vạc Thuốc Sôi Sùng Sục -->
+      <div id="cauldronArea" class="my-1 flex flex-col items-center">
+        <div id="cauldronVisualWrap" class="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center float-anim">
+          <div id="cauldronGlow" class="absolute inset-0 bg-purple-500/30 rounded-full blur-xl transition-all duration-300"></div>
+          <img id="cauldronImgEl" src="potion_cauldron.png" alt="Magic Cauldron" class="relative z-10 max-h-full max-w-full object-contain drop-shadow-2xl" onerror="tryAlternativePath(this, 'potion_cauldron.png', '🧪')">
+        </div>
+        <p id="cauldronStatusText" class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients to cast a transformation spell!</p>
+      </div>
+
+      <!-- SÂN KHẤU BIỂU DIỄN BIẾN HÌNH 3 BƯỚC (Ẩn lúc đầu) -->
+      <div id="transformationResultArea" class="hidden flex-col items-center my-1.5 bg-gradient-to-b from-purple-950/80 to-slate-900/90 border-2 border-amber-400/70 rounded-2xl p-3 w-full shadow-2xl relative overflow-hidden">
+        
+        <!-- Tia chớp lóa mắt khi chuyển bước -->
+        <div id="magicFlashLayer" class="pointer-events-none absolute inset-0 bg-white opacity-0 z-30 rounded-2xl"></div>
+
+        <!-- Thanh trạng thái 3 bước biến hóa -->
+        <div class="flex items-center justify-between w-full px-1 mb-2">
+          <span id="stageStepBadge" class="text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-magic shadow">
+            ✨ Step 1/3: Magic Object...
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button onclick="replayMagicAnimation()" class="text-[11px] bg-purple-800/90 hover:bg-purple-700 text-amber-200 px-2 py-0.5 rounded-lg border border-purple-400/40 font-bold transition">
+              🔄 Replay Magic
+            </button>
+            <button onclick="toggleFullStripView()" id="btnToggleStrip" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-200 px-2 py-0.5 rounded-lg border border-cyan-500/30 font-bold transition">
+              🔍 3 Steps
+            </button>
+          </div>
+        </div>
+
+        <!-- Khung Cửa Sổ Phóng To Từng Bước (Sprite Viewport) -->
+        <div id="spriteViewport" class="sprite-stage-viewport my-1 flex items-center justify-center">
+          <!-- Ảnh biến hình sẽ được nạp vào đây -->
+        </div>
+
+        <h4 id="transformTitle" class="text-base sm:text-lg font-black text-amber-300 font-magic mt-2 drop-shadow">Magic Hat transformed into White Dove!</h4>
+        <span class="text-xs text-emerald-300 font-bold mt-0.5 bg-emerald-950/60 px-3 py-0.5 rounded-full border border-emerald-500/40">+3 Magic Gems 💎</span>
+      </div>
+
+      <!-- Kệ 6 Nguyên Liệu Phép Thuật -->
+      <div class="w-full bg-slate-950/75 p-2.5 sm:p-3 rounded-2xl border border-cyan-500/30 my-1.5">
+        <div id="ingredientsGrid" class="grid grid-cols-3 gap-2">
+          <!-- Render động từ JS -->
+        </div>
+        <!-- Ô hiển thị công thức đã chọn -->
+        <div id="selectedIngredientsBox" class="mt-2 min-h-[32px] bg-slate-900/90 border border-slate-700 rounded-xl flex flex-wrap items-center justify-center gap-1.5 px-2 py-1 text-xs font-bold text-amber-300">
+          Tap 3 ingredients above (0/3)
+        </div>
+      </div>
+
+      <div class="flex gap-2 w-full mt-1">
+        <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition border border-slate-600">
+          🔄 Reset Lab
+        </button>
+        <button id="btnStirCauldron" onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
           🪄 Stir Cauldron & Cast Spell!
         </button>
       </div>
@@ -286,7 +866,6 @@
 
   <!-- JAVASCRIPT GAME ENGINE -->
   <script>
-    // --- HÀM TỰ ĐỘNG DÒ TÌM ẢNH NẾU BẠN ĐỂ TRONG THƯ MỤC CON ---
     const SUBFOLDERS = ["", "magic_assets/", "magic_set2_all_8/", "backgrounds_all_9_realms/", "assets/", "images/"];
 
     function tryAlternativePath(imgEl, filename, fallbackEmoji) {
@@ -296,7 +875,7 @@
         imgEl.src = SUBFOLDERS[idx] + filename;
       } else {
         imgEl.onerror = null;
-        imgEl.outerHTML = `<span class="text-4xl select-none">${fallbackEmoji}</span>`;
+        imgEl.outerHTML = `<span class="text-5xl select-none">${fallbackEmoji}</span>`;
       }
     }
 
@@ -428,10 +1007,12 @@
     let streakCount = 0;
     let unlockedPets = [1];
     let isMuted = false;
-    let fontScale = 1;
     let selectedJumbleWords = [];
     let pendingRewardRealm = null;
     let selectedPotionIngredients = [];
+    let currentTransformTimers = [];
+    let currentTransformationObj = null;
+    let isFullStripMode = false;
 
     function loadProgress() {
       try {
@@ -481,11 +1062,9 @@
       document.getElementById("playerBadge").innerText = rank.badge;
     }
 
-    // --- CẬP NHẬT BACKGROUND THÔNG MINH (LUÔN GIỮ BACKGROUND_HOME.PNG DỰ PHÒNG) ---
     function updateRealmBackground(realmId) {
       const body = document.getElementById("appBody");
       const filename = `background_realm_0${realmId}.png`;
-      // Dùng nhiều lớp URL để nếu ảnh ở thư mục gốc hay thư mục con đều hiện, nếu không có thì giữ nguyên background_home.png
       body.style.backgroundImage = `
         radial-gradient(circle at center, rgba(11, 15, 25, 0.12) 0%, rgba(3, 7, 18, 0.42) 100%),
         url('${filename}'),
@@ -497,8 +1076,8 @@
     function playNativeWordAudio(word) {
       if (isMuted) return;
       const cleanWord = word.trim().toLowerCase();
-      const audioUrl = `https://api.dictionaryapi.dev/media/entries/en/${cleanWord}-uk.mp3`;
-      const fallbackUrl = `https://ssl.gstatic.com/dictionary/static/sounds/oxford/${cleanWord}--_gb_1.mp3`;
+      const audioUrl = `[https://api.dictionaryapi.dev/media/entries/en/$](https://api.dictionaryapi.dev/media/entries/en/$){cleanWord}-uk.mp3`;
+      const fallbackUrl = `[https://ssl.gstatic.com/dictionary/static/sounds/oxford/$](https://ssl.gstatic.com/dictionary/static/sounds/oxford/$){cleanWord}--_gb_1.mp3`;
       
       const audio = new Audio(audioUrl);
       audio.play().catch(() => {
@@ -522,43 +1101,135 @@
       window.speechSynthesis.speak(u);
     }
 
+    // --- BỘ TỔNG HỢP ÂM THANH PHÙ THỦY (MAGIC SOUND SYNTHESIZER) ---
     function playSound(type) {
       if (isMuted) return;
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        const now = ctx.currentTime;
+
         if (type === 'correct') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.3);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.35);
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.3);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+
+        } else if (type === 'plop') {
+          // Tiếng thả nguyên liệu vào vạc nước ("Tõm!")
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(280, now);
+          osc.frequency.exponentialRampToValueAtTime(680, now + 0.16);
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.18);
+
+        } else if (type === 'bubbling') {
+          // Tiếng vạc thuốc sôi ùng ục & tích tụ phép thuật
+          for (let i = 0; i < 9; i++) {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            const startTime = now + i * 0.085;
+            const freq = 220 + (i * 55) + Math.random() * 120;
+            o.frequency.setValueAtTime(freq, startTime);
+            o.frequency.exponentialRampToValueAtTime(freq * 1.45, startTime + 0.07);
+            g.gain.setValueAtTime(0.18, startTime);
+            g.gain.linearRampToValueAtTime(0, startTime + 0.08);
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start(startTime);
+            o.stop(startTime + 0.08);
+          }
+
+        } else if (type === 'whoosh') {
+          // Tiếng xoáy phép thuật chuyển bước
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(300, now);
+          o.frequency.exponentialRampToValueAtTime(900, now + 0.28);
+          g.gain.setValueAtTime(0.22, now);
+          g.gain.linearRampToValueAtTime(0, now + 0.3);
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.start(now);
+          o.stop(now + 0.3);
+
+        } else if (type === 'poof') {
+          // Tiếng nổ khói BÙM + Chuông phép thuật lấp lánh (Magic Chimes)
+          const bufferSize = ctx.sampleRate * 0.45;
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          const noise = ctx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(900, now);
+          filter.frequency.linearRampToValueAtTime(180, now + 0.45);
+          const nGain = ctx.createGain();
+          nGain.gain.setValueAtTime(0.45, now);
+          nGain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+          noise.connect(filter);
+          filter.connect(nGain);
+          nGain.connect(ctx.destination);
+          noise.start(now);
+
+          // Chuông gió phép thuật ngân vang
+          const chimeNotes = [587.33, 783.99, 987.77, 1174.66, 1567.98, 1975.53];
+          chimeNotes.forEach((freq, idx) => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'triangle';
+            const t = now + 0.08 + idx * 0.065;
+            o.frequency.setValueAtTime(freq, t);
+            g.gain.setValueAtTime(0.16, t);
+            g.gain.exponentialRampToValueAtTime(0.005, t + 0.55);
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start(t);
+            o.stop(t + 0.55);
+          });
+
         } else if (type === 'fanfare') {
           [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
             const o = ctx.createOscillator();
             const g = ctx.createGain();
             o.type = 'triangle';
-            o.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
-            g.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.1);
-            g.gain.linearRampToValueAtTime(0, ctx.currentTime + idx * 0.1 + 0.4);
+            o.frequency.setValueAtTime(freq, now + idx * 0.1);
+            g.gain.setValueAtTime(0.2, now + idx * 0.1);
+            g.gain.linearRampToValueAtTime(0, now + idx * 0.1 + 0.4);
             o.connect(g);
             g.connect(ctx.destination);
-            o.start(ctx.currentTime + idx * 0.1);
-            o.stop(ctx.currentTime + idx * 0.1 + 0.4);
+            o.start(now + idx * 0.1);
+            o.stop(now + idx * 0.1 + 0.4);
           });
         } else {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(220, ctx.currentTime);
-          osc.frequency.linearRampToValueAtTime(130, ctx.currentTime + 0.3);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.3);
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(130, now + 0.3);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
         }
       } catch (e) {}
     }
@@ -912,7 +1583,7 @@
       else if (q.prompt) speakText(q.prompt);
     }
 
-    // --- LOGIC PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB ĐỦ 6 NGUYÊN LIỆU & 4 BIẾN HÌNH) ---
+    // --- LOGIC PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC & BIỂU DIỄN BIẾN HÌNH 3 BƯỚC ---
     const LAB_INGREDIENTS = [
       { id: "stardust", name: "Stardust", img: "ingredient_stardust.png", icon: "🌟" },
       { id: "moonflower", name: "Moonflower", img: "ingredient_moonflower.png", icon: "🌙" },
@@ -923,11 +1594,24 @@
     ];
 
     const TRANSFORMATIONS = [
-      { name: "Magic Hat transformed into White Dove!", img: "transform_hat_to_dove.png", icon: "🕊️" },
-      { name: "Magic Hat transformed into Fluffy White Rabbit!", img: "transform_hat_to_rabbit.png", icon: "🐇" },
-      { name: "Magic Tea Mug transformed into Royal Frog Prince!", img: "transform_mug_to_frog.png", icon: "🐸" },
-      { name: "Ancient Scroll transformed into Cute Baby Dragon!", img: "transform_scroll_to_dragon.png", icon: "🐉" }
+      { name: "Magic Hat transformed into White Dove!", beforeName: "Wizard Hat", afterName: "White Dove", img: "transform_hat_to_dove.png", icon: "🕊️" },
+      { name: "Magic Hat transformed into Fluffy White Rabbit!", beforeName: "Wizard Hat", afterName: "White Rabbit", img: "transform_hat_to_rabbit.png", icon: "🐇" },
+      { name: "Magic Tea Mug transformed into Royal Frog Prince!", beforeName: "Tea Mug", afterName: "Frog Prince", img: "transform_mug_to_frog.png", icon: "🐸" },
+      { name: "Ancient Scroll transformed into Cute Baby Dragon!", beforeName: "Spell Scroll", afterName: "Baby Dragon", img: "transform_scroll_to_dragon.png", icon: "🐉" }
     ];
+
+    function clearTransformTimers() {
+      currentTransformTimers.forEach(t => clearTimeout(t));
+      currentTransformTimers = [];
+    }
+
+    function triggerFlashEffect() {
+      const flash = document.getElementById("magicFlashLayer");
+      if (!flash) return;
+      flash.classList.remove("flash-overlay");
+      void flash.offsetWidth; // Reflow
+      flash.classList.add("flash-overlay");
+    }
 
     function renderLabIngredients() {
       const grid = document.getElementById("ingredientsGrid");
@@ -949,6 +1633,8 @@
       modal.classList.toggle("hidden");
       if (!modal.classList.contains("hidden")) {
         resetPotionLab();
+      } else {
+        clearTransformTimers();
       }
     }
 
@@ -956,7 +1642,7 @@
       if (selectedPotionIngredients.includes(name)) return;
       if (selectedPotionIngredients.length < 3) {
         selectedPotionIngredients.push(name);
-        playSound('correct');
+        playSound('plop'); // Tiếng thả nguyên liệu vào vạc
         speakText(name);
         renderLabIngredients();
         updatePotionLabBox();
@@ -973,9 +1659,14 @@
     }
 
     function resetPotionLab() {
+      clearTransformTimers();
       selectedPotionIngredients = [];
+      isFullStripMode = false;
       renderLabIngredients();
       updatePotionLabBox();
+      const cauldronWrap = document.getElementById("cauldronVisualWrap");
+      cauldronWrap.classList.remove("brewing-active");
+      document.getElementById("cauldronStatusText").innerText = "Pick 3 magical ingredients to cast a transformation spell!";
       document.getElementById("cauldronArea").classList.remove("hidden");
       document.getElementById("transformationResultArea").classList.add("hidden");
       document.getElementById("transformationResultArea").classList.remove("flex");
@@ -983,30 +1674,122 @@
 
     function brewAndTransform() {
       if (selectedPotionIngredients.length < 3) {
+        playSound('wrong');
         alert("Please pick 3 magic ingredients to brew your potion!");
         speakText("Pick three magic ingredients first!");
         return;
       }
-      playSound('fanfare');
-      if (typeof confetti === 'function') {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } });
-      }
 
-      document.getElementById("cauldronArea").classList.add("hidden");
+      clearTransformTimers();
+      isFullStripMode = false;
+
+      // Bước 0: Khuấy vạc sôi ùng ục trong 0.85 giây
+      const cauldronArea = document.getElementById("cauldronArea");
       const resArea = document.getElementById("transformationResultArea");
-      resArea.classList.remove("hidden");
-      resArea.classList.add("flex");
+      cauldronArea.classList.remove("hidden");
+      resArea.classList.add("hidden");
+      resArea.classList.remove("flex");
 
-      const randomTrans = TRANSFORMATIONS[Math.floor(Math.random() * TRANSFORMATIONS.length)];
-      const imgSlot = document.getElementById("transformImageSlot");
-      
-      imgSlot.innerHTML = `<img src="${randomTrans.img}" alt="Transformation" class="max-h-full max-w-full object-contain drop-shadow-2xl" onerror="tryAlternativePath(this, '${randomTrans.img}', '${randomTrans.icon}')">`;
+      const cauldronWrap = document.getElementById("cauldronVisualWrap");
+      cauldronWrap.classList.add("brewing-active");
+      document.getElementById("cauldronStatusText").innerText = "🫧 Boiling potion... Abracadabra! 🫧";
+      playSound('bubbling');
 
-      document.getElementById("transformTitle").innerText = randomTrans.name;
-      speakText("Abracadabra! " + randomTrans.name);
-      
-      starsEarned += 3;
-      saveProgress();
+      const t0 = setTimeout(() => {
+        cauldronWrap.classList.remove("brewing-active");
+        cauldronArea.classList.add("hidden");
+        resArea.classList.remove("hidden");
+        resArea.classList.add("flex");
+
+        currentTransformationObj = TRANSFORMATIONS[Math.floor(Math.random() * TRANSFORMATIONS.length)];
+        runThreeStepSpriteAnimation(currentTransformationObj);
+
+        starsEarned += 3;
+        saveProgress();
+      }, 850);
+
+      currentTransformTimers.push(t0);
+    }
+
+    function runThreeStepSpriteAnimation(transObj) {
+      clearTransformTimers();
+      isFullStripMode = false;
+      const viewport = document.getElementById("spriteViewport");
+      viewport.classList.remove("full-strip-mode");
+      document.getElementById("btnToggleStrip").innerText = "🔍 3 Steps";
+
+      const badge = document.getElementById("stageStepBadge");
+      const titleEl = document.getElementById("transformTitle");
+
+      // Nạp ảnh Sprite 3 bước
+      viewport.innerHTML = `
+        <img id="activeSpriteImg" src="${transObj.img}" alt="Magic Transformation" 
+          class="sprite-strip-img" style="transform: translateX(0%);"
+          onerror="tryAlternativePath(this, '${transObj.img}', '${transObj.icon}')">
+      `;
+
+      // BƯỚC 1: Đồ vật gốc (0%)
+      badge.innerText = `🪄 Step 1/3: ${transObj.beforeName} Ready...`;
+      titleEl.innerText = `Casting spell on ${transObj.beforeName}...`;
+      playSound('whoosh');
+      triggerFlashEffect();
+
+      // BƯỚC 2: Bùng nổ phép thuật ở giữa (-33.33%)
+      const t1 = setTimeout(() => {
+        const img = document.getElementById("activeSpriteImg");
+        if (img && !isFullStripMode) {
+          img.style.transform = "translateX(-33.333%) scale(1.06)";
+        }
+        badge.innerText = `💥 Step 2/3: Magic Swirl!`;
+        titleEl.innerText = `✨ Poof! Transforming... ✨`;
+        playSound('whoosh');
+        triggerFlashEffect();
+      }, 950);
+
+      // BƯỚC 3: Con vật hoàn chỉnh xuất hiện (-66.66%) + Tiếng nổ BÙM & Chuông ngân
+      const t2 = setTimeout(() => {
+        const img = document.getElementById("activeSpriteImg");
+        if (img && !isFullStripMode) {
+          img.style.transform = "translateX(-66.666%) scale(1)";
+        }
+        badge.innerText = `🎉 Step 3/3: ${transObj.afterName} Appears!`;
+        titleEl.innerText = transObj.name;
+        playSound('poof');
+        triggerFlashEffect();
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 110, spread: 80, origin: { y: 0.55 } });
+        }
+        speakText("Abracadabra! " + transObj.name);
+      }, 1900);
+
+      currentTransformTimers.push(t1, t2);
+    }
+
+    function replayMagicAnimation() {
+      if (currentTransformationObj) {
+        runThreeStepSpriteAnimation(currentTransformationObj);
+      }
+    }
+
+    function toggleFullStripView() {
+      const viewport = document.getElementById("spriteViewport");
+      const btn = document.getElementById("btnToggleStrip");
+      isFullStripMode = !isFullStripMode;
+      if (isFullStripMode) {
+        clearTransformTimers();
+        viewport.classList.add("full-strip-mode");
+        btn.innerText = "🎯 Zoom Pet";
+        document.getElementById("stageStepBadge").innerText = "📜 Full 3-Step Magic Scroll";
+      } else {
+        viewport.classList.remove("full-strip-mode");
+        const img = document.getElementById("activeSpriteImg");
+        if (img) img.style.transform = "translateX(-66.666%)";
+        btn.innerText = "🔍 3 Steps";
+        if (currentTransformationObj) {
+          document.getElementById("stageStepBadge").innerText = `🎉 Step 3/3: ${currentTransformationObj.afterName}!`;
+        }
+      }
     }
 
     function triggerMysteryChest(realm) {
