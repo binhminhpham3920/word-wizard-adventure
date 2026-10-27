@@ -28,6 +28,10 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       background-color: #0b0f19;
+      /* Mặc định luôn có background_home.png làm lớp lót dự phòng */
+      background-image: 
+        radial-gradient(circle at center, rgba(11, 15, 25, 0.15) 0%, rgba(3, 7, 18, 0.45) 100%),
+        url('background_home.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -40,9 +44,9 @@
     
     /* KHUNG TRONG SUỐT VỚI VIỀN XANH NGỌC SÁNG */
     .magic-glass-card {
-      background: rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.32);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 2.5px solid rgba(56, 189, 248, 0.85);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45), inset 0 0 25px rgba(56, 189, 248, 0.25);
     }
@@ -58,16 +62,24 @@
       animation: chestWiggle 1.3s infinite ease-in-out;
       transform-origin: bottom center;
     }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .float-anim {
+      animation: floatSlow 2.5s infinite ease-in-out;
+    }
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
   </style>
 </head>
-<body class="flex flex-col text-slate-100 antialiased h-screen overflow-hidden" id="appBody" style="background-image: radial-gradient(circle at center, rgba(11, 15, 25, 0.2) 0%, rgba(3, 7, 18, 0.5) 100%), url('background_realm_01.png');">
+<body class="flex flex-col text-slate-100 antialiased h-screen overflow-hidden" id="appBody">
 
   <!-- TOP APP BAR -->
-  <header class="flex-none px-3 py-2 bg-slate-950/75 backdrop-blur-md border-b border-cyan-500/30 z-30">
+  <header class="flex-none px-3 py-2 bg-slate-950/70 backdrop-blur-md border-b border-cyan-500/30 z-30">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2 min-w-0">
         <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-sm shadow-md flex-shrink-0">
@@ -106,9 +118,9 @@
       </div>
 
       <div class="flex items-center gap-1 sm:gap-1.5">
-        <button onclick="togglePotionLab()" class="px-2 py-1 bg-purple-950/90 hover:bg-purple-900 text-purple-200 rounded-lg text-xs font-semibold border border-purple-500/40 flex items-center gap-1 transition" title="Potion Lab">
+        <button onclick="togglePotionLab()" class="px-2.5 py-1 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-amber-200 rounded-lg text-xs font-bold border border-purple-400/50 flex items-center gap-1 transition shadow">
           <span>🧪</span>
-          <span class="hidden sm:inline">Lab</span>
+          <span class="hidden sm:inline font-magic">Potion Lab</span>
         </button>
         <button onclick="toggleRealmMap()" class="px-2 py-1 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 rounded-lg text-xs font-semibold border border-indigo-500/40 flex items-center gap-1 transition">
           <span>🗺️</span>
@@ -157,58 +169,51 @@
     </div>
   </main>
 
-  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) -->
+  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB NÂNG CẤP) -->
   <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-3">
-    <div class="relative bg-slate-900/95 backdrop-blur-xl border-2 border-purple-400 rounded-3xl p-5 max-w-md w-full text-center shadow-2xl flex flex-col items-center">
-      <div class="flex items-center justify-between w-full pb-2 border-b border-purple-500/30 mb-3">
-        <h3 class="text-sm font-bold text-purple-300 font-magic flex items-center gap-1.5">
-          <span>🧪</span> Wizard Potion Lab & Transformation
+    <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[92vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between w-full pb-2 border-b border-amber-500/30 mb-2">
+        <h3 class="text-sm sm:text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
+          <span>🧪</span> Wizard Potion Lab & Magic Transformation
         </h3>
-        <button onclick="togglePotionLab()" class="text-slate-400 hover:text-slate-100 text-base font-bold">✕</button>
+        <button onclick="togglePotionLab()" class="text-slate-400 hover:text-white text-lg font-bold px-2">✕</button>
       </div>
 
-      <!-- Vạc thuốc hiển thị động -->
-      <div id="cauldronArea" class="my-2 flex flex-col items-center">
-        <div class="w-32 h-32 flex items-center justify-center">
-          <img src="potion_cauldron.png" alt="Magic Cauldron" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-2xl" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-7xl\'>🧪</div>'">
+      <!-- Khu vực Vạc Thuốc Sôi Sùng Sục -->
+      <div id="cauldronArea" class="my-1 flex flex-col items-center">
+        <div class="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center float-anim">
+          <div class="absolute inset-0 bg-purple-500/20 rounded-full blur-xl"></div>
+          <img id="cauldronImgEl" src="potion_cauldron.png" alt="Magic Cauldron" class="relative z-10 max-h-full max-w-full object-contain drop-shadow-2xl" onerror="tryAlternativePath(this, 'potion_cauldron.png', '🧪')">
         </div>
-        <p class="text-xs text-amber-300 font-semibold mt-1">Brewing magical formulas to cast transformations!</p>
+        <p class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients to cast a transformation spell!</p>
       </div>
 
-      <!-- Khu vực chọn nguyên liệu -->
-      <div class="w-full bg-slate-950/60 p-3 rounded-2xl border border-slate-800 my-2">
-        <span class="text-xs text-cyan-200 font-bold block mb-2">Tap 3 ingredients to brew:</span>
-        <div class="grid grid-cols-3 gap-2">
-          <button onclick="selectIngredient('stardust')" id="ing_stardust" class="p-2 bg-slate-800 hover:bg-purple-900 rounded-xl border border-slate-700 text-xs font-bold text-cyan-200 transition flex flex-col items-center gap-1">
-            <img src="ingredient_stardust.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span>🌟</span>'">
-            <span>Stardust</span>
-          </button>
-          <button onclick="selectIngredient('moonflower')" id="ing_moonflower" class="p-2 bg-slate-800 hover:bg-purple-900 rounded-xl border border-slate-700 text-xs font-bold text-cyan-200 transition flex flex-col items-center gap-1">
-            <img src="ingredient_moonflower.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span>🌙</span>'">
-            <span>Moonflower</span>
-          </button>
-          <button onclick="selectIngredient('feather')" id="ing_feather" class="p-2 bg-slate-800 hover:bg-purple-900 rounded-xl border border-slate-700 text-xs font-bold text-cyan-200 transition flex flex-col items-center gap-1">
-            <img src="ingredient_feather.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span>🪶</span>'">
-            <span>Phoenix Feather</span>
-          </button>
+      <!-- Khu vực Hiển Thị Kết Quả Biến Hóa (Ẩn lúc đầu) -->
+      <div id="transformationResultArea" class="hidden flex-col items-center my-2 bg-purple-950/50 border-2 border-amber-400/60 rounded-2xl p-3 w-full shadow-inner">
+        <span class="text-[11px] font-black uppercase tracking-widest text-cyan-300 mb-1">✨ POOF! SPELL SUCCESSFUL! ✨</span>
+        <div id="transformImageSlot" class="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center my-1 float-anim"></div>
+        <h4 id="transformTitle" class="text-sm sm:text-base font-black text-amber-300 font-magic mt-1">Magic Hat transformed into White Dove!</h4>
+        <span class="text-xs text-emerald-300 font-bold mt-0.5">+3 Magic Gems 💎</span>
+      </div>
+
+      <!-- Kệ 6 Nguyên Liệu Phép Thuật -->
+      <div class="w-full bg-slate-950/70 p-3 rounded-2xl border border-cyan-500/30 my-2">
+        <div id="ingredientsGrid" class="grid grid-cols-3 gap-2">
+          <!-- Render động từ JS -->
         </div>
-        <div id="selectedIngredientsBox" class="mt-2 min-h-[30px] bg-slate-900 rounded-lg flex items-center justify-center gap-2 text-xs font-mono text-amber-300">
-          None selected (0/3)
+        <!-- Ô hiển thị công thức đã chọn -->
+        <div id="selectedIngredientsBox" class="mt-2.5 min-h-[34px] bg-slate-900/90 border border-slate-700 rounded-xl flex flex-wrap items-center justify-center gap-1.5 px-2 py-1 text-xs font-bold text-amber-300">
+          Tap 3 ingredients above (0/3)
         </div>
       </div>
 
-      <!-- Khu vực hiển thị kết quả biến hình sau khi pha chế -->
-      <div id="transformationResultArea" class="hidden flex-col items-center my-2">
-        <div id="transformImageSlot" class="w-32 h-32 flex items-center justify-center my-1"></div>
-        <h4 id="transformTitle" class="text-sm font-black text-amber-300 font-magic">Magic Hat transformed into White Dove!</h4>
-      </div>
-
-      <div class="flex gap-2 w-full mt-2">
-        <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition">
-          🔄 Reset Lab
+      <div class="flex gap-2 w-full mt-1">
+        <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition border border-slate-600">
+          🔄 Reset
         </button>
-        <button onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 text-white font-black rounded-xl text-sm shadow-lg transition active:scale-95 font-magic">
-          🪄 Stir Cauldron & Transform!
+        <button onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
+          🪄 Stir Cauldron & Cast Spell!
         </button>
       </div>
 
@@ -226,7 +231,7 @@
 
       <div id="chestWrapper" onclick="unlockMysteryChest()" class="my-3 cursor-pointer flex flex-col items-center group">
         <div class="w-36 h-36 flex items-center justify-center select-none">
-          <img src="chest_closed.png" alt="Magic Chest" class="max-h-full max-w-full object-contain chest-animate transition-transform active:scale-95 drop-shadow-2xl" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-7xl chest-animate\'>🎁</div>'">
+          <img src="chest_closed.png" alt="Magic Chest" class="max-h-full max-w-full object-contain chest-animate transition-transform active:scale-95 drop-shadow-2xl" onerror="tryAlternativePath(this, 'chest_closed.png', '🎁')">
         </div>
         <div class="mt-3 text-xs font-bold text-cyan-200 bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-400/40 animate-pulse font-magic">
           👉 Tap Chest to Crack Open! 👈
@@ -281,6 +286,20 @@
 
   <!-- JAVASCRIPT GAME ENGINE -->
   <script>
+    // --- HÀM TỰ ĐỘNG DÒ TÌM ẢNH NẾU BẠN ĐỂ TRONG THƯ MỤC CON ---
+    const SUBFOLDERS = ["", "magic_assets/", "magic_set2_all_8/", "backgrounds_all_9_realms/", "assets/", "images/"];
+
+    function tryAlternativePath(imgEl, filename, fallbackEmoji) {
+      let idx = parseInt(imgEl.dataset.tryIdx || "0", 10) + 1;
+      if (idx < SUBFOLDERS.length) {
+        imgEl.dataset.tryIdx = idx;
+        imgEl.src = SUBFOLDERS[idx] + filename;
+      } else {
+        imgEl.onerror = null;
+        imgEl.outerHTML = `<span class="text-4xl select-none">${fallbackEmoji}</span>`;
+      }
+    }
+
     const REALMS = [
       { id: 1, name: "Spelling Realm", range: [1, 15], icon: "✍️", desc: "Listen carefully & spell the magic rune", pet: { name: "Baby Dragon", img: "pet_01_dragon.png", icon: "🐉", desc: "A fiery little dragon from Realm 1!" } },
       { id: 2, name: "Missing Letter Runes", range: [16, 25], icon: "🧩", desc: "Look at the pattern & fill missing letters", pet: { name: "Snowy Owl", img: "pet_02_owl.png", icon: "🦉", desc: "Wise courier of the Cambridge sky!" } },
@@ -462,14 +481,19 @@
       document.getElementById("playerBadge").innerText = rank.badge;
     }
 
-    // --- CẬP NHẬT BACKGROUND ĐỘNG THEO REALM ---
+    // --- CẬP NHẬT BACKGROUND THÔNG MINH (LUÔN GIỮ BACKGROUND_HOME.PNG DỰ PHÒNG) ---
     function updateRealmBackground(realmId) {
       const body = document.getElementById("appBody");
-      const bgImg = `background_realm_0${realmId}.png`;
-      body.style.backgroundImage = `radial-gradient(circle at center, rgba(11, 15, 25, 0.15) 0%, rgba(3, 7, 18, 0.4) 100%), url('${bgImg}')`;
+      const filename = `background_realm_0${realmId}.png`;
+      // Dùng nhiều lớp URL để nếu ảnh ở thư mục gốc hay thư mục con đều hiện, nếu không có thì giữ nguyên background_home.png
+      body.style.backgroundImage = `
+        radial-gradient(circle at center, rgba(11, 15, 25, 0.12) 0%, rgba(3, 7, 18, 0.42) 100%),
+        url('${filename}'),
+        url('backgrounds_all_9_realms/${filename}'),
+        url('background_home.png')
+      `;
     }
 
-    // --- DUAL AUDIO ENGINE CHUẨN UK ---
     function playNativeWordAudio(word) {
       if (isMuted) return;
       const cleanWord = word.trim().toLowerCase();
@@ -545,11 +569,6 @@
       if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
     }
 
-    function adjustFontScale(delta) {
-      fontScale = Math.min(1.4, Math.max(0.85, fontScale + delta));
-      document.documentElement.style.setProperty('--app-font-scale', fontScale);
-    }
-
     function getCurrentRealm(qId) {
       return REALMS.find(r => qId >= r.range[0] && qId <= r.range[1]) || REALMS[0];
     }
@@ -583,7 +602,7 @@
             <button onclick="playNativeWordAudio('${q.target}')" class="w-14 h-14 bg-gradient-to-tr from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full shadow-lg flex items-center justify-center transition active:scale-95 my-1" title="Listen UK Voice">
               <span class="text-2xl">🔊</span>
             </button>
-            <div class="tracking-widest text-xl sm:text-2xl font-mono text-cyan-300 font-bold">
+            <div class="tracking-widest text-xl sm:text-2xl font-mono text-amber-300 font-bold">
               ${'_ '.repeat(q.len).trim()} <span class="text-sm text-slate-200 font-normal">(${q.len} letters)</span>
             </div>
             <p class="text-sm text-slate-100 font-semibold italic">Hint: ${q.hint}</p>
@@ -593,7 +612,7 @@
           <div class="flex items-center gap-2 w-full max-w-sm">
             <input type="text" id="spellingInput" autocomplete="off" autocapitalize="off" spellcheck="false"
               placeholder="Type word here..." 
-              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-cyan-200 tracking-wider">
+              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300 tracking-wider">
             <button onclick="checkSpelling()" class="px-5 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Cast ✨
             </button>
@@ -612,7 +631,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
             <span class="text-sm sm:text-base font-bold text-cyan-200">Fill in the missing letter rune:</span>
-            <div class="text-4xl sm:text-5xl font-mono font-black text-cyan-300 tracking-widest bg-slate-950/70 px-8 py-3 rounded-2xl border border-cyan-500/60 shadow">
+            <div class="text-4xl sm:text-5xl font-mono font-black text-amber-300 tracking-widest bg-slate-950/70 px-8 py-3 rounded-2xl border border-cyan-500/60 shadow">
               ${q.display}
             </div>
             <p class="text-sm text-slate-100 font-semibold italic">Clue: ${q.hint}</p>
@@ -622,7 +641,7 @@
           <div class="flex items-center gap-2 w-full max-w-xs">
             <input type="text" id="missingInput" maxlength="1" autocomplete="off" autocapitalize="off"
               placeholder="?" 
-              class="w-16 h-14 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl text-center text-2xl font-black text-cyan-200">
+              class="w-16 h-14 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl text-center text-2xl font-black text-amber-300">
             <button onclick="checkMissingLetter()" class="flex-1 py-3 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Unlock 🔓
             </button>
@@ -640,7 +659,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
             <span class="text-sm sm:text-base font-bold text-cyan-200">Cast the plural spell:</span>
-            <div class="text-xl sm:text-2xl font-bold text-cyan-300 font-magic">
+            <div class="text-xl sm:text-2xl font-bold text-amber-300 font-magic">
               ${q.prompt}
             </div>
           </div>
@@ -649,7 +668,7 @@
           <div class="flex items-center gap-2 w-full max-w-sm">
             <input type="text" id="pluralInput" autocomplete="off" autocapitalize="off"
               placeholder="Write plural form..." 
-              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-cyan-200">
+              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300">
             <button onclick="checkPlural()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
               Transform ✨
             </button>
@@ -668,7 +687,7 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
             <span class="text-sm sm:text-base font-bold text-cyan-200">Select the correct magic choice:</span>
-            <div class="text-lg sm:text-xl font-bold text-white leading-snug px-2 font-magic drop-shadow">
+            <div class="text-lg sm:text-xl font-bold text-amber-200 leading-snug px-2 font-magic drop-shadow">
               ${q.prompt}
             </div>
           </div>
@@ -676,7 +695,7 @@
         let buttonsHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-md">`;
         q.options.forEach(opt => {
           buttonsHtml += `
-            <button onclick="checkMultipleChoice('${opt}')" class="px-4 py-3 bg-slate-900/90 hover:bg-cyan-950/80 active:bg-cyan-800 border-2 border-cyan-500/60 hover:border-cyan-300 text-white font-bold rounded-xl text-base transition shadow font-magic">
+            <button onclick="checkMultipleChoice('${opt}')" class="px-4 py-3 bg-slate-900/90 hover:bg-cyan-950/80 active:bg-cyan-800 border-2 border-cyan-500/60 hover:border-amber-300 text-amber-200 font-bold rounded-xl text-base transition shadow font-magic">
               ${opt}
             </button>
           `;
@@ -690,12 +709,12 @@
         qContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
             <span class="text-sm font-semibold text-cyan-200">Tap words in correct order:</span>
-            <div id="jumbleAnswerBox" class="min-h-[48px] w-full bg-slate-950/80 border-2 border-dashed border-cyan-400/60 rounded-xl flex flex-wrap items-center justify-center gap-2 p-2 text-base font-bold text-cyan-200">
+            <div id="jumbleAnswerBox" class="min-h-[48px] w-full bg-slate-950/80 border-2 border-dashed border-cyan-400/60 rounded-xl flex flex-wrap items-center justify-center gap-2 p-2 text-base font-bold text-amber-300">
               <span class="text-xs text-slate-300 font-normal">Tap words below...</span>
             </div>
             <div id="jumbleWordPool" class="flex flex-wrap items-center justify-center gap-2 pt-1">
               ${q.words.map((w, idx) => `
-                <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 border border-cyan-500/50 rounded-xl text-sm font-bold text-white transition font-magic shadow">
+                <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 border border-cyan-500/50 rounded-xl text-sm font-bold text-amber-200 transition font-magic shadow">
                   ${w}
                 </button>
               `).join('')}
@@ -730,7 +749,7 @@
             <div class="flex items-center gap-2 w-full">
               <input type="text" id="captionInput" autocomplete="off" spellcheck="false"
                 placeholder="E.g., The red ball is under the table." 
-                class="flex-1 bg-slate-950/85 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3.5 py-2 text-sm sm:text-base font-semibold text-white">
+                class="flex-1 bg-slate-950/85 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3.5 py-2 text-sm sm:text-base font-semibold text-amber-200">
               <button onclick="checkCaption()" class="px-5 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 whitespace-nowrap font-magic">
                 Submit 🌟
               </button>
@@ -836,7 +855,7 @@
 
       const ansBox = document.getElementById("jumbleAnswerBox");
       ansBox.innerHTML = selectedJumbleWords.map(item => `
-        <span class="px-2.5 py-1 bg-purple-900/90 border border-purple-400/60 rounded-lg text-cyan-200 text-sm font-bold font-magic shadow">
+        <span class="px-2.5 py-1 bg-purple-900/90 border border-purple-400/60 rounded-lg text-amber-200 text-sm font-bold font-magic shadow">
           ${item.word}
         </span>
       `).join('');
@@ -893,7 +912,16 @@
       else if (q.prompt) speakText(q.prompt);
     }
 
-    // --- LOGIC PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) ---
+    // --- LOGIC PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB ĐỦ 6 NGUYÊN LIỆU & 4 BIẾN HÌNH) ---
+    const LAB_INGREDIENTS = [
+      { id: "stardust", name: "Stardust", img: "ingredient_stardust.png", icon: "🌟" },
+      { id: "moonflower", name: "Moonflower", img: "ingredient_moonflower.png", icon: "🌙" },
+      { id: "feather", name: "Phoenix Feather", img: "ingredient_feather.png", icon: "🪶" },
+      { id: "butterfly", name: "Butterfly Wing", img: "ingredient_butterfly.png", icon: "🦋" },
+      { id: "dragonscale", name: "Dragon Scale", img: "ingredient_dragonscale.png", icon: "🛡️" },
+      { id: "unicornhorn", name: "Unicorn Horn", img: "ingredient_unicornhorn.png", icon: "🦄" }
+    ];
+
     const TRANSFORMATIONS = [
       { name: "Magic Hat transformed into White Dove!", img: "transform_hat_to_dove.png", icon: "🕊️" },
       { name: "Magic Hat transformed into Fluffy White Rabbit!", img: "transform_hat_to_rabbit.png", icon: "🐇" },
@@ -901,16 +929,36 @@
       { name: "Ancient Scroll transformed into Cute Baby Dragon!", img: "transform_scroll_to_dragon.png", icon: "🐉" }
     ];
 
+    function renderLabIngredients() {
+      const grid = document.getElementById("ingredientsGrid");
+      grid.innerHTML = LAB_INGREDIENTS.map(item => {
+        const isSel = selectedPotionIngredients.includes(item.name);
+        return `
+          <button onclick="selectIngredient('${item.name}')" class="p-2 rounded-xl border ${isSel ? 'bg-purple-900/90 border-amber-400 scale-95 shadow-lg' : 'bg-slate-900/90 hover:bg-slate-800 border-slate-700'} text-xs font-bold text-amber-200 transition flex flex-col items-center gap-1">
+            <div class="w-10 h-10 flex items-center justify-center">
+              <img src="${item.img}" alt="${item.name}" class="max-h-full max-w-full object-contain drop-shadow" onerror="tryAlternativePath(this, '${item.img}', '${item.icon}')">
+            </div>
+            <span class="truncate w-full font-magic text-[11px]">${item.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
     function togglePotionLab() {
       const modal = document.getElementById("potionLabModal");
       modal.classList.toggle("hidden");
-      resetPotionLab();
+      if (!modal.classList.contains("hidden")) {
+        resetPotionLab();
+      }
     }
 
-    function selectIngredient(type) {
-      if (selectedPotionIngredients.length < 3 && !selectedPotionIngredients.includes(type)) {
-        selectedPotionIngredients.push(type);
+    function selectIngredient(name) {
+      if (selectedPotionIngredients.includes(name)) return;
+      if (selectedPotionIngredients.length < 3) {
+        selectedPotionIngredients.push(name);
         playSound('correct');
+        speakText(name);
+        renderLabIngredients();
         updatePotionLabBox();
       }
     }
@@ -918,14 +966,15 @@
     function updatePotionLabBox() {
       const box = document.getElementById("selectedIngredientsBox");
       if (selectedPotionIngredients.length === 0) {
-        box.innerHTML = "None selected (0/3)";
+        box.innerHTML = "Tap 3 ingredients above (0/3)";
       } else {
-        box.innerHTML = selectedPotionIngredients.map(i => `<span class="px-2 py-0.5 bg-purple-900 border border-purple-500 rounded text-cyan-200 capitalize">${i}</span>`).join(' + ');
+        box.innerHTML = selectedPotionIngredients.map(i => `<span class="px-2.5 py-0.5 bg-purple-900 border border-amber-400/60 rounded-lg text-amber-200 font-magic">${i}</span>`).join(' <span class="text-cyan-400">+</span> ');
       }
     }
 
     function resetPotionLab() {
       selectedPotionIngredients = [];
+      renderLabIngredients();
       updatePotionLabBox();
       document.getElementById("cauldronArea").classList.remove("hidden");
       document.getElementById("transformationResultArea").classList.add("hidden");
@@ -935,6 +984,7 @@
     function brewAndTransform() {
       if (selectedPotionIngredients.length < 3) {
         alert("Please pick 3 magic ingredients to brew your potion!");
+        speakText("Pick three magic ingredients first!");
         return;
       }
       playSound('fanfare');
@@ -947,20 +997,14 @@
       resArea.classList.remove("hidden");
       resArea.classList.add("flex");
 
-      // Chọn ngẫu nhiên một phép biến hóa
       const randomTrans = TRANSFORMATIONS[Math.floor(Math.random() * TRANSFORMATIONS.length)];
       const imgSlot = document.getElementById("transformImageSlot");
       
-      if (randomTrans.img) {
-        imgSlot.innerHTML = `<img src="${randomTrans.img}" alt="Transformation" class="max-h-full max-w-full object-contain animate-bounce drop-shadow-xl" onerror="this.parentElement.innerHTML='<span class=\\'text-7xl\\'>${randomTrans.icon}</span>'">`;
-      } else {
-        imgSlot.innerHTML = `<span class="text-7xl animate-bounce">${randomTrans.icon}</span>`;
-      }
+      imgSlot.innerHTML = `<img src="${randomTrans.img}" alt="Transformation" class="max-h-full max-w-full object-contain drop-shadow-2xl" onerror="tryAlternativePath(this, '${randomTrans.img}', '${randomTrans.icon}')">`;
 
       document.getElementById("transformTitle").innerText = randomTrans.name;
-      speakText("Wonderful! Magic spell successful! " + randomTrans.name);
+      speakText("Abracadabra! " + randomTrans.name);
       
-      // Thưởng kim cương khi pha chế thành công
       starsEarned += 3;
       saveProgress();
     }
@@ -999,11 +1043,7 @@
       const pet = pendingRewardRealm.pet;
       const petSlot = document.getElementById("rewardPetImageSlot");
       
-      if (pet.img) {
-        petSlot.innerHTML = `<img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain animate-bounce drop-shadow-xl" onerror="this.parentElement.innerHTML='<span class=\\'text-6xl\\'>${pet.icon}</span>'">`;
-      } else {
-        petSlot.innerHTML = `<span class="text-6xl animate-bounce">${pet.icon}</span>`;
-      }
+      petSlot.innerHTML = `<img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain animate-bounce drop-shadow-xl" onerror="tryAlternativePath(this, '${pet.img}', '${pet.icon}')">`;
 
       document.getElementById("rewardPetName").innerText = pet.name;
       document.getElementById("rewardPetDesc").innerText = pet.desc;
@@ -1060,15 +1100,11 @@
           
           let visualContent = `<span class="text-3xl mb-1">🔒</span>`;
           if (isUnlocked) {
-            if (pet.img) {
-              visualContent = `<img src="${pet.img}" alt="${pet.name}" class="w-14 h-14 object-contain mb-1 drop-shadow-md" onerror="this.outerHTML='<span class=\\'text-3xl mb-1\\'>${pet.icon}</span>'">`;
-            } else {
-              visualContent = `<span class="text-3xl mb-1">${pet.icon}</span>`;
-            }
+            visualContent = `<div class="w-14 h-14 flex items-center justify-center mb-1"><img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain drop-shadow-md" onerror="tryAlternativePath(this, '${pet.img}', '${pet.icon}')"></div>`;
           }
 
           return `
-            <div class="flex flex-col items-center justify-center p-3 rounded-xl border ${isUnlocked ? 'bg-purple-950/80 border-cyan-400 text-cyan-200 shadow-lg' : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-40'} text-center">
+            <div class="flex flex-col items-center justify-center p-3 rounded-xl border ${isUnlocked ? 'bg-purple-950/80 border-cyan-400 text-amber-300 shadow-lg' : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-40'} text-center">
               ${visualContent}
               <span class="text-xs font-black truncate w-full font-magic mt-1">${isUnlocked ? pet.name : 'Locked Pet'}</span>
               <span class="text-[10px] text-slate-300">Realm ${r.id}</span>
