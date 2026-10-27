@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Word Wizard Adventure - Học Viện Phù Thủy Cambridge Stage 2</title>
+  <title>Word Wizard Adventure - Cambridge Stage 2</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Fredoka & Quicksand -->
@@ -61,16 +61,6 @@
       transform-origin: bottom center;
     }
 
-    @keyframes cauldronBrewing {
-      0%, 100% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg) brightness(1); }
-      25% { transform: scale(1.1) rotate(-6deg); filter: hue-rotate(45deg) brightness(1.25); }
-      50% { transform: scale(1.16) rotate(6deg); filter: hue-rotate(90deg) brightness(1.45); }
-      75% { transform: scale(1.1) rotate(-6deg); filter: hue-rotate(180deg) brightness(1.3); }
-    }
-    .brewing-active {
-      animation: cauldronBrewing 0.42s infinite ease-in-out !important;
-    }
-
     @keyframes floatSlow {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-6px); }
@@ -79,13 +69,52 @@
       animation: floatSlow 2.5s infinite ease-in-out;
     }
 
+    /* KHUNG CỬA SỔ CẮT ẢNH 3 BƯỚC CHUẨN XÁC */
+    .magic-viewport-box {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      min-height: 220px;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      background-color: #ffffff;
+      border: 4px solid #fbbf24;
+      box-shadow: 0 0 35px rgba(251, 191, 36, 0.7);
+      flex-shrink: 0;
+      transition: all 0.35s ease;
+    }
+    /* Khi bấm nút View 3 Steps để xem toàn cảnh cả tấm ảnh ngang */
+    .magic-viewport-box.full-view-mode {
+      width: 100%;
+      max-width: 440px;
+      height: 165px;
+      min-height: 165px;
+    }
+
+    /* Thẻ ảnh bên trong phóng rộng 300% khung chứa và dịch chuyển bằng thuộc tính left */
+    .sprite-strip-3x {
+      position: absolute;
+      top: 0;
+      left: 0%;
+      width: 300% !important;
+      max-width: none !important;
+      height: 100% !important;
+      object-fit: cover;
+      transition: left 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.35s ease;
+    }
+    .magic-viewport-box.full-view-mode .sprite-strip-3x {
+      width: 100% !important;
+      left: 0% !important;
+      object-fit: contain;
+    }
+
     @keyframes flashBurst {
       0% { opacity: 1; transform: scale(0.7); }
       40% { opacity: 0.95; transform: scale(1.1); }
       100% { opacity: 0; transform: scale(1.8); }
     }
     .poof-flash-ring {
-      background: radial-gradient(circle, #ffffff 25%, #fde047 60%, rgba(168, 85, 247, 0) 85%);
+      background: radial-gradient(circle, #ffffff 30%, #fde047 65%, rgba(168, 85, 247, 0) 90%);
     }
     .poof-flash-ring.active {
       animation: flashBurst 0.55s ease-out forwards;
@@ -187,7 +216,7 @@
     </div>
   </main>
 
-  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) -->
+  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB - 100% ENGLISH) -->
   <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[96vh] overflow-y-auto">
       
@@ -207,7 +236,7 @@
         <p id="cauldronStatusText" class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients to cast a transformation spell!</p>
       </div>
 
-      <!-- KHU VỰC SÂN KHẤU CẮT KHUNG 3 BƯỚC (SPRITE VIEWPORT) -->
+      <!-- KHU VỰC SÂN KHẤU BIẾN HÌNH 3 BƯỚC -->
       <div id="transformationResultArea" class="hidden flex-col items-center my-1.5 bg-gradient-to-b from-purple-950/85 to-slate-900/95 border-2 border-amber-400/80 rounded-2xl p-3 w-full shadow-2xl relative">
         
         <div class="flex items-center justify-between w-full px-1 mb-2 gap-1 flex-wrap">
@@ -224,18 +253,13 @@
           </div>
         </div>
 
-        <!-- Vùng cắt khung ảnh, KHÓA CỨNG KÍCH THƯỚC min-height để không bị xẹp -->
-        <div id="magicSpriteStage" class="relative w-[200px] h-[200px] min-h-[200px] sm:w-[240px] sm:h-[240px] sm:min-h-[240px] rounded-3xl overflow-hidden bg-slate-900 border-4 border-amber-400 shadow-[0_0_35px_rgba(251,191,36,0.7)] flex-shrink-0 transition-all duration-300">
+        <!-- Khung Cửa Sổ Cắt Ảnh 3 Bước (Sẽ được JS nạp thẻ img trực tiếp khi bấm nút) -->
+        <div id="magicSpriteStage" class="magic-viewport-box my-1">
           <div id="poofFlashRing" class="poof-flash-ring absolute inset-0 opacity-0 z-20 pointer-events-none"></div>
-          
-          <!-- Thẻ ảnh dài 300% dùng để trượt qua lại -->
-          <img id="activeSpriteImg" src="" data-filename="" data-emoji="" alt="Transformation" 
-               class="absolute top-0 left-0 h-full w-[300%] max-w-none object-cover transition-transform duration-500 ease-in-out origin-center" 
-               style="transform: translateX(0%);"
-               onerror="showSpriteFallback(this)">
+          <div id="spriteImgSlot" class="w-full h-full relative"></div>
         </div>
 
-        <h4 id="transformTitle" class="text-base sm:text-lg font-black text-amber-300 font-magic mt-3 drop-shadow text-center leading-tight">Magic Hat transformed into White Dove!</h4>
+        <h4 id="transformTitle" class="text-base sm:text-lg font-black text-amber-300 font-magic mt-2.5 drop-shadow text-center leading-tight">Magic Hat transformed into White Dove!</h4>
         <span class="text-xs text-emerald-300 font-bold mt-1 bg-emerald-950/70 px-3 py-0.5 rounded-full border border-emerald-500/40">+3 Magic Gems 💎</span>
       </div>
 
@@ -251,7 +275,7 @@
 
       <div class="flex gap-2 w-full mt-1 flex-shrink-0">
         <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition border border-slate-600">
-          🔄 Reset
+          🔄 Reset Lab
         </button>
         <button id="btnStirCauldron" onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
           🪄 Stir Cauldron & Transform!
@@ -336,22 +360,19 @@
         imgEl.src = SUBFOLDERS[idx] + filename;
       } else {
         imgEl.onerror = null;
-        imgEl.outerHTML = `<span class="text-5xl select-none absolute inset-0 flex items-center justify-center">${fallbackEmoji}</span>`;
+        imgEl.outerHTML = `<span class="text-5xl select-none flex items-center justify-center w-full h-full">${fallbackEmoji}</span>`;
       }
     }
 
-    function showSpriteFallback(imgEl) {
+    // Dò tìm thư mục con nếu ảnh biến hình nằm trong folder con
+    function handleSpriteImgError(imgEl, filename, fallbackEmoji) {
       let idx = parseInt(imgEl.dataset.tryIdx || "0", 10) + 1;
-      const filename = imgEl.getAttribute('data-filename');
-      const emoji = imgEl.getAttribute('data-emoji');
-      
       if (idx < SUBFOLDERS.length) {
         imgEl.dataset.tryIdx = idx;
         imgEl.src = SUBFOLDERS[idx] + filename;
       } else {
         imgEl.onerror = null;
-        // Hiện Emoji lớn giữa khung nền tối
-        imgEl.outerHTML = `<div class="absolute inset-0 flex items-center justify-center text-7xl select-none bg-slate-900">${emoji}</div>`;
+        imgEl.outerHTML = `<div class="w-full h-full flex items-center justify-center text-7xl select-none bg-slate-900">${fallbackEmoji}</div>`;
       }
     }
 
@@ -712,6 +733,12 @@
       } catch (e) {}
     }
 
+    function toggleMute() {
+      isMuted = !isMuted;
+      document.getElementById("muteBtn").innerText = isMuted ? "🔇" : "🔊";
+      if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
     function getCurrentRealm(qId) {
       return REALMS.find(r => qId >= r.range[0] && qId <= r.range[1]) || REALMS[0];
     }
@@ -1055,7 +1082,7 @@
       else if (q.prompt) speakText(q.prompt);
     }
 
-    // --- LOGIC POTION LAB & CẮT KHUNG SPRITE ---
+    // --- LOGIC POTION LAB & 3-STEP SPRITE ANIMATION (KHỞI TẠO ĐỘNG 100%) ---
     const LAB_INGREDIENTS = [
       { id: "stardust", name: "Stardust", img: "ingredient_stardust.png", icon: "🌟" },
       { id: "moonflower", name: "Moonflower", img: "ingredient_moonflower.png", icon: "🌙" },
@@ -1091,7 +1118,7 @@
         const isSel = selectedPotionIngredients.includes(item.name);
         return `
           <button onclick="selectIngredient('${item.name}')" class="p-2 rounded-xl border ${isSel ? 'bg-purple-900/90 border-amber-400 scale-95 shadow-lg' : 'bg-slate-900/90 hover:bg-slate-800 border-slate-700'} text-xs font-bold text-amber-200 transition flex flex-col items-center gap-1">
-            <div class="w-10 h-10 flex items-center justify-center">
+            <div class="w-10 h-10 flex items-center justify-center relative">
               <img src="${item.img}" alt="${item.name}" class="max-h-full max-w-full object-contain drop-shadow" onerror="tryAlternativePath(this, '${item.img}', '${item.icon}')">
             </div>
             <span class="truncate w-full font-magic text-[11px]">${item.name}</span>
@@ -1136,8 +1163,6 @@
       isFullStripMode = false;
       renderLabIngredients();
       updatePotionLabBox();
-      const cauldronWrap = document.getElementById("cauldronVisualWrap");
-      cauldronWrap.classList.remove("brewing-active");
       document.getElementById("cauldronStatusText").innerText = "Pick 3 magical ingredients to cast a transformation spell!";
       document.getElementById("cauldronArea").classList.remove("hidden");
       document.getElementById("transformationResultArea").classList.add("hidden");
@@ -1171,48 +1196,44 @@
       isFullStripMode = false;
 
       const stage = document.getElementById("magicSpriteStage");
-      const img = document.getElementById("activeSpriteImg");
+      const slot = document.getElementById("spriteImgSlot");
       const btnStrip = document.getElementById("btnToggleStrip");
       const badge = document.getElementById("stageStepBadge");
       const titleEl = document.getElementById("transformTitle");
 
-      stage.classList.remove("w-full", "max-w-md", "h-[120px]", "min-h-[120px]");
-      stage.classList.add("w-[200px]", "h-[200px]", "min-h-[200px]", "sm:w-[240px]", "sm:h-[240px]", "sm:min-h-[240px]");
-      
-      img.classList.remove("w-full", "object-contain");
-      img.classList.add("w-[300%]", "object-cover");
+      stage.classList.remove("full-view-mode");
       btnStrip.innerText = "👁️ View 3 Steps";
 
-      img.dataset.tryIdx = "0";
-      img.setAttribute("data-filename", transObj.img);
-      img.setAttribute("data-emoji", transObj.icon);
-      img.src = transObj.img;
-      img.onerror = function() { showSpriteFallback(this); };
+      // TẠO MỚI THẺ IMG NGAY LÚC BẤM NÚT ĐỂ KHÔNG BAO GIỜ BỊ LỖI SRC RỖNG
+      slot.innerHTML = `
+        <img id="activeSpriteImg" src="${transObj.img}" alt="${transObj.name}" 
+          class="sprite-strip-3x" style="left: 0%;"
+          onerror="handleSpriteImgError(this, '${transObj.img}', '${transObj.icon}')">
+      `;
 
-      // GIÂY 1 (0%)
-      img.style.transform = "translateX(0%) scale(1)";
-      stage.classList.add("animate-pulse"); 
-      badge.innerText = `✨ Step 1: Charging...`;
+      // STEP 1 (0.0s): Hiện phần 1/3 bên trái (left: 0%)
+      badge.innerText = `✨ Step 1/3: Charging ${transObj.beforeName}...`;
       titleEl.innerText = `Casting spell on ${transObj.beforeName}...`;
       playSound('charge');
       triggerStageFlash();
 
-      // GIÂY 2 (-33.333%)
+      // STEP 2 (1.0s): Trượt sang phần 1/3 ở giữa (left: -100%)
       const t1 = setTimeout(() => {
         if (isFullStripMode) return;
-        stage.classList.remove("animate-pulse");
-        img.style.transform = "translateX(-33.333%) scale(1.05)";
-        badge.innerText = `💥 Step 2: Magic Swirl!`;
-        titleEl.innerText = `✨ Transforming... ✨`;
+        const img = document.getElementById("activeSpriteImg");
+        if (img) img.style.left = "-100%";
+        badge.innerText = `💥 Step 2/3: Magic Swirl!`;
+        titleEl.innerText = `✨ Transforming with Magic Sparks! ✨`;
         playSound('swirl');
         triggerStageFlash();
       }, 1000);
 
-      // GIÂY 3 (-66.666%)
+      // STEP 3 (2.0s): Trượt sang phần 1/3 bên phải (left: -200%)
       const t2 = setTimeout(() => {
         if (isFullStripMode) return;
-        img.style.transform = "translateX(-66.666%) scale(1)";
-        badge.innerText = `🎉 Step 3: POOF! Appears!`;
+        const img = document.getElementById("activeSpriteImg");
+        if (img) img.style.left = "-200%";
+        badge.innerText = `🎉 Step 3/3: POOF! ${transObj.afterName}!`;
         titleEl.innerText = transObj.name;
         playSound('poof');
         triggerStageFlash();
@@ -1240,30 +1261,35 @@
 
       if (isFullStripMode) {
         clearTransformTimers();
-        stage.classList.remove("w-[200px]", "h-[200px]", "min-h-[200px]", "sm:w-[240px]", "sm:h-[240px]", "sm:min-h-[240px]", "animate-pulse");
-        stage.classList.add("w-full", "max-w-md", "h-[120px]", "min-h-[120px]");
-        
-        img.classList.remove("w-[300%]", "object-cover");
-        img.classList.add("w-full", "object-contain");
-        img.style.transform = "translateX(0%)";
-        
-        btn.innerText = "🎯 Zoom Object";
-        document.getElementById("stageStepBadge").innerText = "📜 Full Magic Scroll";
+        stage.classList.add("full-view-mode");
+        btn.innerText = "🎯 Zoom Pet";
+        document.getElementById("stageStepBadge").innerText = "📜 Full 3-Step Magic Scroll";
         playSound('correct');
       } else {
-        stage.classList.add("w-[200px]", "h-[200px]", "min-h-[200px]", "sm:w-[240px]", "sm:h-[240px]", "sm:min-h-[240px]");
-        stage.classList.remove("w-full", "max-w-md", "h-[120px]", "min-h-[120px]");
-        
-        img.classList.add("w-[300%]", "object-cover");
-        img.classList.remove("w-full", "object-contain");
-        img.style.transform = "translateX(-66.666%)";
-        
+        stage.classList.remove("full-view-mode");
+        if (img) img.style.left = "-200%";
         btn.innerText = "👁️ View 3 Steps";
         if (currentTransformationObj) {
-          document.getElementById("stageStepBadge").innerText = `🎉 Step 3: POOF! Appears!`;
+          document.getElementById("stageStepBadge").innerText = `🎉 Step 3/3: POOF! ${currentTransformationObj.afterName}!`;
         }
         playSound('correct');
       }
+    }
+
+    function triggerMysteryChest(realm) {
+      pendingRewardRealm = realm;
+      const modal = document.getElementById("mysteryChestModal");
+      const wrapper = document.getElementById("chestWrapper");
+      const rewardArea = document.getElementById("chestRewardArea");
+
+      wrapper.classList.remove("hidden");
+      rewardArea.classList.add("hidden");
+      rewardArea.classList.remove("flex");
+
+      document.getElementById("chestModalTitle").innerText = `Realm ${realm.id} Chest Discovered!`;
+      modal.classList.remove("hidden");
+
+      speakText("You cleared the realm! Tap the magic chest to crack it open!");
     }
 
     function unlockMysteryChest() {
@@ -1340,7 +1366,7 @@
           const pet = r.pet;
           let visualContent = `<span class="text-3xl mb-1">🔒</span>`;
           if (isUnlocked) {
-            visualContent = `<div class="w-14 h-14 flex items-center justify-center mb-1"><img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain drop-shadow-md" onerror="tryAlternativePath(this, '${pet.img}', '${pet.icon}')"></div>`;
+            visualContent = `<div class="w-14 h-14 flex items-center justify-center mb-1 relative"><img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain drop-shadow-md" onerror="tryAlternativePath(this, '${pet.img}', '${pet.icon}')"></div>`;
           }
           return `
             <div class="flex flex-col items-center justify-center p-3 rounded-xl border ${isUnlocked ? 'bg-purple-950/80 border-cyan-400 text-cyan-200 shadow-lg' : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-40'} text-center">
