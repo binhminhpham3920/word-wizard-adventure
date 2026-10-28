@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-  <!-- Canvas Confetti (Link chuẩn 100%) -->
+  <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
@@ -69,43 +69,30 @@
       animation: floatSlow 2.5s infinite ease-in-out;
     }
 
-    /* KHUNG CỬA SỔ CẮT 3 BƯỚC CHUẨN XÁC TUYỆT ĐỐI */
-    .magic-viewport-box {
-      position: relative;
-      width: 240px;
-      height: 190px;
-      min-height: 190px;
+    /* KHUNG CỬA SỔ CẮT ẢNH 3 BƯỚC BẰNG BACKGROUND SPRITE (100% ỔN ĐỊNH) */
+    .magic-sprite-stage {
+      width: 220px;
+      height: 220px;
+      min-height: 220px;
       border-radius: 1.5rem;
-      overflow: hidden;
       background-color: #ffffff;
+      background-repeat: no-repeat;
+      background-size: 315% auto;
+      background-position: 0% center;
       border: 4px solid #fbbf24;
       box-shadow: 0 0 35px rgba(251, 191, 36, 0.75);
       flex-shrink: 0;
-      transition: width 0.35s ease, height 0.35s ease;
+      position: relative;
+      overflow: hidden;
+      transition: background-position 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s ease, height 0.3s ease;
     }
-    /* Chế độ xem toàn cảnh cả 3 bước trên cùng 1 khung rộng */
-    .magic-viewport-box.full-view-mode {
+    .magic-sprite-stage.full-view-mode {
       width: 100%;
       max-width: 440px;
       height: 165px;
       min-height: 165px;
-    }
-
-    /* Dải ảnh rộng gấp 3 lần khung chứa (300%) để mỗi bước hiển thị đúng 1/3 bức ảnh */
-    .sprite-strip-3x {
-      display: block;
-      width: 300% !important;
-      max-width: none !important;
-      height: 100% !important;
-      object-fit: fill;
-      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
-      will-change: transform;
-    }
-    .magic-viewport-box.full-view-mode .sprite-strip-3x {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain;
-      transform: translateX(0%) !important;
+      background-size: contain !important;
+      background-position: center center !important;
     }
 
     @keyframes flashBurst {
@@ -114,7 +101,12 @@
       100% { opacity: 0; transform: scale(1.8); }
     }
     .poof-flash-ring {
+      position: absolute;
+      inset: 0;
       background: radial-gradient(circle, #ffffff 30%, #fde047 65%, rgba(168, 85, 247, 0) 90%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
     }
     .poof-flash-ring.active {
       animation: flashBurst 0.55s ease-out forwards;
@@ -127,7 +119,7 @@
       100% { transform: translateY(-25px) scale(0.9); opacity: 0; }
     }
     .loot-popup {
-      animation: lootPopupAnim 2.2s ease-in-out forwards;
+      animation: lootPopupAnim 2s ease-in-out forwards;
     }
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -227,9 +219,9 @@
   </main>
 
   <!-- THÔNG BÁO RƠI NGUYÊN LIỆU KHI LÀM ĐÚNG -->
-  <div id="lootPopupContainer" class="fixed top-16 right-4 z-50 flex flex-col items-end pointer-events-none space-y-2"></div>
+  <div id="lootPopupContainer" class="fixed top-20 right-5 z-50 flex flex-col items-end pointer-events-none space-y-2"></div>
 
-  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB - 100% ENGLISH) -->
+  <!-- MODAL: PHÒNG THÍ NGHIỆM PHA CHẾ THUỐC (POTION LAB) -->
   <div id="potionLabModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-lg z-50 hidden flex items-center justify-center p-2 sm:p-4">
     <div class="relative bg-gradient-to-b from-slate-900/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl p-4 sm:p-5 max-w-lg w-full text-center shadow-2xl flex flex-col items-center max-h-[96vh] overflow-y-auto">
       
@@ -238,8 +230,8 @@
           <span>🧪</span> Wizard Potion Lab & Magic Show
         </h3>
         <div class="flex items-center gap-2">
-          <button onclick="openRecipeBook()" id="btnRecipeBook" class="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-black font-magic flex items-center gap-1 shadow transition active:scale-95">
-            <span>📖</span> <span id="recipeBtnLabel">Recipe Book (1 Free!)</span>
+          <button onclick="toggleRecipeBook()" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-black font-magic flex items-center gap-1 shadow transition">
+            <span>📖</span> Recipe Book
           </button>
           <button onclick="togglePotionLab()" class="text-slate-400 hover:text-white text-lg font-bold px-2">✕</button>
         </div>
@@ -254,14 +246,14 @@
         <p id="cauldronStatusText" class="text-xs text-cyan-200 font-semibold mt-1">Pick 3 magical ingredients from your loot to brew!</p>
       </div>
 
-      <!-- KHU VỰC SÂN KHẤU BIẾN HÌNH 3 BƯỚC -->
+      <!-- KHU VỰC SÂN KHẤU BIẾN HÌNH 3 BƯỚC (DÙNG BACKGROUND SPRITE 100% ỔN ĐỊNH) -->
       <div id="transformationResultArea" class="hidden flex-col items-center my-1.5 bg-gradient-to-b from-purple-950/85 to-slate-900/95 border-2 border-amber-400/80 rounded-2xl p-3 w-full shadow-2xl relative">
         
         <div class="flex items-center justify-between w-full px-1 mb-2 gap-1 flex-wrap">
           <span id="stageStepBadge" class="text-[11px] sm:text-xs font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-3 py-0.5 rounded-full font-magic shadow">
             ✨ Step 1: Charging...
           </span>
-          <div id="spriteControlBtns" class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5">
             <button onclick="replayMagicAnimation()" class="text-[11px] sm:text-xs bg-purple-800 hover:bg-purple-700 text-amber-200 px-2.5 py-1 rounded-lg border border-purple-400/50 font-bold transition shadow">
               🔄 Replay
             </button>
@@ -271,9 +263,8 @@
           </div>
         </div>
 
-        <div id="magicSpriteStage" class="magic-viewport-box my-1">
-          <div id="poofFlashRing" class="poof-flash-ring absolute inset-0 opacity-0 z-20 pointer-events-none"></div>
-          <div id="spriteImgSlot" class="w-full h-full relative overflow-hidden"></div>
+        <div id="magicSpriteStage" class="magic-sprite-stage my-1 flex items-center justify-center">
+          <div id="poofFlashRing" class="poof-flash-ring"></div>
         </div>
 
         <h4 id="transformTitle" class="text-base sm:text-lg font-black text-amber-300 font-magic mt-2.5 drop-shadow text-center leading-tight">Magic Hat transformed into White Dove!</h4>
@@ -290,7 +281,7 @@
 
       <div class="flex gap-2 w-full mt-1 flex-shrink-0">
         <button onclick="resetPotionLab()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition border border-slate-600">
-          🔄 Clear Selection
+          🔄 Reset
         </button>
         <button id="btnStirCauldron" onclick="brewAndTransform()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 font-magic">
           🪄 Stir Cauldron & Transform!
@@ -300,44 +291,38 @@
     </div>
   </div>
 
-  <!-- MODAL: SÁCH BÍ KÍP PHÙ THỦY (RECIPE BOOK - 10s MEMORY TIMER) -->
-  <div id="recipeBookModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[60] hidden flex items-center justify-center p-3">
+  <!-- MODAL: SÁCH BÍ KÍP PHÙ THỦY (RECIPE BOOK) -->
+  <div id="recipeBookModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
     <div class="bg-gradient-to-b from-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-2 border-amber-400 rounded-3xl p-5 max-w-md w-full text-center shadow-2xl flex flex-col items-center">
-      <div class="flex items-center justify-between w-full pb-2 border-b border-amber-500/30 mb-2">
+      <div class="flex items-center justify-between w-full pb-2 border-b border-amber-500/30 mb-3">
         <h3 class="text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
-          <span>📖</span> Secret Wizard Recipe Book
+          <span>📖</span> Wizard Recipe Book
         </h3>
-        <span id="recipeTimerCountdown" class="text-xs font-mono font-black bg-rose-600 text-white px-2.5 py-0.5 rounded-full animate-pulse">10s</span>
+        <button onclick="toggleRecipeBook()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
       </div>
 
-      <p class="text-xs text-cyan-200 mb-2 font-semibold">Memorize these 4 secret formulas before the book closes!</p>
-
-      <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
-        <div id="recipeBookTimerFill" class="bg-amber-400 h-full w-full transition-all duration-1000 ease-linear"></div>
+      <div id="recipeBookTimerBar" class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
+        <div id="recipeBookTimerFill" class="bg-amber-400 h-full w-full transition-all duration-1000"></div>
       </div>
 
-      <div class="w-full space-y-2.5 text-left text-xs sm:text-sm font-semibold text-slate-100 my-1">
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-amber-400/40 flex flex-col gap-0.5 shadow">
-          <span class="text-amber-300 font-magic font-bold">🕊️ 1. White Dove Formula:</span>
-          <span class="text-cyan-200 text-xs">🌟 Stardust + 🌙 Moonflower + 🪶 Phoenix Feather</span>
+      <div class="w-full space-y-2.5 text-left text-xs sm:text-sm font-semibold text-slate-200 my-1">
+        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
+          <span>🕊️ <b>White Dove:</b> Stardust + Moonflower + Phoenix Feather</span>
         </div>
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-amber-400/40 flex flex-col gap-0.5 shadow">
-          <span class="text-amber-300 font-magic font-bold">🐇 2. Fluffy White Rabbit Formula:</span>
-          <span class="text-cyan-200 text-xs">🌟 Stardust + 🦋 Butterfly Wing + 🦄 Unicorn Horn</span>
+        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
+          <span>🐇 <b>White Rabbit:</b> Stardust + Butterfly Wing + Unicorn Horn</span>
         </div>
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-amber-400/40 flex flex-col gap-0.5 shadow">
-          <span class="text-amber-300 font-magic font-bold">🐸 3. Royal Frog Prince Formula:</span>
-          <span class="text-cyan-200 text-xs">🌙 Moonflower + 🦋 Butterfly Wing + 🛡️ Dragon Scale</span>
+        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
+          <span>🐸 <b>Frog Prince:</b> Moonflower + Butterfly Wing + Dragon Scale</span>
         </div>
-        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-amber-400/40 flex flex-col gap-0.5 shadow">
-          <span class="text-amber-300 font-magic font-bold">🐉 4. Cute Baby Dragon Formula:</span>
-          <span class="text-cyan-200 text-xs">🪶 Phoenix Feather + 🛡️ Dragon Scale + 🦄 Unicorn Horn</span>
+        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-purple-500/40 flex items-center justify-between">
+          <span>🐉 <b>Baby Dragon:</b> Phoenix Feather + Dragon Scale + Unicorn Horn</span>
         </div>
       </div>
 
-      <p id="recipeBookFeeNote" class="text-[11px] text-amber-200 mt-2 font-semibold"></p>
+      <p id="recipeBookFeeNote" class="text-[11px] text-cyan-300 mt-2 font-medium">First peek is FREE! Subsequent peeks cost 3 Gems (💎).</p>
 
-      <button onclick="closeRecipeBook()" class="mt-3 w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-sm font-magic shadow transition active:scale-95">
+      <button onclick="toggleRecipeBook()" class="mt-4 w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-sm font-magic shadow">
         Got it! Memorized! ➔
       </button>
     </div>
@@ -418,19 +403,31 @@
         imgEl.src = SUBFOLDERS[idx] + filename;
       } else {
         imgEl.onerror = null;
-        imgEl.outerHTML = `<span class="text-4xl select-none flex items-center justify-center w-full h-full">${fallbackEmoji}</span>`;
+        imgEl.outerHTML = `<span class="text-5xl select-none flex items-center justify-center w-full h-full">${fallbackEmoji}</span>`;
       }
     }
 
-    function handleSpriteImgError(imgEl, filename, fallbackEmoji) {
-      let idx = parseInt(imgEl.dataset.tryIdx || "0", 10) + 1;
-      if (idx < SUBFOLDERS.length) {
-        imgEl.dataset.tryIdx = idx;
-        imgEl.src = SUBFOLDERS[idx] + filename;
-      } else {
-        imgEl.onerror = null;
-        imgEl.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center text-7xl select-none bg-slate-900">${fallbackEmoji}</div>`;
+    // Hàm dò tìm thông minh cho Background Sprite để đảm bảo ảnh luôn hiện
+    function resolveSpriteBackground(filename, fallbackEmoji, element) {
+      let idx = 0;
+      function checkNext() {
+        if (idx >= SUBFOLDERS.length) {
+          element.style.backgroundImage = "none";
+          element.innerHTML += `<div class="absolute inset-0 flex items-center justify-center text-7xl select-none bg-slate-900">${fallbackEmoji}</div>`;
+          return;
+        }
+        const testUrl = SUBFOLDERS[idx] + filename;
+        const img = new Image();
+        img.onload = () => {
+          element.style.backgroundImage = `url('${testUrl}')`;
+        };
+        img.onerror = () => {
+          idx++;
+          checkNext();
+        };
+        img.src = testUrl;
       }
+      checkNext();
     }
 
     const REALMS = [
@@ -581,7 +578,6 @@
 
     let discoveredTransformations = [];
 
-    // --- BỘ XỬ LÝ ÂM THANH TRUNG TÂM ---
     let globalAudioCtx = null;
     function getAudioCtx() {
       if (!globalAudioCtx) {
@@ -595,28 +591,6 @@
     }
 
     window.addEventListener('pointerdown', () => { getAudioCtx(); }, { once: true });
-
-    function toggleMute() {
-      isMuted = !isMuted;
-      const btn = document.getElementById("muteBtn");
-      if (btn) btn.innerText = isMuted ? "🔇" : "🔊";
-      if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
-    }
-
-    function clearTransformTimers() {
-      if (Array.isArray(currentTransformTimers)) {
-        currentTransformTimers.forEach(t => clearTimeout(t));
-      }
-      currentTransformTimers = [];
-    }
-
-    function triggerStageFlash() {
-      const ring = document.getElementById("poofFlashRing");
-      if (!ring) return;
-      ring.classList.remove("active");
-      void ring.offsetWidth;
-      ring.classList.add("active");
-    }
 
     function loadProgress() {
       try {
@@ -637,7 +611,6 @@
         if (savedPeeks !== null) recipeBookPeekCount = parseInt(savedPeeks, 10) || 0;
       } catch (e) {}
       updateTopBarUI();
-      updateRecipeBtnLabel();
     }
 
     function saveProgress() {
@@ -651,13 +624,6 @@
         localStorage.setItem("word_wizard_peeks", recipeBookPeekCount);
       } catch (e) {}
       updateTopBarUI();
-      updateRecipeBtnLabel();
-    }
-
-    function updateRecipeBtnLabel() {
-      const lbl = document.getElementById("recipeBtnLabel");
-      if (!lbl) return;
-      lbl.innerText = recipeBookPeekCount === 0 ? "Recipe Book (1 Free!)" : "Peek Recipe (-3 💎)";
     }
 
     function confirmResetProgress() {
@@ -830,21 +796,747 @@
             o.start(now + idx * 0.1);
             o.stop(now + idx * 0.1 + 0.4);
           });
-        } else {
-          // Âm thanh sai / nổ khói xịt
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(200, now);
-          osc.frequency.linearRampToValueAtTime(110, now + 0.35);
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.linearRampToValueAtTime(0, now + 0.35);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.35);
         }
       } catch (e) {}
     }
 
-    const INGREDIENT_NAMES
+    const INGREDIENT_NAMES = ["Stardust", "Moonflower", "Phoenix Feather", "Butterfly Wing", "Dragon Scale", "Unicorn Horn"];
+    const INGREDIENT_ICONS = { "Stardust": "🌟", "Moonflower": "🌙", "Phoenix Feather": "🪶", "Butterfly Wing": "🦋", "Dragon Scale": "🛡️", "Unicorn Horn": "🦄" };
+
+    function triggerLootDrop() {
+      const randIng = INGREDIENT_NAMES[Math.floor(Math.random() * INGREDIENT_NAMES.length)];
+      playerInventory[randIng] = (playerInventory[randIng] || 0) + 1;
+      saveProgress();
+
+      const popupContainer = document.getElementById("lootPopupContainer");
+      const popup = document.createElement("div");
+      popup.className = "loot-popup bg-purple-950/95 border-2 border-amber-400 text-amber-200 px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-bold font-magic";
+      popup.innerHTML = `<span>🎁 Loot Drop!</span> <span class="text-base">${INGREDIENT_ICONS[randIng]}</span> <span>+1 ${randIng}</span>`;
+      popupContainer.appendChild(popup);
+      setTimeout(() => popup.remove(), 2000);
+    }
+
+    function getCurrentRealm(qId) {
+      return REALMS.find(r => qId >= r.range[0] && qId <= r.range[1]) || REALMS[0];
+    }
+
+    function renderCurrentQuestion() {
+      const q = QUESTIONS[currentQIndex];
+      const realm = getCurrentRealm(q.id);
+
+      updateRealmBackground(realm.id);
+
+      document.getElementById("realmIcon").innerText = realm.icon;
+      document.getElementById("realmTag").innerText = `PART ${realm.id}: ${realm.name.toUpperCase()} (Q${q.id})`;
+      document.getElementById("realmDesc").innerText = realm.desc;
+
+      const qContainer = document.getElementById("questionContainer");
+      const iArea = document.getElementById("interactiveArea");
+      qContainer.innerHTML = "";
+      iArea.innerHTML = "";
+
+      const btnSpeak = document.getElementById("btnHeaderSpeak");
+      if (q.part === 2) btnSpeak.classList.add("hidden");
+      else btnSpeak.classList.remove("hidden");
+
+      if (q.part === 1) {
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2.5 max-w-md w-full">
+            <span class="text-sm sm:text-base font-semibold text-cyan-200">Listen closely and spell the word:</span>
+            <button onclick="playNativeWordAudio('${q.target}')" class="w-14 h-14 bg-gradient-to-tr from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full shadow-lg flex items-center justify-center transition active:scale-95 my-1" title="Listen UK Voice">
+              <span class="text-2xl">🔊</span>
+            </button>
+            <div class="tracking-widest text-xl sm:text-2xl font-mono text-amber-300 font-bold">
+              ${'_ '.repeat(q.len).trim()} <span class="text-sm text-slate-200 font-normal">(${q.len} letters)</span>
+            </div>
+            <p class="text-sm text-slate-100 font-semibold italic">Hint: ${q.hint}</p>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex items-center gap-2 w-full max-w-sm">
+            <input type="text" id="spellingInput" autocomplete="off" autocapitalize="off" spellcheck="false"
+              placeholder="Type word here..." 
+              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300 tracking-wider">
+            <button onclick="checkSpelling()" class="px-5 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
+              Cast ✨
+            </button>
+          </div>
+        `;
+        setTimeout(() => {
+          playNativeWordAudio(q.target);
+          const inp = document.getElementById("spellingInput");
+          if (inp) {
+            inp.focus();
+            inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkSpelling(); });
+          }
+        }, 300);
+
+      } else if (q.part === 2) {
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
+            <span class="text-sm sm:text-base font-bold text-cyan-200">Fill in the missing letter rune:</span>
+            <div class="text-4xl sm:text-5xl font-mono font-black text-amber-300 tracking-widest bg-slate-950/70 px-8 py-3 rounded-2xl border border-cyan-500/60 shadow">
+              ${q.display}
+            </div>
+            <p class="text-sm text-slate-100 font-semibold italic">Clue: ${q.hint}</p>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex items-center gap-2 w-full max-w-xs">
+            <input type="text" id="missingInput" maxlength="1" autocomplete="off" autocapitalize="off"
+              placeholder="?" 
+              class="w-16 h-14 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl text-center text-2xl font-black text-amber-300">
+            <button onclick="checkMissingLetter()" class="flex-1 py-3 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
+              Unlock 🔓
+            </button>
+          </div>
+        `;
+        setTimeout(() => {
+          const inp = document.getElementById("missingInput");
+          if (inp) {
+            inp.focus();
+            inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkMissingLetter(); });
+          }
+        }, 150);
+
+      } else if (q.part === 3) {
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
+            <span class="text-sm sm:text-base font-bold text-cyan-200">Cast the plural spell:</span>
+            <div class="text-xl sm:text-2xl font-bold text-amber-300 font-magic">
+              ${q.prompt}
+            </div>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex items-center gap-2 w-full max-w-sm">
+            <input type="text" id="pluralInput" autocomplete="off" autocapitalize="off"
+              placeholder="Write plural form..." 
+              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300">
+            <button onclick="checkPlural()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
+              Transform ✨
+            </button>
+          </div>
+        `;
+        setTimeout(() => {
+          speakText(q.prompt);
+          const inp = document.getElementById("pluralInput");
+          if (inp) {
+            inp.focus();
+            inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkPlural(); });
+          }
+        }, 200);
+
+      } else if (q.part === 4 || q.part === 5 || q.part === 6 || q.part === 8) {
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
+            <span class="text-sm sm:text-base font-bold text-cyan-200">Select the correct magic choice:</span>
+            <div class="text-lg sm:text-xl font-bold text-amber-200 leading-snug px-2 font-magic drop-shadow">
+              ${q.prompt}
+            </div>
+          </div>
+        `;
+        let buttonsHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-md">`;
+        q.options.forEach(opt => {
+          buttonsHtml += `
+            <button onclick="checkMultipleChoice('${opt}')" class="px-4 py-3 bg-slate-900/90 hover:bg-cyan-950/80 active:bg-cyan-800 border-2 border-cyan-500/60 hover:border-amber-300 text-amber-200 font-bold rounded-xl text-base transition shadow font-magic">
+              ${opt}
+            </button>
+          `;
+        });
+        buttonsHtml += `</div>`;
+        iArea.innerHTML = buttonsHtml;
+        setTimeout(() => speakText(q.prompt), 200);
+
+      } else if (q.part === 7) {
+        selectedJumbleWords = [];
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
+            <span class="text-sm font-semibold text-cyan-200">Tap words in correct order:</span>
+            <div id="jumbleAnswerBox" class="min-h-[48px] w-full bg-slate-950/80 border-2 border-dashed border-cyan-400/60 rounded-xl flex flex-wrap items-center justify-center gap-2 p-2 text-base font-bold text-amber-300">
+              <span class="text-xs text-slate-300 font-normal">Tap words below...</span>
+            </div>
+            <div id="jumbleWordPool" class="flex flex-wrap items-center justify-center gap-2 pt-1">
+              ${q.words.map((w, idx) => `
+                <button id="jumbleBtn_${idx}" onclick="selectJumbleWord('${w}', ${idx})" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 border border-cyan-500/50 rounded-xl text-sm font-bold text-amber-200 transition font-magic shadow">
+                  ${w}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex items-center gap-2">
+            <button onclick="resetJumble()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold transition border border-slate-700">
+              🔄 Reset
+            </button>
+            <button onclick="checkJumble()" class="px-6 py-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-md transition active:scale-95 font-magic">
+              Check Sentence ✨
+            </button>
+          </div>
+        `;
+
+      } else if (q.part === 9) {
+        const imgSrc = q.img || `caption_${String(q.id).padStart(3, '0')}.png`;
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 w-full max-w-md">
+            <span class="text-xs sm:text-sm font-semibold text-cyan-200">Look at the picture and write a complete sentence:</span>
+            <div class="relative w-full max-h-[28vh] sm:max-h-[32vh] rounded-xl overflow-hidden border-2 border-cyan-400/60 shadow-xl bg-slate-950/90 flex items-center justify-center">
+              <img src="${imgSrc}" alt="Story Illustration" 
+                class="w-full h-full object-contain max-h-[28vh] sm:max-h-[32vh]"
+                onerror="handleImageError(this, ${q.id})">
+            </div>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex flex-col items-center gap-2 w-full max-w-lg">
+            <div class="flex items-center gap-2 w-full">
+              <input type="text" id="captionInput" autocomplete="off" spellcheck="false"
+                placeholder="E.g., The red ball is under the table." 
+                class="flex-1 bg-slate-950/85 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3.5 py-2 text-sm sm:text-base font-semibold text-amber-200">
+              <button onclick="checkCaption()" class="px-5 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 whitespace-nowrap font-magic">
+                Submit 🌟
+              </button>
+            </div>
+            <div class="flex items-center justify-between w-full text-[11px] text-slate-200 px-1 font-semibold">
+              <span>Rule: Capital letter at start & Period (.) at end</span>
+              <button onclick="speakText('${q.prompt}')" class="text-cyan-300 hover:underline">🔊 Read prompt</button>
+            </div>
+          </div>
+        `;
+        setTimeout(() => {
+          const inp = document.getElementById("captionInput");
+          if (inp) {
+            inp.focus();
+            inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkCaption(); });
+          }
+        }, 150);
+      }
+    }
+
+    function handleImageError(imgEl, id) {
+      imgEl.onerror = null;
+      imgEl.parentElement.innerHTML = `
+        <div class="w-full h-32 flex flex-col items-center justify-center bg-slate-950 text-slate-400 p-2 text-center">
+          <span class="text-3xl mb-1">🖼️</span>
+          <span class="text-xs font-semibold text-amber-300">Scene #${id} Illustration</span>
+          <span class="text-[10px] text-slate-500">Describe what you imagine in this scene</span>
+        </div>
+      `;
+    }
+
+    function handleSuccess(rewardStars = 1) {
+      playSound('correct');
+      starsEarned += rewardStars;
+      streakCount++;
+
+      triggerLootDrop();
+
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
+      }
+
+      const card = document.getElementById("magicMirrorCard");
+      card.classList.add("ring-4", "ring-cyan-400");
+
+      const currentQ = QUESTIONS[currentQIndex];
+      const realm = getCurrentRealm(currentQ.id);
+      const isEndOfRealm = currentQ.id === realm.range[1];
+
+      setTimeout(() => {
+        card.classList.remove("ring-4", "ring-cyan-400");
+        saveProgress();
+        if (isEndOfRealm && !unlockedPets.includes(realm.id)) {
+          triggerMysteryChest(realm);
+        } else {
+          nextQuestion();
+        }
+      }, 900);
+    }
+
+    function handleFailure(correctAnswerText) {
+      playSound('wrong');
+      streakCount = 0;
+      saveProgress();
+      const card = document.getElementById("magicMirrorCard");
+      card.classList.add("ring-4", "ring-rose-500");
+      
+      speakText("Try again, wizard! The answer is " + correctAnswerText);
+      setTimeout(() => {
+        card.classList.remove("ring-4", "ring-rose-500");
+      }, 1000);
+    }
+
+    function checkSpelling() {
+      const q = QUESTIONS[currentQIndex];
+      const val = (document.getElementById("spellingInput")?.value || "").trim().toLowerCase();
+      if (val === q.target.toLowerCase()) handleSuccess(2);
+      else handleFailure(q.target);
+    }
+
+    function checkMissingLetter() {
+      const q = QUESTIONS[currentQIndex];
+      const val = (document.getElementById("missingInput")?.value || "").trim().toLowerCase();
+      if (val === q.answer.toLowerCase()) handleSuccess(1);
+      else handleFailure(q.answer);
+    }
+
+    function checkPlural() {
+      const q = QUESTIONS[currentQIndex];
+      const val = (document.getElementById("pluralInput")?.value || "").trim().toLowerCase();
+      if (val === q.answer.toLowerCase()) handleSuccess(1);
+      else handleFailure(q.answer);
+    }
+
+    function checkMultipleChoice(selected) {
+      const q = QUESTIONS[currentQIndex];
+      if (selected === q.answer) handleSuccess(1);
+      else handleFailure(q.answer);
+    }
+
+    function selectJumbleWord(word, idx) {
+      const btn = document.getElementById(`jumbleBtn_${idx}`);
+      if (btn) btn.classList.add("hidden");
+      selectedJumbleWords.push({ word, idx });
+
+      const ansBox = document.getElementById("jumbleAnswerBox");
+      ansBox.innerHTML = selectedJumbleWords.map(item => `
+        <span class="px-2.5 py-1 bg-purple-900/90 border border-purple-400/60 rounded-lg text-cyan-200 text-sm font-bold font-magic shadow">
+          ${item.word}
+        </span>
+      `).join('');
+    }
+
+    function resetJumble() {
+      selectedJumbleWords.forEach(item => {
+        const btn = document.getElementById(`jumbleBtn_${item.idx}`);
+        if (btn) btn.classList.remove("hidden");
+      });
+      selectedJumbleWords = [];
+      document.getElementById("jumbleAnswerBox").innerHTML = `<span class="text-xs text-slate-300 font-normal">Tap words below...</span>`;
+    }
+
+    function checkJumble() {
+      const q = QUESTIONS[currentQIndex];
+      const sentence = selectedJumbleWords.map(i => i.word).join(' ');
+      if (sentence === q.answer) handleSuccess(2);
+      else handleFailure(q.answer);
+    }
+
+    function checkCaption() {
+      const q = QUESTIONS[currentQIndex];
+      const val = (document.getElementById("captionInput")?.value || "").trim();
+      const hasCapital = /^[A-Z]/.test(val);
+      const hasPeriod = /[.!?]$/.test(val);
+      const words = val.split(/\s+/).filter(Boolean);
+
+      if (words.length >= 3 && hasCapital && hasPeriod) {
+        handleSuccess(3);
+      } else {
+        let msg = "Remember: Start with a CAPITAL letter and finish with a period (.)!";
+        if (words.length < 3) msg = "Please write a complete sentence with at least 3 words!";
+        alert(msg);
+        speakText(msg);
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQIndex < QUESTIONS.length - 1) {
+        currentQIndex++;
+        saveProgress();
+        renderCurrentQuestion();
+      } else {
+        alert("🎉 CONGRATULATIONS! Minh has mastered all 100 Cambridge Stage 2 Spells!");
+        speakText("Congratulations Minh! You are now a Grand Cambridge Word Wizard!");
+        confetti({ particleCount: 150, spread: 100 });
+      }
+    }
+
+    function speakCurrentTarget() {
+      const q = QUESTIONS[currentQIndex];
+      if (q.target) playNativeWordAudio(q.target);
+      else if (q.prompt) speakText(q.prompt);
+    }
+
+    // --- LOGIC POTION LAB & BACKGROUND SPRITE ANIMATION ---
+    const LAB_INGREDIENTS = [
+      { id: "stardust", name: "Stardust", img: "ingredient_stardust.png", icon: "🌟" },
+      { id: "moonflower", name: "Moonflower", img: "ingredient_moonflower.png", icon: "🌙" },
+      { id: "feather", name: "Phoenix Feather", img: "ingredient_feather.png", icon: "🪶" },
+      { id: "butterfly", name: "Butterfly Wing", img: "ingredient_butterfly.png", icon: "🦋" },
+      { id: "dragonscale", name: "Dragon Scale", img: "ingredient_dragonscale.png", icon: "🛡️" },
+      { id: "unicornhorn", name: "Unicorn Horn", img: "ingredient_unicornhorn.png", icon: "🦄" }
+    ];
+
+    const TRANSFORMATIONS = [
+      { name: "Magic Hat transformed into White Dove!", beforeName: "Wizard Hat", afterName: "White Dove", img: "transform_hat_to_dove.png", icon: "🕊️" },
+      { name: "Magic Hat transformed into Fluffy White Rabbit!", beforeName: "Wizard Hat", afterName: "White Rabbit", img: "transform_hat_to_rabbit.png", icon: "🐇" },
+      { name: "Magic Tea Mug transformed into Royal Frog Prince!", beforeName: "Tea Mug", afterName: "Frog Prince", img: "transform_mug_to_frog.png", icon: "🐸" },
+      { name: "Ancient Scroll transformed into Cute Baby Dragon!", beforeName: "Spell Scroll", afterName: "Baby Dragon", img: "transform_scroll_to_dragon.png", icon: "🐉" }
+    ];
+
+    function clearTransformTimers() {
+      currentTransformTimers.forEach(t => clearTimeout(t));
+      currentTransformTimers = [];
+    }
+
+    function triggerStageFlash() {
+      const ring = document.getElementById("poofFlashRing");
+      if (!ring) return;
+      ring.classList.remove("active");
+      void ring.offsetWidth;
+      ring.classList.add("active");
+    }
+
+    function renderLabIngredients() {
+      const grid = document.getElementById("ingredientsGrid");
+      grid.innerHTML = LAB_INGREDIENTS.map(item => {
+        const isSel = selectedPotionIngredients.includes(item.name);
+        const count = playerInventory[item.name] || 0;
+        const hasStock = count > 0;
+
+        return `
+          <button onclick="${hasStock ? `selectIngredient('${item.name}')` : `alert('Out of ${item.name}! Answer English questions to loot more!')`}" 
+            class="p-2 rounded-xl border ${isSel ? 'bg-purple-900/90 border-amber-400 scale-95 shadow-lg' : (hasStock ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700' : 'bg-slate-950/40 border-slate-900 opacity-40')} text-xs font-bold text-amber-200 transition flex flex-col items-center gap-1 relative">
+            <span class="absolute top-1 right-1 px-1.5 py-0.2 bg-slate-900/90 text-[10px] rounded-full border border-slate-700 text-cyan-300 font-mono">${count}</span>
+            <div class="w-10 h-10 flex items-center justify-center relative mt-1">
+              <img src="${item.img}" alt="${item.name}" class="max-h-full max-w-full object-contain drop-shadow" onerror="tryAlternativePath(this, '${item.img}', '${item.icon}')">
+            </div>
+            <span class="truncate w-full font-magic text-[11px]">${item.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function togglePotionLab() {
+      const modal = document.getElementById("potionLabModal");
+      modal.classList.toggle("hidden");
+      if (!modal.classList.contains("hidden")) {
+        resetPotionLab();
+      } else {
+        clearTransformTimers();
+      }
+    }
+
+    function selectIngredient(name) {
+      if (selectedPotionIngredients.includes(name)) return;
+      if (playerInventory[name] <= 0) {
+        alert(`You don't have any ${name}! Answer English questions to loot more.`);
+        return;
+      }
+      if (selectedPotionIngredients.length < 3) {
+        selectedPotionIngredients.push(name);
+        playSound('plop');
+        speakText(name);
+        renderLabIngredients();
+        updatePotionLabBox();
+      }
+    }
+
+    function updatePotionLabBox() {
+      const box = document.getElementById("selectedIngredientsBox");
+      if (selectedPotionIngredients.length === 0) {
+        box.innerHTML = "Tap 3 ingredients above (0/3)";
+      } else {
+        box.innerHTML = selectedPotionIngredients.map(i => `<span class="px-2.5 py-0.5 bg-purple-900 border border-amber-400/60 rounded-lg text-amber-200 font-magic">${i}</span>`).join(' <span class="text-cyan-400">+</span> ');
+      }
+    }
+
+    function resetPotionLab() {
+      clearTransformTimers();
+      selectedPotionIngredients = [];
+      isFullStripMode = false;
+      renderLabIngredients();
+      updatePotionLabBox();
+      document.getElementById("cauldronStatusText").innerText = "Pick 3 magical ingredients from your loot to brew!";
+      document.getElementById("cauldronArea").classList.remove("hidden");
+      document.getElementById("transformationResultArea").classList.add("hidden");
+      document.getElementById("transformationResultArea").classList.remove("flex");
+    }
+
+    function brewAndTransform() {
+      if (selectedPotionIngredients.length < 3) {
+        alert("Please pick 3 magic ingredients to brew your potion!");
+        speakText("Pick three magic ingredients first!");
+        return;
+      }
+
+      selectedPotionIngredients.forEach(ing => {
+        playerInventory[ing] = Math.max(0, (playerInventory[ing] || 1) - 1);
+      });
+      saveProgress();
+
+      clearTransformTimers();
+      isFullStripMode = false;
+      document.getElementById("cauldronArea").classList.add("hidden");
+      const resArea = document.getElementById("transformationResultArea");
+      resArea.classList.remove("hidden");
+      resArea.classList.add("flex");
+
+      const sortedSelected = [...selectedPotionIngredients].sort();
+      const matchedRecipe = FIXED_RECIPES.find(recipe => {
+        const sortedRecipe = [...recipe.ingredients].sort();
+        return sortedRecipe[0] === sortedSelected[0] && sortedRecipe[1] === sortedSelected[1] && sortedRecipe[2] === sortedSelected[2];
+      });
+
+      if (matchedRecipe) {
+        currentTransformationObj = matchedRecipe.result;
+        const isFirstTime = !discoveredTransformations.includes(currentTransformationObj.name);
+        if (isFirstTime) {
+          discoveredTransformations.push(currentTransformationObj.name);
+          starsEarned += 5;
+          document.getElementById("rewardGemBadge").innerText = "+5 Magic Gems 💎 (First discovery reward!)";
+        } else {
+          document.getElementById("rewardGemBadge").innerText = "+3 Magic Gems 💎";
+          starsEarned += 3;
+        }
+        saveProgress();
+        runThreeStepSpriteAnimation(currentTransformationObj);
+      } else {
+        runFunnyFizzleAnimation();
+      }
+    }
+
+    function runFunnyFizzleAnimation() {
+      const stage = document.getElementById("magicSpriteStage");
+      stage.style.backgroundImage = "none";
+      stage.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-purple-950 text-cyan-200 p-3 text-center"><span class="text-5xl mb-1">💨</span><span class="text-xs font-bold font-magic text-amber-300">Poof! Funny Purple Smoke!</span></div>`;
+      document.getElementById("stageStepBadge").innerText = `❌ Wrong Recipe!`;
+      document.getElementById("transformTitle").innerText = `The potion fizzled into giggle smoke! Check the Recipe Book!`;
+      playSound('wrong');
+      speakText("Oops! Wrong recipe!");
+    }
+
+    function runThreeStepSpriteAnimation(transObj) {
+      clearTransformTimers();
+      isFullStripMode = false;
+
+      const stage = document.getElementById("magicSpriteStage");
+      const btnStrip = document.getElementById("btnToggleStrip");
+      const badge = document.getElementById("stageStepBadge");
+      const titleEl = document.getElementById("transformTitle");
+
+      stage.classList.remove("full-view-mode");
+      btnStrip.innerText = "👁️ View 3 Steps";
+
+      // Sử dụng hàm dò tìm thông minh để nạp Background Sprite đảm bảo ảnh luôn hiện
+      resolveSpriteBackground(transObj.img, transObj.icon, stage);
+
+      // STEP 1 (0% - Bên trái)
+      stage.style.backgroundPosition = "0% center";
+      badge.innerText = `✨ Step 1/3: Charging ${transObj.beforeName}...`;
+      titleEl.innerText = `Casting spell on ${transObj.beforeName}...`;
+      playSound('charge');
+      triggerStageFlash();
+
+      // STEP 2 (50% - Ở giữa)
+      const t1 = setTimeout(() => {
+        if (isFullStripMode) return;
+        stage.style.backgroundPosition = "50% center";
+        badge.innerText = `💥 Step 2/3: Magic Swirl!`;
+        titleEl.innerText = `✨ Transforming with Magic Sparks! ✨`;
+        playSound('swirl');
+        triggerStageFlash();
+      }, 1000);
+
+      // STEP 3 (100% - Bên phải)
+      const t2 = setTimeout(() => {
+        if (isFullStripMode) return;
+        stage.style.backgroundPosition = "100% center";
+        badge.innerText = `🎉 Step 3/3: POOF! ${transObj.afterName}!`;
+        titleEl.innerText = transObj.name;
+        playSound('poof');
+        triggerStageFlash();
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 110, spread: 85, origin: { y: 0.55 } });
+        }
+        speakText("Poof! " + transObj.name);
+      }, 2000);
+
+      currentTransformTimers.push(t1, t2);
+    }
+
+    function replayMagicAnimation() {
+      if (currentTransformationObj) {
+        runThreeStepSpriteAnimation(currentTransformationObj);
+      }
+    }
+
+    function toggleFullStripView() {
+      const stage = document.getElementById("magicSpriteStage");
+      const btn = document.getElementById("btnToggleStrip");
+      isFullStripMode = !isFullStripMode;
+
+      if (isFullStripMode) {
+        clearTransformTimers();
+        stage.classList.add("full-view-mode");
+        btn.innerText = "🎯 Zoom Pet";
+        document.getElementById("stageStepBadge").innerText = "📜 Full 3-Step Magic Scroll";
+        playSound('correct');
+      } else {
+        stage.classList.remove("full-view-mode");
+        stage.style.backgroundPosition = "100% center";
+        btn.innerText = "👁️ View 3 Steps";
+        if (currentTransformationObj) {
+          document.getElementById("stageStepBadge").innerText = `🎉 Step 3/3: POOF! ${currentTransformationObj.afterName}!`;
+        }
+        playSound('correct');
+      }
+    }
+
+    function toggleRecipeBook() {
+      const modal = document.getElementById("recipeBookModal");
+      modal.classList.toggle("hidden");
+      
+      if (!modal.classList.contains("hidden")) {
+        const feeNote = document.getElementById("recipeBookFeeNote");
+        if (recipeBookPeekCount === 0) {
+          feeNote.innerText = "First peek is FREE! Subsequent peeks cost 3 Gems (💎).";
+        } else {
+          if (starsEarned < 3) {
+            alert("You need at least 3 Magic Gems (💎) to open the Recipe Book again!");
+            modal.classList.add("hidden");
+            return;
+          }
+          starsEarned -= 3;
+          recipeBookPeekCount++;
+          feeNote.innerText = `Recipe Book opened! (-3 Gems 💎). Total peeks: ${recipeBookPeekCount}`;
+          saveProgress();
+        }
+
+        let timeLeft = 10;
+        const fillBar = document.getElementById("recipeBookTimerFill");
+        fillBar.style.width = "100%";
+        
+        if (recipeBookTimerInterval) clearInterval(recipeBookTimerInterval);
+        recipeBookTimerInterval = setInterval(() => {
+          timeLeft--;
+          fillBar.style.width = `${(timeLeft / 10) * 100}%`;
+          if (timeLeft <= 0) {
+            clearInterval(recipeBookTimerInterval);
+            modal.classList.add("hidden");
+          }
+        }, 1000);
+      } else {
+        if (recipeBookTimerInterval) clearInterval(recipeBookTimerInterval);
+      }
+    }
+
+    const FIXED_RECIPES = [
+      { ingredients: ["Stardust", "Moonflower", "Phoenix Feather"], result: { name: "Magic Hat transformed into White Dove!", beforeName: "Wizard Hat", afterName: "White Dove", img: "transform_hat_to_dove.png", icon: "🕊️" } },
+      { ingredients: ["Stardust", "Butterfly Wing", "Unicorn Horn"], result: { name: "Magic Hat transformed into Fluffy White Rabbit!", beforeName: "Wizard Hat", afterName: "White Rabbit", img: "transform_hat_to_rabbit.png", icon: "🐇" } },
+      { ingredients: ["Moonflower", "Butterfly Wing", "Dragon Scale"], result: { name: "Magic Tea Mug transformed into Royal Frog Prince!", beforeName: "Tea Mug", afterName: "Frog Prince", img: "transform_mug_to_frog.png", icon: "🐸" },
+      { ingredients: ["Phoenix Feather", "Dragon Scale", "Unicorn Horn"], result: { name: "Ancient Scroll transformed into Cute Baby Dragon!", beforeName: "Spell Scroll", afterName: "Baby Dragon", img: "transform_scroll_to_dragon.png", icon: "🐉" } }
+    ];
+
+    function triggerMysteryChest(realm) {
+      pendingRewardRealm = realm;
+      const modal = document.getElementById("mysteryChestModal");
+      const wrapper = document.getElementById("chestWrapper");
+      const rewardArea = document.getElementById("chestRewardArea");
+
+      wrapper.classList.remove("hidden");
+      rewardArea.classList.add("hidden");
+      rewardArea.classList.remove("flex");
+
+      document.getElementById("chestModalTitle").innerText = `Realm ${realm.id} Chest Discovered!`;
+      modal.classList.remove("hidden");
+
+      speakText("You cleared the realm! Tap the magic chest to crack it open!");
+    }
+
+    function unlockMysteryChest() {
+      if (!pendingRewardRealm) return;
+      playSound('fanfare');
+
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
+      }
+
+      const wrapper = document.getElementById("chestWrapper");
+      const rewardArea = document.getElementById("chestRewardArea");
+
+      wrapper.classList.add("hidden");
+      rewardArea.classList.remove("hidden");
+      rewardArea.classList.add("flex");
+
+      const pet = pendingRewardRealm.pet;
+      const petSlot = document.getElementById("rewardPetImageSlot");
+      
+      petSlot.innerHTML = `<img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain animate-bounce drop-shadow-xl" onerror="tryAlternativePath(this, '${pet.img}', '${pet.icon}')">`;
+
+      document.getElementById("rewardPetName").innerText = pet.name;
+      document.getElementById("rewardPetDesc").innerText = pet.desc;
+
+      if (!unlockedPets.includes(pendingRewardRealm.id)) {
+        unlockedPets.push(pendingRewardRealm.id);
+        saveProgress();
+      }
+
+      speakText(`Hooray! You unlocked ${pet.name}!`);
+    }
+
+    function closeChestModal() {
+      document.getElementById("mysteryChestModal").classList.add("hidden");
+      pendingRewardRealm = null;
+      nextQuestion();
+    }
+
+    function toggleRealmMap() {
+      const m = document.getElementById("realmMapModal");
+      m.classList.toggle("hidden");
+      if (!m.classList.contains("hidden")) {
+        const list = document.getElementById("realmListGrid");
+        list.innerHTML = REALMS.map(r => `
+          <div onclick="jumpToRealm(${r.range[0]})" class="p-3 bg-slate-900/90 hover:bg-cyan-950/60 rounded-xl border border-cyan-500/40 cursor-pointer flex items-center justify-between transition shadow">
+            <div class="flex items-center gap-2.5">
+              <span class="text-2xl">${r.icon}</span>
+              <div>
+                <h4 class="text-sm font-bold text-cyan-200 font-magic">Part ${r.id}: ${r.name}</h4>
+                <p class="text-xs text-slate-300">Questions ${r.range[0]} - ${r.range[1]}</p>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-cyan-300 font-magic">Go ➔</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function jumpToRealm(qId) {
+      currentQIndex = qId - 1;
+      saveProgress();
+      toggleRealmMap();
+      renderCurrentQuestion();
+    }
+
+    function toggleInventoryModal() {
+      const m = document.getElementById("inventoryModal");
+      m.classList.toggle("hidden");
+      if (!m.classList.contains("hidden")) {
+        const grid = document.getElementById("vaultItemsGrid");
+        grid.innerHTML = REALMS.map(r => {
+          const isUnlocked = unlockedPets.includes(r.id);
+          const pet = r.pet;
+          let visualContent = `<span class="text-3xl mb-1">🔒</span>`;
+          if (isUnlocked) {
+            visualContent = `<div class="w-14 h-14 flex items-center justify-center mb-1 relative"><img src="${pet.img}" alt="${pet.name}" class="max-h-full max-w-full object-contain drop-shadow-md" onerror="tryAlternativePath(this, '${pet.img}', '${pet.icon}')"></div>`;
+          }
+          return `
+            <div class="flex flex-col items-center justify-center p-3 rounded-xl border ${isUnlocked ? 'bg-purple-950/80 border-cyan-400 text-cyan-200 shadow-lg' : 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-40'} text-center">
+              ${visualContent}
+              <span class="text-xs font-black truncate w-full font-magic mt-1">${isUnlocked ? pet.name : 'Locked Pet'}</span>
+              <span class="text-[10px] text-slate-300">Realm ${r.id}</span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadProgress();
+      renderCurrentQuestion();
+    });
+  </script>
+</body>
+</html>
