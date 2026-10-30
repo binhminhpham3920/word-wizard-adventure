@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Word Wizard Adventure - 4 Stations</title>
+  <title>Word Wizard Adventure - 7 Stations</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Fredoka & Quicksand -->
@@ -170,7 +170,7 @@
         <div class="w-px h-3 bg-slate-700"></div>
         <div class="flex items-center gap-1 text-purple-300 font-bold" title="Vault Pets">
           <span>🐾</span>
-          <span id="petCountDisplay">1/9</span>
+          <span id="petCountDisplay">1/10</span>
         </div>
       </div>
 
@@ -377,7 +377,7 @@
     <div class="bg-slate-900/95 backdrop-blur-xl border-2 border-amber-400/70 rounded-2xl max-w-4xl w-full max-h-[96vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="p-2.5 sm:p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
         <h3 class="text-sm sm:text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
-          <span>🗺️</span> Adventure Map · 4 Stations
+          <span>🗺️</span> Adventure Map · 7 Stations
         </h3>
         <button onclick="closeStationMap()" class="text-slate-400 hover:text-slate-100 text-base font-bold px-2 py-0.5">✕</button>
       </div>
@@ -458,7 +458,11 @@
       { id: 6, name: "Verb & Tense Tower", range: [46, 55], icon: "⏳", desc: "Past, present and action spells", pet: { name: "Time Griffin", img: "pet_06_griffin.png", icon: "🦅", desc: "Masters past, present & future!" } },
       { id: 7, name: "Sentence Builder", range: [56, 60], icon: "🧱", desc: "Connect words with punctuation", pet: { name: "Silver Unicorn", img: "pet_07_unicorn.png", icon: "🦄", desc: "Brings harmony to long sentences!" } },
       { id: 8, name: "Grammar Sorter", range: [61, 65], icon: "⚖️", desc: "Nouns, Verbs and Adjectives", pet: { name: "Scholar Fox", img: "pet_08_fox.png", icon: "🦊", desc: "Sharp eye for every part of speech!" } },
-      { id: 9, name: "Story Caption Citadel", range: [66, 100], icon: "🎨", desc: "Look at the picture & write a sentence", pet: { name: "Grand Archmage Phoenix", img: "pet_09_phoenix.png", icon: "🔥", desc: "Supreme master of English Stage 2!" } }
+      { id: 9, name: "Story Caption Citadel", range: [66, 100], icon: "🎨", desc: "Look at the picture & write a sentence", pet: { name: "Grand Archmage Phoenix", img: "pet_09_phoenix.png", icon: "🔥", desc: "Supreme master of English Stage 2!" } },
+      // ===== W11 · Wings & Motion =====
+      { id: 10, name: "Rune Chamber", range: [101, 118], icon: "🏛️", bg: "w11_bg_rune_chamber.jpg", desc: "Listen to the word & fill the 2 missing letters", pet: null },
+      { id: 11, name: "Mystic Echoes", range: [119, 134], icon: "🔮", bg: "w11_bg_mystic_echoes.jpg", desc: "Listen to the sentence & type the missing word", pet: null },
+      { id: 12, name: "Grand Oracle", range: [135, 144], icon: "📜", bg: "w11_bg_grand_oracle.jpg", desc: "Read the spell aloud & write about the picture", pet: { name: "Rainbow Sky Parrot", img: "pet_10_parrot.png", icon: "🦜", desc: "It can talk and fly! Master of Wings & Motion!" } }
     ];
 
     const RANKS = [
@@ -569,7 +573,54 @@
       { id: 97, part: 9, img: "caption_097.png", prompt: "Look at the picture and write a complete sentence:" },
       { id: 98, part: 9, img: "caption_098.png", prompt: "Look at the picture and write a complete sentence:" },
       { id: 99, part: 9, img: "caption_099.png", prompt: "Look at the picture and write a complete sentence:" },
-      { id: 100, part: 9, img: "caption_100.png", prompt: "Look at the picture and write a complete sentence:" }
+      { id: 100, part: 9, img: "caption_100.png", prompt: "Look at the picture and write a complete sentence:" },
+      // ===== W11 · Station 5: Missing 2 letters (nghe cả từ, tự tìm 2 chữ thiếu) =====
+      { id: 101, part: 10, pattern: "b__", fill: "oy", target: "boy" },
+      { id: 102, part: 10, pattern: "t__s", fill: "oy", target: "toys" },
+      { id: 103, part: 10, pattern: "en__y", fill: "jo", target: "enjoy" },
+      { id: 104, part: 10, pattern: "__ster", fill: "oy", target: "oyster" },
+      { id: 105, part: 10, pattern: "v__age", fill: "oy", target: "voyage" },
+      { id: 106, part: 10, pattern: "lo__l", fill: "ya", target: "loyal" },
+      { id: 107, part: 10, pattern: "y__r", fill: "ea", target: "year" },
+      { id: 108, part: 10, pattern: "h__r", fill: "ea", target: "hear" },
+      { id: 109, part: 10, pattern: "b__rd", fill: "ea", target: "beard" },
+      { id: 110, part: 10, pattern: "cl__r", fill: "ea", target: "clear" },
+      { id: 111, part: 10, pattern: "an__her", fill: "ot", target: "another" },
+      { id: 112, part: 10, pattern: "wo__n", fill: "ma", target: "woman" },
+      { id: 113, part: 10, pattern: "p__rot", fill: "ar", target: "parrot" },
+      { id: 114, part: 10, pattern: "p__guin", fill: "en", target: "penguin" },
+      { id: 115, part: 10, pattern: "ost__ch", fill: "ri", target: "ostrich" },
+      { id: 116, part: 10, pattern: "sw__", fill: "im", target: "swim" },
+      { id: 117, part: 10, pattern: "br__es", fill: "ak", target: "brakes" },
+      { id: 118, part: 10, pattern: "sp__d", fill: "ee", target: "speed" },
+      // ===== W11 · Station 6: Listen & fill one word (nghe lại tối đa 1 lần) =====
+      { id: 119, part: 11, audio: "A parrot can talk and fly.", display: "A parrot can talk and ___.", answer: "fly" },
+      { id: 120, part: 11, audio: "A penguin can't fly.", display: "A penguin can't ___.", answer: "fly" },
+      { id: 121, part: 11, audio: "An ostrich can run, but it can't fly.", display: "An ostrich can run, ___ it can't fly.", answer: "but" },
+      { id: 122, part: 11, audio: "A hummingbird can't swim or walk.", display: "A hummingbird can't swim ___ walk.", answer: "or" },
+      { id: 123, part: 11, audio: "A parrot can talk and fly.", display: "A parrot can talk ___ fly.", answer: "and" },
+      { id: 124, part: 11, audio: "All birds lay eggs.", display: "All birds lay ___.", answer: "eggs" },
+      { id: 125, part: 11, audio: "Can a penguin fly? No, it can't.", display: "Can a penguin fly? No, it ___.", answer: "can't" },
+      { id: 126, part: 11, audio: "A push or a pull is a force.", display: "A push or a pull is a ___.", answer: "force" },
+      { id: 127, part: 11, audio: "A gentle push makes the car move slowly.", display: "A gentle push makes the car move ___.", answer: "slowly" },
+      { id: 128, part: 11, audio: "A stronger push makes the car go faster.", display: "A stronger push makes the car go ___.", answer: "faster" },
+      { id: 129, part: 11, audio: "The car travelled farther.", display: "The car travelled ___.", answer: "farther" },
+      { id: 130, part: 11, audio: "A force can change direction.", display: "A force can change ___.", answer: "direction" },
+      { id: 131, part: 11, audio: "There are 60 seconds in one minute.", display: "There are 60 ___ in one minute.", answer: "seconds" },
+      { id: 132, part: 11, audio: "There are 60 minutes in one hour.", display: "There are 60 ___ in one hour.", answer: "minutes" },
+      { id: 133, part: 11, audio: "The brakes make a bike stop or slow down.", display: "The ___ make a bike stop or slow down.", answer: "brakes" },
+      { id: 134, part: 11, audio: "We always start from the same starting line.", display: "We always start from the same starting ___.", answer: "line" },
+      // ===== W11 · Station 7: Read aloud + Picture caption =====
+      { id: 135, part: 12, prompt: "A parrot can talk and fly." },
+      { id: 136, part: 12, prompt: "An ostrich can run, but it can't fly." },
+      { id: 137, part: 12, prompt: "A push or a pull is a force." },
+      { id: 138, part: 12, prompt: "A bigger push gives more speed." },
+      { id: 139, part: 13, img: "w11_c05_parrot_fly.jpg", answer: "A parrot can fly.", keys: [["parrot"], ["can"], ["fly", "flying"]] },
+      { id: 140, part: 13, img: "w11_c06_penguin_swim.jpg", answer: "A penguin can swim.", keys: [["penguin"], ["can"], ["swim", "swimming"]] },
+      { id: 141, part: 13, img: "w11_c07_ostrich_run.jpg", answer: "An ostrich can run.", keys: [["ostrich"], ["can"], ["run", "running"]] },
+      { id: 142, part: 13, img: "w11_c08_duck_swim.jpg", answer: "A duck can swim.", keys: [["duck"], ["can"], ["swim", "swimming"]] },
+      { id: 143, part: 13, img: "w11_c09_toy_car_push.jpg", answer: "A stronger push makes the car go farther.", keys: [["stronger"], ["push"], ["farther"]] },
+      { id: 144, part: 13, img: "w11_c10_bike_brakes.jpg", answer: "Brakes help a bike stop.", keys: [["brakes", "brake"], ["stop", "stops"]] },
     ];
 
     // ===== 4 TRẠM CHƠI (mỗi trạm 25 câu, caption xen kẽ ở trạm 2 & 3) =====
@@ -578,7 +629,11 @@
       { id: 1, name: "Word Forest",   icon: "🌳", img: "station_01.png", pos: [17.6, 80.8], ids: rangeIds(1, 25) },
       { id: 2, name: "Grammar Grove", icon: "🍄", img: "station_02.png", pos: [36.6, 55.5], ids: [...rangeIds(26, 45), ...rangeIds(66, 70)] },
       { id: 3, name: "Verb Tower",    icon: "⏳", img: "station_03.png", pos: [67.5, 41.4], ids: [...rangeIds(46, 65), ...rangeIds(71, 75)] },
-      { id: 4, name: "Story Citadel", icon: "🏰", img: "station_04.png", pos: [87.4, 29.8], ids: rangeIds(76, 100) }
+      { id: 4, name: "Story Citadel", icon: "🏰", img: "station_04.png", pos: [87.4, 29.8], ids: rangeIds(76, 100) },
+      // W11 · Wings & Motion (mở khoá tuần tự sau Trạm 4)
+      { id: 5, name: "Rune Chamber",  icon: "🏛️", img: "station_05.png", pos: [47.0, 84.0], ids: rangeIds(101, 118) },
+      { id: 6, name: "Mystic Echoes", icon: "🔮", img: "station_06.png", pos: [70.5, 77.0], ids: rangeIds(119, 134) },
+      { id: 7, name: "Grand Oracle",  icon: "📜", img: "station_07.png", pos: [92.5, 58.0], ids: rangeIds(135, 144) }
     ];
     const QUESTIONS = STATIONS.flatMap(st => st.ids.map(id => QUESTIONS_RAW.find(q => q.id === id)));
     (function () { let off = 0; STATIONS.forEach(st => { st.start = off; st.end = off + st.ids.length - 1; off += st.ids.length; }); })();
@@ -732,7 +787,7 @@
       document.getElementById("topProgressBar").style.width = `${(pos / st.ids.length) * 100}%`;
       document.getElementById("starCounter").innerText = starsEarned;
       document.getElementById("streakCounter").innerText = streakCount;
-      document.getElementById("petCountDisplay").innerText = `${unlockedPets.length}/9`;
+      document.getElementById("petCountDisplay").innerText = `${unlockedPets.length}/${REALMS.filter(r => r.pet).length}`;
 
       const rank = [...RANKS].reverse().find(r => starsEarned >= r.minGems) || RANKS[0];
       document.getElementById("playerRankTitle").innerText = rank.title;
@@ -900,7 +955,8 @@
 
     function updateRealmBackground(realmId) {
       const body = document.getElementById("appBody");
-      const filename = `background_realm_0${realmId}.png`;
+      const rl = REALMS.find(r => r.id === realmId);
+      const filename = (rl && rl.bg) ? rl.bg : `background_realm_0${realmId}.png`;
       body.style.backgroundImage = `
         radial-gradient(circle at center, rgba(11, 15, 25, 0.12) 0%, rgba(3, 7, 18, 0.42) 100%),
         url('${filename}'),
@@ -1132,7 +1188,7 @@
       iArea.innerHTML = "";
 
       const btnSpeak = document.getElementById("btnHeaderSpeak");
-      if (q.part === 2) btnSpeak.classList.add("hidden");
+      if (q.part === 2 || q.part === 11) btnSpeak.classList.add("hidden");
       else btnSpeak.classList.remove("hidden");
 
       if (q.part === 1) {
@@ -1307,6 +1363,115 @@
             inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkCaption(); });
           }
         }, 150);
+
+      } else if (q.part === 10) {
+        const parts = q.pattern.split("__");
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 max-w-md w-full">
+            <span class="text-sm sm:text-base font-bold text-cyan-200">Listen to the word. Which 2 letters are missing?</span>
+            <button onclick="playNativeWordAudio('${q.target}')" class="w-14 h-14 bg-gradient-to-tr from-cyan-500 to-blue-600 hover:from-cyan-400 text-white rounded-full shadow-lg flex items-center justify-center transition active:scale-95" title="Listen to the word">
+              <span class="text-2xl">🔊</span>
+            </button>
+            <div class="text-4xl sm:text-5xl font-mono font-black text-amber-300 tracking-widest bg-slate-950/70 px-6 py-3 rounded-2xl border border-cyan-500/60 shadow flex items-center gap-1">
+              <span>${parts[0]}</span><span class="text-cyan-300 border-b-4 border-cyan-300 px-1">_ _</span><span>${parts[1] || ""}</span>
+            </div>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex items-center gap-2 w-full max-w-xs">
+            <input type="text" id="twoLetterInput" maxlength="2" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+              placeholder="??"
+              class="w-24 h-14 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl text-center text-2xl font-black text-amber-300 tracking-widest">
+            <button onclick="checkTwoLetters()" class="flex-1 py-3 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
+              Unlock 🔓
+            </button>
+          </div>
+        `;
+        setTimeout(() => {
+          playNativeWordAudio(q.target);
+          const inp = document.getElementById("twoLetterInput");
+          if (inp) {
+            inp.focus();
+            inp.addEventListener("input", () => { if (inp.value.trim().length === 2) checkTwoLetters(); });
+            inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkTwoLetters(); });
+          }
+        }, 300);
+
+      } else if (q.part === 11) {
+        echoReplaysLeft = 1;
+        const shown = escapeHtml(q.display).replace("___", `<span class="text-cyan-300 underline decoration-wavy">_____</span>`);
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
+            <span class="text-sm sm:text-base font-bold text-cyan-200">Listen to the sentence and type the missing word:</span>
+            <button id="echoBtn" onclick="playEcho(false)" class="w-14 h-14 bg-gradient-to-tr from-sky-500 via-indigo-600 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition active:scale-95">
+              <span class="text-2xl">🔮</span>
+            </button>
+            <span id="echoLeft" class="text-[11px] font-bold text-sky-200">You can listen again 1 time</span>
+            <div class="text-lg sm:text-xl font-bold text-amber-200 leading-snug px-2 font-magic">${shown}</div>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex items-center gap-2 w-full max-w-sm">
+            <input type="text" id="echoInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+              placeholder="Type the missing word..."
+              class="flex-1 bg-slate-950/80 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3 py-2 text-center text-base sm:text-lg font-bold text-amber-300">
+            <button onclick="checkEcho()" class="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 font-magic">
+              Cast ✨
+            </button>
+          </div>
+        `;
+        setTimeout(() => {
+          playEcho(true);
+          const inp = document.getElementById("echoInput");
+          if (inp) {
+            inp.focus();
+            inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkEcho(); });
+          }
+        }, 300);
+
+      } else if (q.part === 12) {
+        const hasMic = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 max-w-lg w-full">
+            <span class="text-sm sm:text-base font-bold text-cyan-200">Read the magic spell aloud:</span>
+            <div class="text-xl sm:text-2xl font-black text-amber-300 leading-snug px-4 py-3 font-magic bg-slate-950/70 rounded-2xl border-2 border-purple-400/60 shadow">“${escapeHtml(q.prompt)}”</div>
+            <p id="micResult" class="text-xs text-slate-200 italic min-h-[18px]">${hasMic ? "Tap 🎙️ and read clearly." : "Read it to Mum or Dad, then ask them to tap 👍."}</p>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex flex-wrap items-center justify-center gap-2 w-full max-w-md">
+            <button onclick="speakText(QUESTIONS[currentQIndex].prompt)" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-cyan-200 font-bold rounded-xl text-sm border border-cyan-500/50">🔊 Listen</button>
+            ${hasMic ? `<button id="micBtn" onclick="startReadAloudMic()" class="px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 text-white font-black rounded-xl text-sm shadow font-magic">🎙️ Read</button>` : ""}
+            <button onclick="readAloudParentApprove()" class="px-4 py-2 bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950 font-black rounded-xl text-sm shadow font-magic">👍 Parent OK</button>
+          </div>
+        `;
+
+      } else if (q.part === 13) {
+        qContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center gap-2 w-full max-w-md">
+            <span class="text-xs sm:text-sm font-semibold text-cyan-200">Look at the picture and write a sentence:</span>
+            <div class="relative w-full max-h-[28vh] sm:max-h-[32vh] rounded-xl overflow-hidden border-2 border-cyan-400/60 shadow-xl bg-slate-950/90 flex items-center justify-center">
+              <img src="${q.img}" alt="Picture" class="w-full h-full object-contain max-h-[28vh] sm:max-h-[32vh]" onerror="handleImageError(this, ${q.id})">
+            </div>
+          </div>
+        `;
+        iArea.innerHTML = `
+          <div class="flex items-center gap-2 w-full max-w-lg">
+            <input type="text" id="w11CaptionInput" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false"
+              placeholder="Write one sentence..."
+              class="flex-1 bg-slate-950/85 border-2 border-cyan-400 focus:border-amber-300 focus:outline-none rounded-xl px-3.5 py-2 text-sm sm:text-base font-semibold text-amber-200">
+            <button onclick="checkW11Caption()" class="px-5 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-slate-950 font-black rounded-xl text-sm shadow-md transition active:scale-95 whitespace-nowrap font-magic">
+              Submit 🌟
+            </button>
+          </div>
+        `;
+        setTimeout(() => {
+          const inp = document.getElementById("w11CaptionInput");
+          if (inp) {
+            inp.focus();
+            inp.addEventListener("keypress", (e) => { if (e.key === "Enter") checkW11Caption(); });
+          }
+        }, 150);
       }
       afterRender(q);
     }
@@ -1369,13 +1534,14 @@
 
     function advanceFrom(q) {
       const realm = getCurrentRealm(q.id);
-      if (q.id === realm.range[1] && !unlockedPets.includes(realm.id)) triggerMysteryChest(realm);
+      if (q.id === realm.range[1] && realm.pet && !unlockedPets.includes(realm.id)) triggerMysteryChest(realm);
       else nextQuestion();
     }
 
     function getAnswerText(q) {
       if (q.part === 1) return q.target;
       if (q.part === 2) return `${q.answer}  →  ${q.target}`;
+      if (q.part === 10) return `${q.fill}  →  ${q.target}`;
       return q.answer;
     }
 
@@ -1384,6 +1550,9 @@
       if (q.part === 2) return "It is a vowel: a, e, i, o or u";
       if (q.part === 3) return `It starts with "${q.answer.slice(0, Math.ceil(q.answer.length / 2))}…"`;
       if (q.part === 7) return `Start with "${q.answer.split(" ")[0]}"`;
+      if (q.part === 10) return "Listen to the whole word again 🔊 and look at the letters next to the gap";
+      if (q.part === 11) return `It starts with "${q.answer[0]}" · ${q.answer.replace(/'/g, "").length} letters`;
+      if (q.part === 13) return `Start with "${q.answer.split(" ").slice(0, 2).join(" ")} ..."`;
       return "Some wrong choices have disappeared!";
     }
 
@@ -1416,11 +1585,11 @@
           const others = optBtns.filter(b => b.dataset.opt !== q.answer && b.dataset.opt !== wrongOpt && !b.disabled);
           if (optBtns.length > 3 && others.length) disableBtn(others[0]);
         }
-        if (q.part === 1) setTimeout(() => playNativeWordAudio(q.target), 1200);
+        if (q.part === 1 || q.part === 10) setTimeout(() => playNativeWordAudio(q.target), 1200);
       } else {
         const ans = getAnswerText(q);
         showHintBox(`✅ Answer: ${ans} — now ${q.options || q.part === 7 ? "tap" : "type"} it to continue`, true);
-        speakText("The answer is " + (q.part === 2 ? q.answer + ". " + q.target : ans));
+        speakText("The answer is " + (q.part === 2 ? q.answer + ". " + q.target : q.part === 10 ? q.target : ans));
         if (q.options) {
           optBtns.filter(b => b.dataset.opt !== q.answer).forEach(disableBtn);
           optBtns.filter(b => b.dataset.opt === q.answer).forEach(b => b.classList.add("ring-4", "ring-emerald-400"));
@@ -1525,6 +1694,82 @@
       speakText(val);
     }
 
+
+    // ===== W11 · checks =====
+    let echoReplaysLeft = 1;
+    function normApos(t) { return String(t).replace(/[‘’ʼ`´]/g, "'"); }
+
+    function checkTwoLetters() {
+      const q = QUESTIONS[currentQIndex];
+      const inp = document.getElementById("twoLetterInput");
+      const val = (inp?.value || "").trim().toLowerCase();
+      if (val.length < 2) { showToast("Type 2 letters! ✍️", "warn"); return; }
+      if (val === q.fill) handleSuccess(1);
+      else { handleFailure(q); if (inp) inp.value = ""; }
+    }
+
+    function playEcho(isFirst) {
+      const q = QUESTIONS[currentQIndex];
+      if (!isFirst) {
+        if (echoReplaysLeft <= 0) { showToast("No more listens for this one – trust your ears! 👂", "warn"); return; }
+        echoReplaysLeft--;
+        const lab = document.getElementById("echoLeft");
+        if (lab) lab.innerText = "No more listens – type the word!";
+        const btn = document.getElementById("echoBtn");
+        if (btn) btn.classList.add("opacity-40");
+      }
+      speakText(q.audio, 1.0, 0.82);
+    }
+
+    function checkEcho() {
+      const q = QUESTIONS[currentQIndex];
+      const val = readInput("echoInput"); if (val === null) return;
+      if (normApos(val).replace(/\s+/g, " ") === normApos(q.answer).toLowerCase()) handleSuccess(1);
+      else handleFailure(q);
+    }
+
+    function startReadAloudMic() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return;
+      const qid = QUESTIONS[currentQIndex].id;
+      const rec = new SR();
+      rec.lang = "en-US"; rec.interimResults = false; rec.maxAlternatives = 3;
+      const btn = document.getElementById("micBtn"), out = document.getElementById("micResult");
+      if (btn) btn.innerText = "🔴 Listening...";
+      const clean = t => normApos(t).toLowerCase().replace(/[^a-z0-9' ]/g, " ").replace(/\s+/g, " ").trim().split(" ");
+      rec.onresult = (ev) => {
+        const q = QUESTIONS[currentQIndex];
+        if (!q || q.id !== qid) return;                       // đã sang câu khác
+        if (btn) btn.innerText = "🎙️ Read";
+        const target = clean(q.prompt);
+        let best = 0, heard = "";
+        for (const alt of ev.results[0]) {
+          const words = clean(alt.transcript);
+          const hit = target.filter(w => words.includes(w)).length / target.length;
+          if (hit > best) { best = hit; heard = alt.transcript; }
+        }
+        if (out) out.innerText = `I heard: "${heard}"`;
+        if (best >= 0.8) handleSuccess(2);
+        else { playSound('wrong'); showToast("Almost! Read every word clearly and try again 🎙️", "warn"); }
+      };
+      rec.onerror = rec.onend = () => { if (btn) btn.innerText = "🎙️ Read"; };
+      try { rec.start(); } catch (e) {}
+    }
+
+    function readAloudParentApprove() { parentGate(() => handleSuccess(2)); }
+
+    function checkW11Caption() {
+      const q = QUESTIONS[currentQIndex];
+      const raw = (document.getElementById("w11CaptionInput")?.value || "").trim();
+      if (!raw) { showToast("Write your sentence first! ✍️", "warn"); return; }
+      const t = normApos(raw).toLowerCase();
+      const words = t.replace(/[^a-z' ]/g, " ").split(/\s+/).filter(Boolean);
+      const negative = /\b(can't|cant|cannot|can not|don't|doesn't|not|no)\b/.test(t);
+      const allKeys = q.keys.every(group => group.some(k => words.includes(k)));
+      if (allKeys && !negative && words.length >= 3) handleSuccess(3);
+      else handleFailure(q);
+    }
+
     function captionParentApprove() {
       parentGate(() => handleSuccess(3));
     }
@@ -1578,7 +1823,7 @@
       } else {
         saveProgress();
         safeRender();
-        showToast("🎉 CONGRATULATIONS! Minh cleared all 4 stations!", "good");
+        showToast(`🎉 CONGRATULATIONS! Minh cleared all ${STATIONS.length} stations!`, "good");
         speakText("Congratulations Minh! You are now a Grand Cambridge Word Wizard!");
         setTimeout(openStationMap, 1500);
       }
@@ -1932,7 +2177,7 @@
       m.classList.toggle("hidden");
       if (!m.classList.contains("hidden")) {
         const grid = document.getElementById("vaultItemsGrid");
-        grid.innerHTML = REALMS.map(r => {
+        grid.innerHTML = REALMS.filter(r => r.pet).map(r => {
           const isUnlocked = unlockedPets.includes(r.id);
           const pet = r.pet;
           let visualContent = `<span class="text-3xl mb-1">🔒</span>`;
