@@ -384,10 +384,15 @@
           <button onclick="closeStationMap()" class="text-slate-300 hover:text-white text-lg font-bold px-2.5 py-0.5">✕</button>
         </div>
       </div>
-      <div id="mapScroller" class="relative flex-1 min-h-0 overflow-auto flex" style="-webkit-overflow-scrolling:touch;">
+      <div id="mapScroller" class="relative flex-1 min-h-0 overflow-auto flex" style="-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;">
         <div id="stationMapWrap" class="relative flex-shrink-0" style="margin:auto;aspect-ratio:1672/941;width:100%;background-image:url('station_map.png'),linear-gradient(135deg,#14532d,#1e3a8a 55%,#581c87);background-size:100% 100%;background-position:center;"></div>
       </div>
-      <div class="px-2 py-1 border-t border-slate-800 bg-slate-950/60 flex justify-end flex-shrink-0">
+      <div class="px-2 py-1 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-1.5">
+          <button onclick="zoomMapBy(1/1.4)" aria-label="Zoom out" class="w-10 h-9 rounded-xl bg-slate-800 border border-slate-600 text-amber-200 text-xl font-black active:scale-95">−</button>
+          <button onclick="zoomMapBy(1.4)" aria-label="Zoom in" class="w-10 h-9 rounded-xl bg-slate-800 border border-slate-600 text-amber-200 text-xl font-black active:scale-95">+</button>
+          <button onclick="setMapZoom(1)" aria-label="Show whole map" class="h-9 px-2.5 rounded-xl bg-slate-800 border border-slate-600 text-amber-200 text-sm font-black active:scale-95">⛶</button>
+        </div>
         <button onclick="confirmResetProgress()" class="text-[10px] text-rose-400/80 hover:text-rose-300 font-semibold px-2 py-0.5">⚠️ Reset all</button>
       </div>
       <div id="stationSheet" class="hidden absolute inset-0 z-10 bg-slate-950/70 flex items-center justify-center p-3" onclick="if(event.target===this)closeStationSheet()"></div>
@@ -910,27 +915,82 @@
       if (m.classList.contains("hidden")) openStationMap(); else closeStationMap();
     }
 
-    // Bản đồ: điện thoại dọc thì phóng to & vuốt ngang; iPad / màn ngang thì vừa khung
+    // Bản đồ: mở ra luôn thấy toàn bộ các trạm; phóng to/thu nhỏ bằng 2 ngón tay hoặc nút − + ⛶
     const MAP_RATIO = 1672 / 941;
-    function fitStationMap(scrollToCurrent) {
-      const sc = document.getElementById("mapScroller"), wrap = document.getElementById("stationMapWrap");
-      if (!sc || !wrap || document.getElementById("realmMapModal").classList.contains("hidden")) return;
+    const MAP_ZOOM_MAX = 3.5;
+    let mapZoom = 1;
+    function mapBaseWidth() {
+      const sc = document.getElementById("mapScroller");
       const W = sc.clientWidth, H = sc.clientHeight;
-      if (!W || !H) return;
-      let w = W;
-      if (W / MAP_RATIO > H) w = H * MAP_RATIO;                  // màn ngang: lấy theo chiều cao
-      else if (W / MAP_RATIO < 340) w = Math.min(H * MAP_RATIO, W * 2.4); // điện thoại dọc: phóng to, vuốt ngang
-      else if (W / MAP_RATIO < H * 0.6) w = Math.min(H * MAP_RATIO, W * 1.5); // iPad dọc: phóng vừa
-      w = Math.floor(w);
+      return Math.max(1, Math.floor(Math.min(W, H * MAP_RATIO)));
+    }
+    // Đặt độ phóng, giữ nguyên điểm (fx, fy) trên màn hình (toạ độ trong khung bản đồ)
+    function setMapZoom(z, fx, fy) {
+      const sc = document.getElementById("mapScroller"), wrap = document.getElementById("stationMapWrap");
+      if (!sc || !wrap || !sc.clientWidth || !sc.clientHeight) return;
+      z = Math.max(1, Math.min(MAP_ZOOM_MAX, z));
+      const W = sc.clientWidth, H = sc.clientHeight;
+      if (fx === undefined) { fx = W / 2; fy = H / 2; }
+      const oldW = wrap.offsetWidth || 1, oldH = wrap.offsetHeight || 1;
+      const oldLeft = wrap.offsetLeft, oldTop = wrap.offsetTop;
+      // điểm trên bản đồ (tỉ lệ 0..1) đang nằm dưới ngón tay
+      const px = (sc.scrollLeft + fx - oldLeft) / oldW, py = (sc.scrollTop + fy - oldTop) / oldH;
+      mapZoom = z;
+      const w = Math.floor(mapBaseWidth() * z);
       wrap.style.width = w + "px";
-      wrap.style.fontSize = Math.max(10, w * 0.0165) + "px";
-      if (scrollToCurrent && w > W) {
-        const cur = stationOfIndex(currentQIndex);
-        sc.scrollLeft = Math.max(0, cur.pos[0] / 100 * w - W / 2);
-      }
+      wrap.style.fontSize = Math.max(6, w * 0.0165) + "px";
+      const nw = wrap.offsetWidth, nh = wrap.offsetHeight;
+      sc.scrollLeft = Math.max(0, wrap.offsetLeft + px * nw - fx);
+      sc.scrollTop = Math.max(0, wrap.offsetTop + py * nh - fy);
+    }
+    function zoomMapBy(f) { playSound("plop"); setMapZoom(mapZoom * f); }
+    function fitStationMap(reset) {
+      const sc = document.getElementById("mapScroller");
+      if (!sc || document.getElementById("realmMapModal").classList.contains("hidden")) return;
+      if (reset) { mapZoom = 1; sc.scrollLeft = 0; sc.scrollTop = 0; }
+      setMapZoom(mapZoom);
     }
     window.addEventListener("resize", () => fitStationMap(false));
-    window.addEventListener("orientationchange", () => setTimeout(() => fitStationMap(true), 300));
+    window.addEventListener("orientationchange", () => setTimeout(() => fitStationMap(false), 300));
+
+    // Chụm/mở 2 ngón tay trên bản đồ (không phóng cả trang)
+    (function initMapPinch() {
+      const sc = document.getElementById("mapScroller");
+      if (!sc) return;
+      let pinch = null;
+      const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+      const mid = t => { const r = sc.getBoundingClientRect(); return [(t[0].clientX + t[1].clientX) / 2 - r.left, (t[0].clientY + t[1].clientY) / 2 - r.top]; };
+      sc.addEventListener("touchstart", e => {
+        if (e.touches.length === 2) { pinch = { d: dist(e.touches), z: mapZoom }; e.preventDefault(); }
+      }, { passive: false });
+      sc.addEventListener("touchmove", e => {
+        if (pinch && e.touches.length === 2) {
+          e.preventDefault();
+          const [fx, fy] = mid(e.touches);
+          setMapZoom(pinch.z * dist(e.touches) / pinch.d, fx, fy);
+        }
+      }, { passive: false });
+      sc.addEventListener("touchend", e => { if (e.touches.length < 2) pinch = null; });
+      ["gesturestart", "gesturechange"].forEach(ev => sc.addEventListener(ev, e => e.preventDefault(), { passive: false }));
+      // máy tính: Ctrl + lăn chuột / chụm trackpad
+      sc.addEventListener("wheel", e => {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+        const r = sc.getBoundingClientRect();
+        setMapZoom(mapZoom * Math.exp(-e.deltaY * 0.01), e.clientX - r.left, e.clientY - r.top);
+      }, { passive: false });
+      // chạm 2 lần: phóng to / về toàn bản đồ
+      let lastTap = 0;
+      sc.addEventListener("touchend", e => {
+        if (e.changedTouches.length !== 1 || e.touches.length) return;
+        const now = Date.now();
+        if (now - lastTap < 300 && !e.target.closest("button")) {
+          const r = sc.getBoundingClientRect(), t = e.changedTouches[0];
+          setMapZoom(mapZoom > 1.2 ? 1 : 2.2, t.clientX - r.left, t.clientY - r.top);
+          lastTap = 0;
+        } else lastTap = now;
+      });
+    })();
 
     function renderStationMap() {
       const wrap = document.getElementById("stationMapWrap");
