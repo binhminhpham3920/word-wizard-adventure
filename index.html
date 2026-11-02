@@ -372,27 +372,25 @@
     </div>
   </div>
 
-  <!-- MODAL: BẢN ĐỒ 4 TRẠM -->
-  <div id="realmMapModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4">
-    <div class="bg-slate-900/95 backdrop-blur-xl border-2 border-amber-400/70 rounded-2xl max-w-4xl w-full max-h-[96vh] flex flex-col shadow-2xl overflow-hidden">
-      <div class="p-2.5 sm:p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+  <!-- MODAL: BẢN ĐỒ TRẠM (bản đồ to, chạm trạm để Chơi tiếp / Làm lại / Kết quả) -->
+  <div id="realmMapModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-0 sm:p-3">
+    <div id="mapCard" class="relative bg-slate-900/95 border-0 sm:border-2 border-amber-400/70 rounded-none sm:rounded-2xl max-w-6xl w-full h-full sm:h-[94vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-2.5 py-1.5 sm:p-2.5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60 flex-shrink-0">
         <h3 class="text-sm sm:text-base font-bold text-amber-300 font-magic flex items-center gap-1.5">
-          <span>🗺️</span> Adventure Map · 7 Stations
+          <span>🗺️</span> Adventure Map
         </h3>
-        <button onclick="closeStationMap()" class="text-slate-400 hover:text-slate-100 text-base font-bold px-2 py-0.5">✕</button>
+        <div class="flex items-center gap-1.5">
+          <button id="btnParentReview" onclick="openParentReview()" class="text-[11px] sm:text-xs text-emerald-200 font-bold px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-600/60">👨‍👩‍👦 (0)</button>
+          <button onclick="closeStationMap()" class="text-slate-300 hover:text-white text-lg font-bold px-2.5 py-0.5">✕</button>
+        </div>
       </div>
-      <div class="overflow-y-auto flex-1">
-        <div id="stationMapWrap" class="relative w-full" style="aspect-ratio:16/9;background-image:url('station_map.png'),linear-gradient(135deg,#14532d,#1e3a8a 55%,#581c87);background-size:cover;background-position:center;"></div>
-        <div id="stationList" class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2.5 sm:p-3"></div>
+      <div id="mapScroller" class="relative flex-1 min-h-0 overflow-auto flex" style="-webkit-overflow-scrolling:touch;">
+        <div id="stationMapWrap" class="relative flex-shrink-0" style="margin:auto;aspect-ratio:1672/941;width:100%;background-image:url('station_map.png'),linear-gradient(135deg,#14532d,#1e3a8a 55%,#581c87);background-size:100% 100%;background-position:center;"></div>
       </div>
-      <div class="p-2 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between gap-2 flex-wrap">
-        <button id="btnParentReview" onclick="openParentReview()" class="text-[11px] sm:text-xs text-emerald-200 font-bold px-3 py-1.5 rounded-lg bg-emerald-950/70 border border-emerald-600/60">
-          👨‍👩‍👦 Parent Review (0)
-        </button>
-        <button onclick="confirmResetProgress()" class="text-[11px] text-rose-400 hover:text-rose-300 font-semibold px-3 py-1 rounded bg-rose-950/40 border border-rose-800/50">
-          ⚠️ Reset Adventure Progress
-        </button>
+      <div class="px-2 py-1 border-t border-slate-800 bg-slate-950/60 flex justify-end flex-shrink-0">
+        <button onclick="confirmResetProgress()" class="text-[10px] text-rose-400/80 hover:text-rose-300 font-semibold px-2 py-0.5">⚠️ Reset all</button>
       </div>
+      <div id="stationSheet" class="hidden absolute inset-0 z-10 bg-slate-950/70 flex items-center justify-center p-3" onclick="if(event.target===this)closeStationSheet()"></div>
     </div>
   </div>
 
@@ -685,6 +683,8 @@
     let rewardedIds = [];        // câu đã nhận thưởng (chống cày lại)
     let completedStations = [];  // trạm đã hoàn thành
     let pendingReviews = [];     // câu caption chờ bố/mẹ duyệt
+    let qResults = {};           // kết quả từng câu: {r: ok|hint|shown|pending|redo, w: [câu trả lời sai], f: kết quả lần đầu}
+    let curWrongs = [];          // các lần sai ở câu đang làm
     let attemptsOnCurrent = 0;   // số lần sai ở câu hiện tại
     let answerBusy = false;      // chống bấm 2 lần
     let parentOkUntil = 0;       // đã qua mã phụ huynh (10 phút)
@@ -720,6 +720,7 @@
         if (g("word_wizard_rewarded") !== null) rewardedIds = JSON.parse(g("word_wizard_rewarded")) || [];
         if (g("word_wizard_stations") !== null) completedStations = JSON.parse(g("word_wizard_stations")) || [];
         if (g("word_wizard_pending") !== null) pendingReviews = JSON.parse(g("word_wizard_pending")) || [];
+        if (g("word_wizard_results") !== null) qResults = JSON.parse(g("word_wizard_results")) || {};
       } catch (e) {}
       if (!Number.isInteger(currentQIndex) || currentQIndex < 0 || currentQIndex >= QUESTIONS.length) currentQIndex = 0;
       if (!Array.isArray(unlockedPets) || unlockedPets.length === 0) unlockedPets = [1];
@@ -727,6 +728,7 @@
       if (!Array.isArray(rewardedIds)) rewardedIds = [];
       if (!Array.isArray(completedStations)) completedStations = [];
       if (!Array.isArray(pendingReviews)) pendingReviews = [];
+      if (!qResults || typeof qResults !== "object" || Array.isArray(qResults)) qResults = {};
       if (!playerInventory || typeof playerInventory !== "object") playerInventory = STARTER_PACK();
       INGREDIENT_NAMES.forEach(n => { if (typeof playerInventory[n] !== "number") playerInventory[n] = 0; });
       // Bản cũ (chưa có trạm): thứ tự câu đã đổi -> bắt đầu lại từ Trạm 1, giữ 💎/pet/nguyên liệu
@@ -751,6 +753,7 @@
         s("word_wizard_rewarded", JSON.stringify(rewardedIds));
         s("word_wizard_stations", JSON.stringify(completedStations));
         s("word_wizard_pending", JSON.stringify(pendingReviews));
+        s("word_wizard_results", JSON.stringify(qResults));
       } catch (e) {}
       updateTopBarUI();
       updateRecipeBookBtnUI();
@@ -774,6 +777,7 @@
         rewardedIds = [];
         completedStations = [];
         pendingReviews = [];
+        qResults = {};
         saveProgress();
         renderStationMap();
         safeRender();
@@ -863,7 +867,9 @@
     }
 
     function reviewDecision(id, ok) {
+      const pr = pendingReviews.find(p => p.id === id);
       pendingReviews = pendingReviews.filter(p => p.id !== id);
+      setResult(id, ok ? "ok" : "redo", pr ? [pr.text] : []);
       if (ok && !rewardedIds.includes(id)) {
         rewardedIds.push(id);
         starsEarned += 3;
@@ -880,7 +886,7 @@
 
     function updateParentReviewBtn() {
       const b = document.getElementById("btnParentReview");
-      if (b) b.innerText = `👨‍👩‍👦 Parent Review (${pendingReviews.length})`;
+      if (b) b.innerText = `👨‍👩‍👦 (${pendingReviews.length})`;
     }
 
     // ===== BẢN ĐỒ TRẠM =====
@@ -894,44 +900,179 @@
 
     function openStationMap() {
       document.getElementById("realmMapModal").classList.remove("hidden");
+      closeStationSheet();
       renderStationMap();
+      requestAnimationFrame(() => fitStationMap(true));
     }
-    function closeStationMap() { document.getElementById("realmMapModal").classList.add("hidden"); }
+    function closeStationMap() { closeStationSheet(); document.getElementById("realmMapModal").classList.add("hidden"); }
     function toggleRealmMap() {
       const m = document.getElementById("realmMapModal");
       if (m.classList.contains("hidden")) openStationMap(); else closeStationMap();
     }
 
+    // Bản đồ: điện thoại dọc thì phóng to & vuốt ngang; iPad / màn ngang thì vừa khung
+    const MAP_RATIO = 1672 / 941;
+    function fitStationMap(scrollToCurrent) {
+      const sc = document.getElementById("mapScroller"), wrap = document.getElementById("stationMapWrap");
+      if (!sc || !wrap || document.getElementById("realmMapModal").classList.contains("hidden")) return;
+      const W = sc.clientWidth, H = sc.clientHeight;
+      if (!W || !H) return;
+      let w = W;
+      if (W / MAP_RATIO > H) w = H * MAP_RATIO;                  // màn ngang: lấy theo chiều cao
+      else if (W / MAP_RATIO < 340) w = Math.min(H * MAP_RATIO, W * 2.4); // điện thoại dọc: phóng to, vuốt ngang
+      else if (W / MAP_RATIO < H * 0.6) w = Math.min(H * MAP_RATIO, W * 1.5); // iPad dọc: phóng vừa
+      w = Math.floor(w);
+      wrap.style.width = w + "px";
+      wrap.style.fontSize = Math.max(10, w * 0.0165) + "px";
+      if (scrollToCurrent && w > W) {
+        const cur = stationOfIndex(currentQIndex);
+        sc.scrollLeft = Math.max(0, cur.pos[0] / 100 * w - W / 2);
+      }
+    }
+    window.addEventListener("resize", () => fitStationMap(false));
+    window.addEventListener("orientationchange", () => setTimeout(() => fitStationMap(true), 300));
+
     function renderStationMap() {
       const wrap = document.getElementById("stationMapWrap");
-      const list = document.getElementById("stationList");
-      if (!wrap || !list) return;
+      if (!wrap) return;
       const cur = stationOfIndex(currentQIndex);
       wrap.innerHTML = STATIONS.map(st => {
         const un = isStationUnlocked(st), done = completedStations.includes(st.id), isCur = st.id === cur.id;
+        const n = stationDoneCount(st), pct = (n / st.ids.length) * 100;
         return `
-          <button onclick="enterStation(${st.id})" style="left:${st.pos[0]}%;top:${st.pos[1]}%;width:13%;transform:translate(-50%,-62%)" class="absolute flex flex-col items-center ${un ? "hover:scale-105" : "cursor-not-allowed"} transition">
+          <button onclick="openStationSheet(${st.id})" style="left:${st.pos[0]}%;top:${st.pos[1]}%;width:13%;transform:translate(-50%,-62%)" class="absolute flex flex-col items-center ${un ? "active:scale-95" : ""} transition">
             <div class="relative w-full ${isCur ? "float-anim" : ""}">
               ${isCur ? '<div class="absolute -inset-1 rounded-full bg-amber-300/50 blur-md animate-pulse"></div>' : ""}
               <img src="${st.img}" alt="${st.name}" class="relative w-full aspect-square object-contain drop-shadow-xl ${un ? "" : "grayscale opacity-60"}" onerror="stationImgErr(this,'${st.icon}')">
-              ${!un ? '<span class="absolute inset-0 flex items-center justify-center text-xl sm:text-4xl drop-shadow">🔒</span>' : ""}
-              ${done ? '<span class="absolute -top-1 -right-1 text-sm sm:text-2xl drop-shadow">✅</span>' : ""}
+              ${!un ? '<span class="absolute inset-0 flex items-center justify-center drop-shadow" style="font-size:2.4em">🔒</span>' : ""}
+              ${done ? '<span class="absolute -top-[0.2em] -right-[0.2em] drop-shadow" style="font-size:1.6em">✅</span>' : ""}
             </div>
-            <span class="mt-0.5 whitespace-nowrap px-1.5 sm:px-2.5 py-0.5 rounded-full text-[8px] sm:text-xs font-black font-magic border border-amber-300/70 shadow ${isCur ? "bg-amber-400 text-slate-950" : "bg-slate-950/85 text-amber-200"}">${st.id}. ${st.name}</span>
-          </button>`;
-      }).join("");
-      list.innerHTML = STATIONS.map(st => {
-        const un = isStationUnlocked(st), n = stationDoneCount(st), len = st.ids.length;
-        return `
-          <button onclick="enterStation(${st.id})" class="text-left p-2 rounded-xl border ${un ? "bg-slate-900/90 border-cyan-500/50 hover:border-amber-300" : "bg-slate-950/60 border-slate-800 opacity-60"} transition">
-            <div class="flex items-center gap-1.5 text-xs font-black font-magic ${un ? "text-amber-200" : "text-slate-400"}">
-              <span>${un ? st.icon : "🔒"}</span><span class="truncate">${st.id}. ${st.name}</span>
-            </div>
-            <div class="mt-1.5 w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-cyan-400 to-amber-300" style="width:${(n / len) * 100}%"></div></div>
-            <div class="mt-1 text-[10px] text-slate-300 font-semibold">${n}/${len} spells${completedStations.includes(st.id) ? " · ✅ cleared" : ""}</div>
+            <span class="mt-[0.15em] whitespace-nowrap rounded-full font-black font-magic border border-amber-300/70 shadow ${isCur ? "bg-amber-400 text-slate-950" : "bg-slate-950/85 text-amber-200"}" style="font-size:0.9em;padding:0.15em 0.7em">${st.id}. ${st.name}</span>
+            ${un ? `<span class="mt-[0.2em] w-[70%] rounded-full bg-slate-950/80 overflow-hidden border border-slate-700" style="height:0.4em"><span class="block h-full bg-gradient-to-r from-cyan-400 to-amber-300" style="width:${pct}%"></span></span>` : ""}
           </button>`;
       }).join("");
       updateParentReviewBtn();
+    }
+
+    function closeStationSheet() {
+      const sh = document.getElementById("stationSheet");
+      if (sh) { sh.classList.add("hidden"); sh.innerHTML = ""; }
+    }
+
+    function openStationSheet(id) {
+      const st = STATIONS.find(x => x.id === id);
+      if (!isStationUnlocked(st)) {
+        playSound("wrong");
+        showToast(`Finish Station ${id - 1} first to unlock ${st.name}! 🔒`, "warn");
+        speakText(`Finish station ${id - 1} first!`);
+        return;
+      }
+      playSound("plop");
+      const n = stationDoneCount(st), len = st.ids.length;
+      const sum = stationSummary(st);
+      const started = n > 0 || sum.played > 0;
+      const finished = n >= len;
+      const sh = document.getElementById("stationSheet");
+      sh.innerHTML = `
+        <div class="relative bg-slate-900 border-2 border-amber-400/80 rounded-3xl w-full max-w-sm p-4 shadow-2xl flex flex-col items-center gap-3">
+          <button onclick="closeStationSheet()" class="absolute top-2 right-3 text-slate-400 hover:text-white text-lg font-bold">✕</button>
+          <img src="${st.img}" class="w-28 h-28 sm:w-32 sm:h-32 object-contain drop-shadow-xl" onerror="this.outerHTML='<div class=\\'text-6xl\\'>${st.icon}</div>'">
+          <div class="text-lg font-black font-magic text-amber-300 -mt-1">${st.id}. ${st.name}</div>
+          <div class="w-full">
+            <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-cyan-400 to-amber-300" style="width:${(n / len) * 100}%"></div></div>
+            <div class="mt-1 text-center text-sm font-bold text-slate-200">⭐ ${n}/${len}${completedStations.includes(st.id) ? " · ✅" : ""}</div>
+          </div>
+          <div class="grid gap-2 w-full">
+            ${!finished ? `<button onclick="enterStation(${st.id})" class="py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-500 text-slate-950 font-black font-magic text-base shadow-lg active:scale-95">▶️ ${started ? "Continue" : "Play"}</button>` : ""}
+            ${started ? `<button onclick="replayStation(${st.id})" class="py-3 rounded-2xl ${finished ? "bg-gradient-to-r from-amber-300 to-amber-500 text-slate-950" : "bg-indigo-700 text-white border border-indigo-400/60"} font-black font-magic text-base shadow-lg active:scale-95">🔁 Play again</button>` : ""}
+            ${started ? `<button onclick="showStationResults(${st.id})" class="py-3 rounded-2xl bg-slate-800 text-cyan-200 border border-cyan-500/50 font-black font-magic text-base active:scale-95">📊 Results</button>` : ""}
+          </div>
+        </div>`;
+      sh.classList.remove("hidden");
+    }
+
+    // Làm lại cả trạm: về câu 1, xoá kết quả lượt trước (giữ kết quả lần đầu). 💎 không cộng lại.
+    function replayStation(id) {
+      const st = STATIONS.find(x => x.id === id);
+      if (!isStationUnlocked(st)) return;
+      st.ids.forEach(qid => {
+        if (qResults[qid] && qResults[qid].r !== "pending") qResults[qid] = { f: qResults[qid].f };
+      });
+      currentQIndex = st.start;
+      saveProgress();
+      closeStationMap();
+      safeRender();
+      showToast(`🔁 ${st.name} – let's play again!`, "info");
+      speakText(`Let's play ${st.name} again!`);
+    }
+
+    const RESULT_META = {
+      ok:      { icon: "✅", label: "Right first try" },
+      hint:    { icon: "💡", label: "Right after a hint" },
+      shown:   { icon: "👀", label: "Answer was shown" },
+      pending: { icon: "💾", label: "Waiting for parent" },
+      redo:    { icon: "✏️", label: "Needs rewrite" },
+      old:     { icon: "☑️", label: "Done (before results)" },
+      none:    { icon: "⬜", label: "Not done yet" }
+    };
+    function resultOf(qid) {
+      const r = qResults[qid] && qResults[qid].r;
+      if (r) return r;
+      if (pendingReviews.some(p => p.id === qid)) return "pending";
+      return "none";
+    }
+    function stationSummary(st) {
+      const c = { ok: 0, hint: 0, shown: 0, pending: 0, redo: 0, none: 0 };
+      st.ids.forEach(qid => { const r = resultOf(qid); c[r] = (c[r] || 0) + 1; });
+      c.played = st.ids.length - c.none;
+      return c;
+    }
+    function questionLabel(q) {
+      if (!q) return "";
+      if (q.part === 1) return q.hint ? `${q.hint}` : "Spell the word";
+      if (q.part === 2) return q.display;
+      if (q.part === 7) return "Build: " + q.words.join(" / ");
+      if (q.part === 9) return "Picture sentence";
+      if (q.part === 10) return q.pattern + "  🔊";
+      if (q.part === 11) return q.display + "  🔊";
+      if (q.part === 12) return "Read aloud: " + q.prompt;
+      if (q.part === 13) return "Picture sentence";
+      return q.prompt || "";
+    }
+
+    function showStationResults(id) {
+      const st = STATIONS.find(x => x.id === id);
+      const c = stationSummary(st), len = st.ids.length;
+      const score = c.ok + c.hint;
+      const chip = (k) => c[k] ? `<span class="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-600">${RESULT_META[k].icon} ${c[k]}</span>` : "";
+      const rows = st.ids.map((qid, i) => {
+        const q = QUESTIONS_RAW.find(x => x.id === qid);
+        let r = resultOf(qid);
+        if (r === "none" && rewardedIds.includes(qid)) r = "old";
+        const m = RESULT_META[r];
+        const res = qResults[qid] || {};
+        const img = (q.part === 9 || q.part === 13) ? `<img src="${q.img}" class="w-12 h-9 object-cover rounded flex-shrink-0" onerror="this.style.display='none'">` : "";
+        const ans = (q.part === 9 || q.part === 12) ? "" : `<div class="text-emerald-300">→ ${escapeHtml(getAnswerText(q))}</div>`;
+        const wr = (res.w && res.w.length && r !== "ok") ? `<div class="text-rose-300">✗ ${res.w.map(escapeHtml).join(" · ")}</div>` : "";
+        const first = (res.f && res.r && res.f !== res.r && RESULT_META[res.f]) ? `<span class="text-slate-400"> (1st time ${RESULT_META[res.f].icon})</span>` : "";
+        return `
+          <div class="flex gap-2 items-start p-2 rounded-xl border ${r === "ok" ? "border-emerald-700/60 bg-emerald-950/30" : r === "none" ? "border-slate-800 bg-slate-950/40 opacity-70" : r === "old" ? "border-slate-700 bg-slate-950/50" : "border-amber-700/60 bg-amber-950/20"}">
+            <span class="text-xl leading-none">${m.icon}</span>
+            ${img}
+            <div class="flex-1 min-w-0 text-xs leading-snug">
+              <div class="text-slate-100 font-semibold break-words"><span class="text-slate-500">${i + 1}.</span> ${escapeHtml(questionLabel(q))}${first}</div>
+              ${ans}${wr}
+            </div>
+          </div>`;
+      }).join("");
+      openParentModal(`📊 ${st.id}. ${st.name}`, `
+        <div class="text-center mb-2">
+          <div class="text-3xl font-black font-magic text-amber-300">${score}/${len}</div>
+          <div class="flex flex-wrap justify-center gap-1.5 mt-1.5 text-xs font-bold text-slate-200">${chip("ok")}${chip("hint")}${chip("shown")}${chip("pending")}${chip("redo")}${chip("none")}</div>
+          <div class="text-[10px] text-slate-400 mt-1">✅ first try · 💡 after hint · 👀 answer shown · 💾 waiting · ⬜ not done</div>
+        </div>
+        <div class="grid gap-1.5">${rows}</div>
+        <button onclick="closeParentModal();replayStation(${st.id})" class="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-500 text-slate-950 font-black font-magic">🔁 Play again</button>`);
     }
 
     function enterStation(id) {
@@ -1476,8 +1617,14 @@
       afterRender(q);
     }
 
+    function setResult(id, r, wrongs) {
+      const prev = qResults[id] || {};
+      qResults[id] = { r, w: (wrongs || []).slice(0, 3), f: prev.f || r };
+    }
+
     function afterRender(q) {
       attemptsOnCurrent = 0;
+      curWrongs = [];
       answerBusy = false;
       const qc = document.getElementById("questionContainer");
       qc.insertAdjacentHTML("beforeend", `<div id="hintBox" class="hidden mt-3 px-3 py-2 rounded-xl border-2 text-sm sm:text-base font-bold"></div>`);
@@ -1505,6 +1652,7 @@
       answerBusy = true;
       const q = QUESTIONS[currentQIndex];
       const firstTime = !rewardedIds.includes(q.id);
+      setResult(q.id, attemptsOnCurrent === 0 ? "ok" : attemptsOnCurrent === 1 ? "hint" : "shown", curWrongs);
       let gems = 0, loot = false;
       if (firstTime) {
         if (attemptsOnCurrent === 0) { gems = baseGems; loot = true; }          // đúng ngay: thưởng đủ
@@ -1566,6 +1714,12 @@
     // Sai lần 1: gợi ý. Sai lần 2: hiện đáp án (câu đó chỉ còn 1 💎, không rơi nguyên liệu)
     function handleFailure(q, wrongOpt) {
       if (answerBusy) return;
+      try {
+        let w = wrongOpt || "";
+        if (!w && q.part === 7) w = selectedJumbleWords.map(i => i.word).join(" ");
+        if (!w) w = (document.querySelector("#interactiveArea input")?.value || "").trim();
+        if (w) curWrongs.push(w);
+      } catch (e) {}
       attemptsOnCurrent++;
       streakCount = 0;
       saveProgress();
@@ -1781,6 +1935,7 @@
         pendingReviews = pendingReviews.filter(p => p.id !== q.id);
         pendingReviews.push({ id: q.id, text });
       }
+      setResult(q.id, "pending", text ? [text] : []);
       saveProgress();
       showToast("💾 Saved! Mum or Dad will check it later.", "info");
       advanceFrom(q);
@@ -1819,13 +1974,13 @@
         } else {
           showToast(`🏆 Station ${st.id} finished again!`, "good");
         }
-        setTimeout(openStationMap, 1200);
+        setTimeout(() => { openStationMap(); showStationResults(st.id); }, 1200);
       } else {
         saveProgress();
         safeRender();
         showToast(`🎉 CONGRATULATIONS! Minh cleared all ${STATIONS.length} stations!`, "good");
         speakText("Congratulations Minh! You are now a Grand Cambridge Word Wizard!");
-        setTimeout(openStationMap, 1500);
+        setTimeout(() => { openStationMap(); showStationResults(st.id); }, 1500);
       }
     }
 
