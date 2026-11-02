@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Word Muncher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ink:#2A2340; --ink-2:#4B4766; --muted:#7D7A93; --line:#2A2340;
+  --paper:#FFFDF6; --cream:#FFF4D6; --sun:#FFD166; --orange:#F27B00; --orange-d:#B85A00;
+  --sky:#7CC7F2; --sky-d:#3E8FC7; --green:#4CB050; --green-d:#2E7D32; --red:#E5483B; --red-soft:#FFE1DC; --ok-soft:#DDF5E6;
+  --page:#BFE3A6; --page-2:#E8F6DA;
+  --display:"Fredoka","Lexend",system-ui,sans-serif; --word:"Lexend","Be Vietnam Pro",system-ui,sans-serif; --body:"Be Vietnam Pro","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;padding:0 16px 32px;
+  background:radial-gradient(120% 80% at 50% 0%,var(--page-2),var(--page));transition:background .6s}
+.wrap{max-width:560px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;letter-spacing:.2px;text-wrap:balance}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.btn{border:2.5px solid var(--line);background:#fff;border-radius:14px;padding:8px 14px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:0 4px 0 var(--line);transition:transform .06s,box-shadow .06s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.btn.primary{background:var(--sun)}
+.btn.go{background:linear-gradient(#7BD36B,#43A93B);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.btn.teal{background:var(--sky)}
+.btn.big{font-size:24px;padding:12px 40px;border-radius:20px;box-shadow:0 6px 0 var(--line)}
+.btn.big:active{box-shadow:0 2px 0 var(--line);transform:translateY(4px)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.card{background:var(--paper);border:2.5px solid var(--line);border-radius:22px;box-shadow:0 5px 0 rgba(42,35,64,.9);padding:16px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.note{font-size:12.5px;color:var(--ink-2)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:2px solid var(--line);background:#fff;border-radius:12px;padding:6px 12px;font-weight:600;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--sun)}
+.switch{display:flex;align-items:center;gap:10px;font-size:13px}
+.switch input{width:18px;height:18px;accent-color:var(--green)}
+
+/* ---------- menu ---------- */
+.menu{display:grid;gap:16px;padding-top:14px}
+.title-card{position:relative;text-align:center;padding:18px 16px 14px;overflow:hidden;
+  background:linear-gradient(#BDE7FF,#E9F7FF 60%,#D9F2C8);}
+.title-card .mascot{width:min(300px,72%);display:block;margin:4px auto -4px;filter:drop-shadow(0 6px 0 rgba(42,35,64,.12));animation:bob 2.4s ease-in-out infinite}
+.logo{font-family:var(--display);font-weight:700;font-size:clamp(38px,10vw,56px);line-height:.95;color:var(--sun);
+  -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink);letter-spacing:1px}
+.logo span{color:#FF9E3D}
+.tag{font-family:var(--display);font-weight:600;font-size:16px;margin-top:8px;color:var(--ink-2)}
+.cloud{position:absolute;top:12px;width:70px;height:24px;background:#fff;border-radius:20px;opacity:.9}
+.cloud::before{content:"";position:absolute;left:14px;top:-12px;width:34px;height:30px;background:#fff;border-radius:50%}
+.cloud.a{left:-10px;animation:drift 22s linear infinite}.cloud.b{right:-20px;top:40px;animation:drift 30s linear infinite reverse}
+@keyframes drift{from{transform:translateX(-30px)}to{transform:translateX(60px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.worlds{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.wcard{position:relative;border:2.5px solid var(--line);border-radius:16px;padding:0;overflow:hidden;aspect-ratio:3/4;background:#ccc center 30%/cover no-repeat;box-shadow:0 4px 0 var(--line)}
+.wcard .wl{position:absolute;left:0;right:0;bottom:0;background:rgba(255,253,246,.94);border-top:2px solid var(--line);padding:3px 2px 4px;display:grid;line-height:1.1}
+.wcard b{font-family:var(--display);font-size:13px}.wcard small{font-size:10px;color:var(--muted)}
+.wcard.on{outline:4px solid var(--orange);outline-offset:2px}
+.wcard:disabled{filter:grayscale(.85) brightness(.85);box-shadow:none;cursor:default}
+.wcard .lock{position:absolute;inset:0;display:grid;place-items:center;font-size:26px}
+.playrow{display:grid;justify-items:center;gap:10px}
+.playrow .note{background:rgba(255,253,246,.85);border-radius:99px;padding:2px 12px}
+details.card summary{cursor:pointer;font-family:var(--display);font-weight:600;font-size:15px}
+.list{display:grid;gap:6px}
+.li{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-size:13.5px;background:#fff}
+.li .e{font-size:22px;width:28px;text-align:center}
+.li.bad{background:var(--red-soft)}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tile{background:var(--cream);border:2px solid var(--line);border-radius:14px;padding:8px 10px}
+.tile b{display:block;font-family:var(--display);font-size:24px;line-height:1.1}
+.tile span{font-size:11.5px;color:var(--ink-2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:4px 11px;font-size:13px;font-weight:600}
+
+/* ---------- game ---------- */
+body.playing{padding-bottom:6px;overflow:hidden;padding-top:env(safe-area-inset-top,0px)}
+body.playing .wrap{max-width:1180px}
+.game{display:grid;gap:8px;padding-top:8px;justify-items:center}
+.game .side{display:grid;gap:8px;width:100%;max-width:640px}
+.hud{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:stretch}
+.bubble{position:relative;display:flex;align-items:center;gap:10px;background:#fff;border:2.5px solid var(--line);border-radius:18px;padding:6px 12px 6px 6px;box-shadow:0 4px 0 var(--line);min-height:62px}
+.bubble .ava{width:50px;height:50px;flex:none;border-radius:14px;background:var(--cream);border:2px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.bubble .ava img{width:46px;height:46px;object-fit:contain}
+.bubble .pic{font-size:36px;line-height:1}
+.bubble .lbl{font-family:var(--display);font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.bubble .say{font-family:var(--display);font-weight:600;font-size:17px;line-height:1.2}
+.bubble .glue{font-family:var(--word);font-weight:600;font-size:17px;line-height:1.35}
+.bubble .glue i{font-style:normal;display:inline-block;min-width:54px;border-bottom:3px dashed var(--orange);text-align:center;color:var(--orange)}
+.bubble .grow{flex:1;min-width:0}
+.pattern{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px}
+.pattern i{font-style:normal;font-family:var(--word);font-weight:700;font-size:19px;min-width:26px;height:32px;padding:0 4px;border-radius:8px;background:#fff;border:2px solid var(--line);display:grid;place-items:center;line-height:1}
+.pattern i.blank{border-style:dashed;background:var(--cream);color:var(--orange)}
+.pattern i.got{background:#C9F2D8}
+.spk{flex:none;width:46px;height:46px;border-radius:14px;border:2.5px solid var(--line);background:var(--sky);font-size:20px;box-shadow:0 3px 0 var(--line);display:grid;place-items:center}
+.spk:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.stats{display:grid;gap:4px;align-content:center;justify-items:end;background:#fff;border:2.5px solid var(--line);border-radius:18px;padding:6px 12px;box-shadow:0 4px 0 var(--line)}
+.hearts{font-size:15px;letter-spacing:1px;white-space:nowrap}
+.score{font-family:var(--display);font-weight:700;font-size:22px;line-height:1}
+.score small{font-size:12px;color:var(--muted);font-weight:600}
+.lvbar{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-family:var(--display);font-weight:600;font-size:14px}
+.lvtrack{height:14px;border-radius:99px;background:#fff;border:2.5px solid var(--line);overflow:hidden}
+.lvtrack i{display:block;height:100%;background:linear-gradient(90deg,#7BD36B,#FFD166);transition:width .35s;border-right:2px solid var(--line)}
+.lvtrack i[style*="width: 0%"]{border-right:0}
+.stage{position:relative}
+.boardwrap{position:relative;border-radius:22px;overflow:hidden;border:3px solid var(--line);box-shadow:0 6px 0 var(--line);touch-action:none;background:#9fd27d}
+#cv{display:block;touch-action:none}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:rgba(42,35,64,.28);padding:16px;z-index:3}
+.ovcard{background:var(--paper);border:3px solid var(--line);border-radius:22px;box-shadow:0 6px 0 var(--line);padding:16px 22px;max-width:340px;display:grid;justify-items:center;gap:4px;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+.ovcard b{font-family:var(--display);font-size:26px;line-height:1.15}
+.ovcard img{width:150px;height:auto}
+.ovcard img.spin{animation:spin 1.4s cubic-bezier(.3,.9,.4,1) both}
+.ovcard .tap{font-family:var(--display);font-weight:600;color:var(--orange);font-size:15px;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes spin{0%{transform:rotate(-200deg) scale(.3)}70%{transform:rotate(10deg) scale(1.1)}100%{transform:rotate(0) scale(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:6px 14px;border-radius:12px;font-family:var(--display);font-size:16px;font-weight:600;white-space:nowrap;pointer-events:none;z-index:4;border:2.5px solid var(--line);animation:pop .25s ease-out}
+.toast.good{background:#3FAE5A}.toast.bad{background:var(--red)}
+.ctrl{display:grid;gap:8px;justify-items:center}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,48px);gap:7px;justify-content:center}
+.pad button{border:2.5px solid var(--line);background:#fff;border-radius:16px;font-size:22px;box-shadow:0 4px 0 var(--line);color:var(--ink)}
+.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line);background:var(--sun)}
+.pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}
+.game.land{grid-template-columns:auto minmax(240px,300px);align-items:start;justify-content:center;column-gap:16px}
+.game.land .side{order:2}.game.land .stage{order:1}
+.game.land .hud{grid-template-columns:1fr}
+.game.land .stats{grid-template-columns:auto auto;justify-content:space-between;justify-items:start;align-items:center}
+.game.land .pad{grid-template-columns:repeat(3,72px);grid-template-rows:repeat(2,62px)}
+@media (min-width:700px){.game:not(.land) .pad{grid-template-columns:repeat(3,84px);grid-template-rows:repeat(2,60px)}}
+.result{display:grid;gap:14px;padding-top:14px}
+.result .hero{width:200px;margin:0 auto;display:block}
+.stars{font-size:44px;text-align:center;letter-spacing:6px;line-height:1}
+.stars .off{filter:grayscale(1);opacity:.35}
+.mapcard{display:grid;justify-items:center;gap:6px;padding:14px 12px 12px;background:linear-gradient(#CFEBFF,#FFF3DC)}
+.logoimg{width:min(420px,92%);height:auto;display:block;filter:drop-shadow(0 4px 0 rgba(42,35,64,.15))}
+.mapcard .tag{margin-top:0}
+.map{position:relative;width:min(480px,100%);aspect-ratio:2/3;background:center/cover no-repeat;border:2.5px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:inset 0 0 0 3px rgba(255,255,255,.5)}
+.isl{position:absolute;transform:translate(-50%,-50%);width:27%;min-height:12%;border-radius:50%;border:2.5px dashed rgba(42,35,64,.35);background:rgba(255,253,246,.55);display:grid;place-content:center;line-height:1.15;padding:2px;transition:transform .15s}
+.isl b{font-family:var(--display);font-size:clamp(12px,3.2vw,17px)}.isl small{font-size:clamp(9px,2.2vw,11px);color:var(--ink-2)}
+.isl.on{border:3px solid var(--orange);background:rgba(255,236,190,.92);box-shadow:0 0 0 5px rgba(242,123,0,.25);transform:translate(-50%,-50%) scale(1.06)}
+.isl:disabled{background:rgba(220,220,230,.6);filter:grayscale(.6);cursor:default}
+.mapmascot{position:absolute;width:24%;pointer-events:none;animation:bob 2.2s ease-in-out infinite;filter:drop-shadow(0 4px 0 rgba(42,35,64,.15))}
+.bubble .ava.picbox{width:68px;height:68px}.bubble .ava.picbox .pic{font-size:48px}.picbox .pimg{width:64px;height:64px}
+.pimg{width:44px;height:44px;object-fit:contain;display:block}.pimg.sm{width:24px;height:24px;display:inline-block;vertical-align:middle}
+.hearts{display:flex;gap:2px}.hearts img{width:20px;height:20px;object-fit:contain}.hearts img.lost{opacity:.45;filter:grayscale(.6)}
+.score{display:flex;align-items:center;gap:4px}.score img{width:24px;height:24px}
+.spk{background:transparent!important;border:0!important;box-shadow:none!important;padding:0}.spk img{width:46px;height:46px}
+.bi{width:22px;height:22px;vertical-align:-5px;margin-right:6px}.btn.big .bi{width:34px;height:34px;vertical-align:-8px}
+.stars{display:flex;justify-content:center;align-items:center;gap:6px}.stars img{width:56px;height:56px}
+.testbar{display:grid;gap:8px;justify-items:center;text-align:center;background:#FFF1C9;border:2.5px dashed var(--orange);border-radius:16px;padding:10px 12px;width:min(520px,100%);font-size:13px}
+.lvpick{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.lvpick button{border:2px solid var(--line);background:#fff;border-radius:10px;padding:4px 9px;font-weight:700;font-size:13px}.lvpick button[aria-pressed="true"]{background:var(--sun)}
+.modechip{font-family:var(--display);font-weight:700;font-size:18px;padding:4px 14px;border-radius:99px;border:2.5px solid var(--line);margin:4px 0}
+.m-pic{background:#FFF1C2}.m-listen{background:#D9ECFF}.m-missing{background:#D8F5DF}.m-spell{background:#EBDDFF}.m-glue{background:#FFE2C7}
+.bubble.m-pic,.bubble.m-listen,.bubble.m-missing,.bubble.m-spell,.bubble.m-glue{transition:background .3s}
+.wwbar{display:grid;justify-items:center;gap:4px}.wwbar a{text-decoration:none}a.btn{text-decoration:none;display:inline-block;color:var(--ink)}
+.loader{font-family:var(--display);font-weight:600;color:var(--ink-2)}
+@media (max-width:520px){.bubble .ava.picbox{width:56px;height:56px}.picbox .pimg{width:52px;height:52px}.hearts img{width:14px;height:14px}.score img{width:18px;height:18px}.spk img{width:40px;height:40px}.bubble{min-height:54px;padding:5px 8px 5px 5px;gap:7px}.bubble .ava{width:42px;height:42px}.bubble .ava img{width:38px;height:38px}.bubble .pic{font-size:30px}.bubble .say,.bubble .glue{font-size:15px}.pattern i{font-size:16px;min-width:22px;height:28px}.spk{width:40px;height:40px;font-size:17px}.stats{padding:5px 8px}.hearts{font-size:11px;letter-spacing:0}.score{font-size:18px}.game:not(.land) .pad{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,40px);gap:5px}.ctrl .btn{padding:5px 12px;font-size:14px}}
+@media (prefers-reduced-motion:reduce){.mapmascot,.ovcard,.ovcard img.spin,.toast{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap"><main id="app"></main></div>
+<script>
+/* =====================================================================
+   Word Muncher 2.5D · word bank
+   ESL weeks 2–7, Science Unit 4, phonics, Movers topics, Jolly tricky words
+   + Week 11 (ESL birds & can/can't, joining words, qu, tricky, EFL oy/ear/time words, Science 2.3)
+   format: "word:emoji" separated by spaces, "_" = space inside a phrase
+   ===================================================================== */
+const BANK=[
+ ["cvc","Phonics: short vowels","cat:🐱 dog:🐶 pig:🐷 bed:🛏️ sun:☀️ hat:🎩 cup:☕ ten:🔟 fox:🦊 bug:🐛 net:🥅 bus:🚌 map:🗺️ hen:🐔 bat:🦇 box:📦 jam:🍯 fan:🪭 web:🕸️ van:🚐"],
+ ["magice","Phonics: magic e","cake:🎂 bike:🚲 kite:🪁 bone:🦴 cube:🧊 five:5️⃣ nose:👃 rose:🌹 nine:9️⃣ cone:🍦 lake:🏞️ tube:🧪 smile:😊 plane:✈️ snake:🐍 whale:🐋 grapes:🍇 slide:🛝"],
+ ["school","School things (ESL W2)","pencil:✏️ book:📕 ruler:📏 scissors:✂️ backpack:🎒 clock:🕒 calendar:📅 crayon:🖍️ notebook:📓 pen:🖊️ paint:🎨 letter:✉️ computer:💻 desk:🗄️"],
+ ["mine","My things & clothes (ESL W4)","key:🔑 phone:📱 jumper:🧥 cap:🧢 shoe:👟 sock:🧦 dress:👗 shirt:👕 jeans:👖 scarf:🧣 glove:🧤 boot:👢 glasses:👓 bag:👜 umbrella:☂️ ring:💍 crown:👑 skipping_rope:🪢"],
+ ["jobs","Jobs (ESL W6)","nurse:🧑‍⚕️ firefighter:🧑‍🚒 police_officer:👮 doctor:🩺 teacher:🧑‍🏫 bus_driver:🚍 waiter:🍽️ reporter:📰 window_cleaner:🧽 farmer:🧑‍🌾 cook:🧑‍🍳 pilot:🧑‍✈️ singer:🎤 dancer:💃 artist:🧑‍🎨"],
+ ["places","Places (ESL W7)","hospital:🏥 school:🏫 fire_station:🚒 police_station:🚓 shop:🏪 restaurant:🍝 park:🛝 house:🏠 bus_stop:🚏 library:📚 castle:🏰 tent:⛺ bank:🏦 hotel:🏨 supermarket:🛒 airport:🛫 beach:🏖️ island:🏝️ mountain:⛰️ zoo:🦒"],
+ ["animals","Animals (Science 4.1)","bird:🐦 fish:🐟 duck:🦆 zebra:🦓 horse:🐴 feathers:🪶 bear:🐻 bee:🐝 cow:🐄 frog:🐸 goat:🐐 lion:🦁 monkey:🐒 mouse:🐭 owl:🦉 panda:🐼 rabbit:🐰 sheep:🐑 shark:🦈 snail:🐌 spider:🕷️ tiger:🐯 dolphin:🐬 penguin:🐧 kangaroo:🦘 giraffe:🦒 elephant:🐘 crocodile:🐊 parrot:🦜 octopus:🐙 butterfly:🦋 ant:🐜 camel:🐫 turtle:🐢 crab:🦀 lizard:🦎 chicken:🐓"],
+ ["babies","Growing up (Science 4.2)","kitten:🐈 puppy:🐕 chick:🐤 baby:👶 child:🧒 adult:🧑 grandpa:👴 grandma:👵"],
+ ["food","Healthy food (Science 4.4)","apple:🍎 banana:🍌 carrot:🥕 rice:🍚 bread:🍞 milk:🥛 egg:🥚 cheese:🧀 water:💧 candy:🍬 pear:🍐 orange:🍊 lemon:🍋 cherry:🍒 peach:🍑 mango:🥭 pineapple:🍍 coconut:🥥 tomato:🍅 potato:🥔 corn:🌽 onion:🧅 pizza:🍕 cookie:🍪 burger:🍔 sandwich:🥪 soup:🍲 salad:🥗 juice:🧃 tea:🍵 honey:🍯 ice_cream:🍨 chocolate:🍫 pie:🥧 hot_dog:🌭 noodles:🍜 pancake:🥞 popcorn:🍿 lollipop:🍭 watermelon:🍉"],
+ ["body","Body & teeth (Science 4.5)","tooth:🦷 toothbrush:🪥 soap:🧼 hand:✋ heart:❤️ germs:🦠 eye:👁️ ear:👂 mouth:👄 foot:🦶 leg:🦵 arm:💪 tongue:👅"],
+ ["home","At home (Movers)","chair:🪑 door:🚪 sofa:🛋️ bath:🛁 mirror:🪞 spoon:🥄 ball:🏐 football:⚽ teddy_bear:🧸 drum:🥁 guitar:🎸 piano:🎹 robot:🤖 balloon:🎈 present:🎁 candle:🕯️ broom:🧹 bucket:🪣 basket:🧺 camera:📷 television:📺 radio:📻 lamp:🪔 window:🪟"],
+ ["nature","Weather & nature (Movers)","star:⭐ moon:🌙 cloud:☁️ rain:🌧️ snow:❄️ rainbow:🌈 wind:🌬️ tree:🌳 flower:🌸 leaf:🍃 mushroom:🍄 cactus:🌵 rock:🪨 fire:🔥 sea:🌊 volcano:🌋 sunflower:🌻"],
+ ["transport","Transport (Movers)","car:🚗 boat:⛵ ship:🚢 train:🚆 helicopter:🚁 truck:🚚 taxi:🚕 tractor:🚜 rocket:🚀 motorbike:🏍️ scooter:🛴 ambulance:🚑"],
+ ["actions","Actions & sports (Movers)","swim:🏊 run:🏃 read:📖 write:✍️ sleep:😴 cry:😢 laugh:😂 climb:🧗 surf:🏄 ski:⛷️ skate:⛸️ tennis:🎾 basketball:🏀 baseball:⚾"],
+ ["colours","Colours & numbers","red:🔴 blue:🔵 green:🟢 yellow:🟡 purple:🟣 brown:🟤 black:⚫ white:⚪ one:1️⃣ two:2️⃣ three:3️⃣ four:4️⃣ six:6️⃣ seven:7️⃣ eight:8️⃣"],
+ ["fantasy","Story friends","king:🤴 queen:👸 ghost:👻 alien:👽 clown:🤡 wizard:🧙 fairy:🧚 dragon:🐉 unicorn:🦄 dinosaur:🦕"],
+ ["days","Days of the week (ESL W2)","Monday Tuesday Wednesday Thursday Friday Saturday Sunday"],
+ ["tricky","Tricky words (Jolly Phonics)","the he she me we be was to do are all you your come some said here there they go no so my by only old like have live give little down what when why where who which any many more before other were because want saw put could should would right goes does made their once upon always also of love cover after every mother father"]
+];
+/* ---- Week 11 (26–30/10/2026): 109 words · ESL + Science only ---- */
+const W11=[
+ ["w11birds","W11 · Birds (ESL Unit 3)","bird:🐦 parrot:🦜 penguin:🐧 ostrich:@ostrich hummingbird:@hummingbird duck:🦆 eagle:🦅 falcon:@falcon feathers:🪶 wings beak egg:🥚 nest:🪺"],
+ ["w11can","W11 · Can and can't (ESL Unit 3)","fly swim:🏊 run:🏃 walk:🚶 talk:🗣️ hop jump clap:👏 wiggle nod tap flap can can't"],
+ ["w11glue","W11 · Joining words","and or but because"],
+ ["w11qu","W11 · Phonics qu","quill quip quit quick quiz quid quack quiff quilt quest squish quench queen:👸"],
+ ["w11tricky","W11 · Tricky words","said one into they have there"],
+ ["w11oy","W11 · EFL spelling oy","boy:👦 annoyed voyage oyster:🦪 destroy joy loyal toys:🪀 enjoy"],
+ ["w11ear","W11 · EFL spelling ear + red words","year beard:🧔 hear clear woman:👩 English another other again"],
+ ["w11time","W11 · EFL time words","first next then after before when suddenly finally lastly later"],
+ ["w11sci","W11 · Science 2.3 Changing speed","speed fast faster slow slower push pull blow force gentle strong brakes pedals bike:🚲 car:🚗 wheels:🛞 ramp track ball:🏐 pins bowling:🎳 stopwatch:⏱️ seconds minutes hours cubes distance farther turn direction friction"]
+];
+const W11_HARD=new Set("quench squish annoyed voyage destroy another again woman English suddenly finally lastly minutes seconds distance direction friction stopwatch".split(" "));
+/* Glue word: sentences from the school's W11 ESL + phonics + science materials */
+const GLUE=[
+ ["A parrot can talk ___ fly.","and"],["A penguin can swim ___ walk.","and"],["A duck can swim ___ fly.","and"],["A falcon can fly ___ run.","and"],
+ ["An ostrich can run ___ lay eggs.","and"],["I like to run ___ jump.","and"],["I can hop ___ clap.","and"],
+ ["A hummingbird can't swim ___ walk.","or"],["Can an eagle swim ___ fly?","or"],["I don't like eggs ___ carrots.","or"],["A penguin can't fly ___ talk.","or"],
+ ["I can swim, ___ I can't fly.","but"],["An ostrich can run, ___ it can't fly.","but"],["A penguin can swim, ___ it can't fly.","but"],
+ ["She likes eggs, ___ she doesn't like apples.","but"],["A duck can swim, ___ a hummingbird can't.","but"],
+ ["My cat is sad ___ her mat is wet.","because"],["He is wet ___ he got into my tub.","because"],
+ ["The car goes fast ___ I push it hard.","because"],["The bike slows down ___ I use the brakes.","because"]];
+const NEAR={cat:["cot","cut"],dog:["dig","dug"],pig:["peg","pug"],bed:["bad","bud"],sun:["sat","sit"],hat:["hot","hut"],cup:["cap","cop"],ten:["tin","tan"],
+  fox:["fix","fax"],bug:["bag","big"],net:["nut","not"],bus:["bat","bit"],map:["mop","mat"],hen:["hin","hun"],bat:["bet","but"],box:["bix","bux"],jam:["jim","jem"],
+  fan:["fin","fun"],web:["wib","wab"],van:["vin","von"],cake:["cat","cap"],bike:["bit","big"],kite:["kit","cut"],bone:["bun","bin"],cube:["cub","cup"],five:["fin","fan"],
+  nose:["not","net"],rose:["rod","rot"],nine:["nin","net"],cone:["con","can"],lake:["lack","lick"],tube:["tub","tab"],
+  boy:["bay","buy"],toys:["tays","tois"],year:["yeer","yer"],hear:["here","her"],said:["sed","sayd"],quick:["kwick","quik"],quiz:["kwiz","quis"],
+  fast:["fist","feast"],slow:["slew","sloe"],push:["posh","bush"],pull:["pill","poll"],speed:["sped","spend"],ramp:["romp","lamp"],can:["cane","con"]};
+const ALL=(()=>{const out=[],seen=new Map();
+  const add=(cat,tok,w11)=>{ const i=tok.indexOf(":"); const w=(i<0?tok:tok.slice(0,i)).replace(/_/g," "); const pic=i<0?null:tok.slice(i+1);
+    const k=w.toLowerCase(); const n=w.replace(/ /g,"").length;
+    if(seen.has(k)){ const x=seen.get(k); if(w11){ x.w11=true; if(!x.pic&&pic) x.pic=pic; } return; }
+    let tier;
+    if(w11) tier=W11_HARD.has(w)?5:(pic||n<=5)?3:4;
+    else if(!pic) tier=n<=3?3:n<=5?4:5; else if(w.includes(" ")) tier=4; else tier=n<=4?1:n<=6?2:n<=8?3:4;
+    const x={w,pic,cat,tier,letters:w.replace(/ /g,"").toLowerCase(),w11:!!w11}; seen.set(k,x); out.push(x); };
+  BANK.forEach(([cat,,str])=>str.split(/\s+/).filter(Boolean).forEach(t=>add(cat,t,false)));
+  W11.forEach(([cat,,str])=>str.split(/\s+/).filter(Boolean).forEach(t=>add(cat,t,true)));
+  return out})();
+const W11_COUNT=ALL.filter(x=>x.w11).length;
+const picHtml=(p,cls)=>p&&p[0]==="@"?`<img class="pimg ${cls||""}" src="img/bird_${p.slice(1)}.webp" alt="">`:(p||"");
+const plainWord=x=>/^[a-z]+$/.test(x.letters);
+
+/* =========== worlds & levels =========== */
+const WORLDS=[
+ {key:"garden",name:"Garden",emoji:"🌼",page:"#A9DB8C",page2:"#E6F6D6",slab:"#5E9C3E",foods:["#E5483B","#8A4FD8","#F08A24","#3FAE4A","#E86AA0","#2F7FE0"]},
+ {key:"farm",  name:"Farm",  emoji:"🌾",page:"#F2CF73",page2:"#FFF3CF",slab:"#B98A2E",foods:["#A0662E","#E0B020","#F08A24","#E5483B","#F27B00","#C9A03A"]},
+ {key:"city",  name:"City",  emoji:"🏙️",page:"#B8D4EC",page2:"#EAF3FB",slab:"#7C8796",foods:["#E5483B","#8A4FD8","#F08A24","#3FAE4A","#E86AA0","#2F7FE0"]},
+ {key:"ocean", name:"Ocean", emoji:"🌊",page:"#7FD3E6",page2:"#E4F8FC",slab:"#C9A86A",foods:["#E98AAE","#8A5FD0","#F59A4A","#3F9E57","#D98AB5","#3D8FE0"]},
+ {key:"space", name:"Space", emoji:"🪐",page:"#4A3D8F",page2:"#8D7FD6",slab:"#5B4A9E",foods:["#E5483B","#8A4FD8","#F08A24","#3FAE4A","#E86AA0","#2F7FE0"]}];
+/* modes: pic = picture→word · listen = audio only · missing = b_ne · spell = eat letters in order · glue = joining word in a sentence */
+const LEVELS=[null,
+ {world:0,tier:1,mode:"pic",foods:3},
+ {world:0,tier:2,mode:"listen",foods:3},
+ {world:1,tier:2,mode:"missing",foods:4},
+ {world:1,tier:2,mode:"spell",foods:4,spellMax:4},
+ {world:2,tier:3,mode:"pic",foods:4},
+ {world:2,tier:3,mode:"glue",foods:3},
+ {world:3,tier:4,mode:"missing",foods:4},
+ {world:3,tier:4,mode:"spell",foods:4,spellMax:6},
+ {world:4,tier:5,mode:"glue",foods:4},
+ {world:4,tier:5,mode:"spell",foods:5,spellMax:11}];
+/* one mode per level (5 right answers), announced on screen and by voice; every boss = listen */
+const MODE_INFO={pic:{icon:"👀",txt:"Look at the picture",say:"Look at the picture and find the word!"},
+ listen:{icon:"👂",txt:"Listen",say:"Listen and find the word!"},
+ missing:{icon:"🔤",txt:"Missing letter",say:"Find the missing letter!"},
+ spell:{icon:"✏️",txt:"Spell it",say:"Spell the word, letter by letter!"},
+ glue:{icon:"🧩",txt:"Glue word",say:"Find the glue word: and, or, but!"}};
+function modeOf(){ return G.boss?"listen":lv().mode; }
+function announceMode(delay){ const m=MODE_INFO[modeOf()]; setTimeout(()=>{ if(G&&G.ready&&!G.over) say(G.boss?"Boss time! Listen carefully.":m.say); },delay||650); }
+const PER_LEVEL=5, BOSS_NEED=4, LIVES=5;
+
+/* ---------------- state & storage ---------------- */
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let cfg=Object.assign({speed:"slow",world:0},LS.get("snake.cfg",{}));
+let best=LS.get("snake.best2",{score:0,level:1});
+let prog=Object.assign({unlocked:0},LS.get("wm.prog",{}));
+let M=LS.get("wm.mastery",{});
+/* Inside Word Wizard (Vercel /muncher/): share Magic Gems 💎 with Word Wizard */
+const WW=/\/muncher(\/|\/index\.html)?$/.test(location.pathname), GEM_CAP=10;
+function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function gemsToday(){ const g=LS.get("wm.gems",{d:"",n:0}); return g.d===today()?g.n:0; }
+function wwGems(){ try{ return parseInt(localStorage.getItem("word_wizard_stars"),10)||0; }catch(e){ return 0; } }
+function gem(n,why){ if(!WW||!G||G.test) return; const used=gemsToday(), add=Math.min(n,GEM_CAP-used); if(add<=0){ G.gemCapped=true; return; }
+  try{ localStorage.setItem("word_wizard_stars",String(wwGems()+add)); }catch(e){ return; }
+  LS.set("wm.gems",{d:today(),n:used+add}); G.gems=(G.gems||0)+add; setTimeout(()=>toast(`+${add} 💎 ${why}`,"good"),900); }
+let screen="menu", G=null, TEST=false, testLevel=1; /* TEST = parent test mode (this session only, nothing saved) */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const SPEED={slow:330,mid:260,fast:200};
+const COLS=12, ROWS=14, BFLY_LEN=12;
+
+let games=LS.get("snake.games",[]), db=null, dbOk=false;
+function mergeMastery(remote){ if(!remote) return; Object.entries(remote).forEach(([w,r])=>{ const l=M[w]; if(!l||((r.ok||0)+(r.bad||0))>((l.ok||0)+(l.bad||0))) M[w]=r; }); LS.set("wm.mastery",M); }
+async function initDb(){ try{ if(!window.claude||!window.claude.use) return; db=await window.claude.use("db"); if(!db) return;
+  db.collection("games").orderBy("ts","asc").onSnapshot(snap=>{ const remote=snap.docs.map(d=>d.data()); const ids=new Set(remote.map(g=>g.id));
+    const localOnly=games.filter(g=>!ids.has(g.id)); games=remote.concat(localOnly).sort((a,b)=>a.ts-b.ts); LS.set("snake.games",games); dbOk=true;
+    localOnly.forEach(g=>db.collection("games").doc(g.id).set(g).catch(()=>{}));
+    games.forEach(g=>{ if(g.score>(best.score||0)) best.score=g.score; if(g.level>(best.level||1)) best.level=g.level; }); LS.set("snake.best2",best);
+    if(screen==="menu") render(); }, ()=>{ db=null; });
+  try{ const s=await db.collection("mastery").doc("minh").get(); if(s.exists) mergeMastery((s.data()||{}).words); }catch(e){}
+  try{ const s=await db.collection("progress").doc("minh").get(); if(s.exists){ const r=s.data()||{}; if((r.unlocked||0)>prog.unlocked){ prog.unlocked=r.unlocked; LS.set("wm.prog",prog); } } }catch(e){}
+  if(screen==="menu") render();
+  }catch(e){ db=null; } }
+async function saveGame(){
+  if(!G||G.saved||!G.startedAt||G.test) return; G.saved=true;
+  const rec={id:"g"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), ts:Date.now(), v:3, score:G.score, level:G.level, world:WORLDS[LEVELS[G.level].world].name,
+    length:G.snake.length, durSec:Math.round((Date.now()-G.startedAt)/1000), eaten:G.eaten.map(x=>x.w), butterflies:G.bflies||0, won:!!G.won,
+    modes:G.modeStats, wrong:G.wrong.map(w=>({t:w.target.glue?w.target.glue.replace("___",w.target.w):w.target.w,got:w.got,m:w.mode}))};
+  games.push(rec); LS.set("snake.games",games); LS.set("wm.mastery",M); LS.set("wm.prog",prog);
+  if(db){ try{ await db.collection("games").doc(rec.id).set(rec); G.savedServer=true; }catch(e){ G.savedServer=false; }
+    db.collection("mastery").doc("minh").set({words:M,ts:Date.now()}).catch(()=>{});
+    db.collection("progress").doc("minh").set({unlocked:prog.unlocked,ts:Date.now()}).catch(()=>{}); }
+  if(screen==="result") render();
+}
+/* learning engine: weak words come back more, mastered words rarely, Week 11 words a little more often */
+function mastered(w){ const r=M[w]; return !!r && r.ok>=3 && r.ok-(r.bad||0)>=3; }
+function weak(w){ const r=M[w]; return !!r && (r.bad||0)>0 && (r.bad||0)>=(r.ok||0)-1; }
+function markWord(w,ok){ if(G&&G.test) return; const r=M[w]||(M[w]={ok:0,bad:0}); if(ok) r.ok++; else r.bad++; r.ts=Date.now(); }
+function wordWeight(x){ let v; if(G&&G.sessionMiss[x.w]) v=6; else if(weak(x.w)) v=4; else if(mastered(x.w)) v=0.25; else if(!M[x.w]) v=1.6; else v=1; return x.w11?v*1.6:v; }
+function pickWeighted(arr){ let s=0; const ws=arr.map(x=>{const v=wordWeight(x); s+=v; return v}); let r=Math.random()*s; for(let i=0;i<arr.length;i++){ r-=ws[i]; if(r<=0) return arr[i]; } return arr[arr.length-1]; }
+
+/* ---------------- voice ---------------- */
+let voices=[];
+const BAD_VOICE=/compact|espeak|eloquence|fred|albert|zarvox|bad news|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|whisper|wobble|grandma|grandpa|rocko|shelley|sandy|flo\b|eddy|reed|junior|ralph|kathy|good news|hysterical/i;
+function voiceScore(v){let s=0;const n=v.name+" "+(v.voiceURI||"");
+  if(/natural|neural|premium|enhanced|online|cao cấp|nâng cao/i.test(n))s+=50; if(/google/i.test(n))s+=30; if(/siri/i.test(n))s+=25;
+  if(/en[-_]US/i.test(v.lang))s+=10; else if(/en[-_]GB/i.test(v.lang))s+=6;
+  if(/aria|jenny|ava|samantha|zoe|allison|emma|sonia|libby|michelle/i.test(n))s+=8; if(BAD_VOICE.test(n))s-=60;
+  if(/samantha/i.test(n)&&/en[-_]US/i.test(v.lang))s+=200; /* default voice: Samantha (US) */
+  return s}
+function loadVoices(){try{voices=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a))}catch(e){voices=[]}
+  if(voices.length&&!cfg.vSam){ if(/samantha/i.test(voices[0].name)) cfg.voice=""; cfg.vSam=1; LS.set("snake.cfg",cfg); } }
+try{loadVoices();speechSynthesis.onvoiceschanged=()=>{loadVoices(); const vs=document.getElementById("voicesel"); if(vs) vs.innerHTML=voiceOptions();}}catch(e){}
+let _utt=null, speechOn=true, _resumeT=null;
+function curVoice(){ if(!voices.length) loadVoices(); return (cfg.voice&&voices.find(v=>v.voiceURI===cfg.voice||v.name===cfg.voice))||voices[0]||null; }
+function voiceOptions(){ if(!voices.length) loadVoices(); if(!voices.length) return '<option value="">Default voice</option>';
+  const cur=curVoice(); return voices.map(v=>`<option value="${esc(v.voiceURI||v.name)}" ${cur===v?"selected":""}>${voiceScore(v)>=40?"★ ":""}${esc(v.name)} (${esc(v.lang)})</option>`).join(""); }
+function say(t){ if(!speechOn) return; try{ const ss=window.speechSynthesis; if(!ss) return;
+  const go=()=>{ const u=new SpeechSynthesisUtterance(/[.!?]$/.test(t)?t:t+"."); const v=curVoice();
+    if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US"; u.rate=0.9; u.pitch=1; u.volume=1; _utt=u;
+    const done=()=>{ clearTimeout(_resumeT); _resumeT=setTimeout(()=>{ if(ac&&ac.state==="suspended"&&!ss.speaking) ac.resume(); },150); };
+    u.onend=done; u.onerror=done; clearTimeout(_resumeT); _resumeT=setTimeout(done,5000);
+    try{ if(ac&&ac.state==="running") ac.suspend(); }catch(e){}
+    ss.speak(u); };
+  if(ss.speaking||ss.pending){ ss.cancel(); setTimeout(go,120); } else go();
+ }catch(e){} }
+function sayAfterSfx(t){ setTimeout(()=>say(t), cfg.sfx===false?0:380); }
+function promptSpeech(t,mode){ return mode==="glue"&&t.glue ? t.glue.replace("___","...") : t.w; }
+function fullSpeech(t){ return t.glue ? t.glue.replace("___",t.w) : t.w; }
+let _unlocked=false;
+function unlockAudio(){ actx(); if(_unlocked) return; _unlocked=true;
+  try{ const a=ac; if(a){ const b=a.createBuffer(1,1,22050), src=a.createBufferSource(); src.buffer=b; src.connect(a.destination); src.start(0);} }catch(e){}
+  try{ loadVoices(); const u=new SpeechSynthesisUtterance(" "); u.volume=0; u.lang="en-US"; speechSynthesis.speak(u); }catch(e){} }
+/* ---------------- sound ---------------- */
+let ac=null;function actx(){if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(ac&&ac.state==="suspended")ac.resume();return ac}
+function tone(f,d,v,type){if(cfg.sfx===false)return; try{if(window.speechSynthesis&&speechSynthesis.speaking)return}catch(e){} const a=actx();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||"sine";o.frequency.value=f;g.gain.setValueAtTime(v,a.currentTime);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}
+const sfx={good(){tone(660,.12,.12,"triangle");setTimeout(()=>tone(990,.18,.12,"triangle"),90)},bad(){tone(200,.3,.12,"sawtooth")},crash(){tone(140,.4,.14,"square")}};
+
+/* =================== GAME LOGIC =================== */
+function lv(){ return LEVELS[G.level]; }
+function curWorld(){ return G?lv().world:Math.min(cfg.world||0,prog.unlocked); }
+function baseTick(){ if(G.level===1) return SPEED[cfg.speed]+120; if(G.level===2) return SPEED[cfg.speed]+70; return Math.max(150, SPEED[cfg.speed]-(G.level-1)*14); } /* Garden = practice garden: slower */
+
+function newGame(startWorld,startLevel){
+  unlockAudio();
+  const w=TEST&&startLevel?LEVELS[startLevel].world:Math.min(startWorld??cfg.world??0, TEST?4:prog.unlocked);
+  const mid={x:Math.floor(COLS/2),y:Math.floor(ROWS/2)};
+  const snake=[{x:mid.x,y:mid.y},{x:mid.x-1,y:mid.y},{x:mid.x-2,y:mid.y}];
+  G={snake,prev:snake.map(s=>({...s})),dir:{x:1,y:0},q:[],foods:[],target:null,score:0,lives:LIVES,streak:0,eaten:[],wrong:[],recent:[],glueRecent:[],
+     level:TEST&&startLevel?startLevel:w*2+1,test:TEST,inLevel:0,boss:null,mode:"pic",paused:false,over:false,timer:null,ready:true,bflies:0,sessionMiss:{},modeStats:{},lastStep:0,newWorlds:[]};
+  G.tick=baseTick(); screen="game"; render(); newRound(); G.ready=true;
+  showOverlay(`${WORLDS[w].emoji} ${WORLDS[w].name} · Level ${G.level}`,"Tap or press any key to start",{img:heroImg(w,5),mode:true}); announceMode(400);
+}
+function pickMode(){
+  return modeOf();
+}
+function pickTarget(mode){
+  const L=lv();
+  if(mode==="glue"){ let idx=GLUE.map((g,i)=>i).filter(i=>!G.glueRecent.includes(i)); const missed=idx.filter(i=>G.sessionMiss["glue"+i]); if(missed.length&&Math.random()<0.6) idx=missed;
+    const i=idx[Math.floor(Math.random()*idx.length)]; G.glueRecent.push(i); if(G.glueRecent.length>8) G.glueRecent.shift();
+    const [s,a]=GLUE[i]; return {w:a,glue:s,gi:i,pic:null,cat:"w11glue",tier:3,letters:a,w11:true}; }
+  let cand=ALL.filter(x=>x.tier<=L.tier);
+  if(mode==="pic") cand=cand.filter(x=>x.pic);
+  if(mode==="spell") cand=cand.filter(x=>plainWord(x)&&x.letters.length>=3&&x.letters.length<=(L.spellMax||4));
+  if(mode==="missing") cand=cand.filter(x=>plainWord(x)&&x.letters.length>=3&&x.letters.length<=8);
+  const top=cand.filter(x=>x.tier>=L.tier-(L.tier>=3?1:0)); if(top.length>=6&&Math.random()<0.7) cand=top;
+  const fresh=cand.filter(x=>!G.recent.includes(x.w)); if(fresh.length) cand=fresh;
+  const t=pickWeighted(cand); G.recent.push(t.w); if(G.recent.length>10) G.recent.shift(); return t;
+}
+function wordDistractors(t,n){
+  const L=lv(); let ds=[]; if(L.tier>=2&&NEAR[t.w]) ds=shuffle(NEAR[t.w]).slice(0,L.tier>=3?2:1);
+  let others=ALL.filter(x=>x.w!==t.w&&!(t.pic&&x.pic===t.pic)&&x.tier<=Math.max(L.tier,2)&&!ds.includes(x.w)&&x.letters.length<=13);
+  if(L.tier<=1) others=shuffle(others.filter(x=>x.w[0].toLowerCase()!==t.w[0].toLowerCase()));
+  else others.sort((a,b)=>(Math.abs(a.letters.length-t.letters.length)-(a.cat===t.cat?2:0)+Math.random()*3)-(Math.abs(b.letters.length-t.letters.length)-(b.cat===t.cat?2:0)+Math.random()*3));
+  return [...new Set(ds.concat(others.map(x=>x.w)))].slice(0,n);
+}
+const VOW="aeiou", CONS="bcdfghjklmnprstvwy";
+function letterDistractors(exclude,n,like){
+  const pool=(like&&VOW.includes(like)?VOW:CONS).split("").filter(c=>!exclude.includes(c)); return shuffle(pool).slice(0,n);
+}
+function newRound(){
+  const mode=pickMode(); const t=pickTarget(mode); G.target=t; G.mode=mode; G.spellIdx=0; G.saidT=null; G.missLen=1;
+  clearFoods();
+  let items=[];
+  if(mode==="spell"){
+    items=t.letters.split("").map((c,i)=>({w:c,letter:true,idx:i}));
+    letterDistractors(t.letters,G.level>=7?3:2).forEach(c=>items.push({w:c,letter:true,idx:-1}));
+  } else if(mode==="missing"){
+    const L=t.letters, qi=L.indexOf("qu");
+    if(qi>=0&&Math.random()<0.6){ G.missIdx=qi; G.missLen=2; G.missCh="qu";
+      items=[{w:"qu",letter:true,correct:true}].concat(shuffle(["kw","cw","ku","qw"]).slice(0,lv().foods-1).map(c=>({w:c,letter:true})));
+    } else {
+      let pos=[...L].map((c,i)=>VOW.includes(c)?i:-1).filter(i=>i>=0&&!(i>0&&L[i-1]==="q")); if(!pos.length) pos=[1];
+      const k=pos[Math.floor(Math.random()*pos.length)]; G.missIdx=k; G.missCh=L[k];
+      items=[{w:L[k],letter:true,correct:true}].concat(letterDistractors(L[k],lv().foods-1,L[k]).map(c=>({w:c,letter:true})));
+    }
+  } else if(mode==="glue"){
+    const opts=["and","or","but"]; if(G.level>=7||t.w==="because") opts.push("because");
+    items=opts.map(w=>({w,correct:w===t.w}));
+  } else {
+    items=[{w:t.w,correct:true}].concat(wordDistractors(t,lv().foods-1).map(w=>({w})));
+  }
+  items=shuffle(items); G.foods=[];
+  items.forEach((f,i)=>{ f.icon=i%6; f.span=f.letter?1:spanFor(f.w); f.born=performance.now(); if(placeFood(f)) G.foods.push(f); });
+  if(mode==="spell"){ const need=t.letters.length; if(G.foods.filter(f=>f.idx>=0).length<need) return newRound(); }
+  else if(!G.foods.some(f=>f.correct)) return newRound();
+  G.modeStats[mode]=G.modeStats[mode]||{ok:0,bad:0};
+  updateHud();
+  if(mode!=="pic") setTimeout(()=>{ if(G&&!G.ready&&G.target===t&&G.saidT!==t){ G.saidT=t; say(promptSpeech(t,mode));} },300);
+}
+function occupied(x,y,pad){ return G.snake.some(s=>s.x===x&&s.y===y)||G.foods.some(f=>y>=f.y-pad&&y<=f.y+pad&&x>=f.x-pad&&x<f.x+f.span+pad); }
+function placeFood(f){
+  const h=G.snake[0];
+  for(let tries=0;tries<500;tries++){
+    const y=Math.floor(Math.random()*ROWS), x=Math.floor(Math.random()*(COLS-f.span+1)); let ok=true;
+    const d=G.dir||{x:1,y:0};
+    for(let i=0;i<f.span;i++){ const cx=x+i, rx=cx-h.x, ry=y-h.y; const ahead=(d.x&&ry===0&&rx*d.x>0&&rx*d.x<=6)||(d.y&&rx===0&&ry*d.y>0&&ry*d.y<=6);
+      if(occupied(cx,y,tries<300?1:0)||(Math.abs(rx)+Math.abs(ry))<4||(tries<400&&ahead)){ok=false;break} }
+    if(ok&&!f.letter&&G.foods.some(o=>!o.letter&&o.y===y)) ok=false;
+    if(ok){ f.x=x; f.y=y; return true; }
+  }
+  return false;
+}
+function start(){ if(!G||G.over)return; unlockAudio(); const wasReady=G.ready; if(!G.startedAt) G.startedAt=Date.now(); hideOverlay(); G.ready=false; G.paused=false;
+  if(wasReady&&G.mode!=="pic"&&G.saidT!==G.target){ G.saidT=G.target; say(promptSpeech(G.target,G.mode)); }
+  clearInterval(G.timer); G.lastStep=performance.now(); G.timer=setInterval(step,G.tick); }
+function pause(){ if(!G||G.over||G.ready)return; if(G.paused){ start(); } else { G.paused=true; clearInterval(G.timer); showOverlay("Paused","Tap to keep playing"); } }
+function turn(dx,dy){
+  if(!G||G.over)return; if(G.ready||G.paused){ start(); }
+  const last=G.q.length?G.q[G.q.length-1]:G.dir; if(last.x===-dx&&last.y===-dy) return; if(last.x===dx&&last.y===dy) return;
+  if(G.q.length<3) G.q.push({x:dx,y:dy});
+}
+function step(){
+  if(G.q.length) G.dir=G.q.shift();
+  G.prev=G.snake.map(s=>({...s})); G.lastStep=performance.now();
+  const h=G.snake[0]; const nx=h.x+G.dir.x, ny=h.y+G.dir.y;
+  if(nx<0||ny<0||nx>=COLS||ny>=ROWS){ G.prev=G.snake.map(s=>({...s})); if(curWorld()===0) return bump(); return crash("Ouch! The fence!"); }
+  const bi=G.snake.slice(0,-1).findIndex(s=>s.x===nx&&s.y===ny);
+  if(bi>=0){ const cut=G.snake.splice(Math.max(bi,3)); cut.forEach(c=>fxAt("🍃",c.x,c.y,"fall")); G.prev=G.prev.slice(0,G.snake.length);
+    G.streak=0; tone(520,.08,.1,"triangle"); toast("Snip! ✂️ Your tail fell off","bad");
+    if(G.snake.some(s=>s.x===nx&&s.y===ny)) return crash("Oops! You bit yourself!"); }
+  G.snake.unshift({x:nx,y:ny});
+  const f=G.foods.find(f=>f.y===ny&&nx>=f.x&&nx<f.x+f.span);
+  if(!f){ G.snake.pop(); updateHud(); return; }
+  if(G.mode==="spell") return eatLetter(f);
+  if(f.correct) return eatRight(false,f);
+  eatWrong(f);
+}
+function shrink(n){ for(let i=0;i<n&&G.snake.length>3;i++){ G.snake.pop(); } }
+function eatLetter(f){
+  const t=G.target, need=t.letters[G.spellIdx];
+  if(f.w===need){ burst(f.x,f.y,f); removeFood(f); G.spellIdx++; G.chomp=performance.now(); G.score+=3; tone(700+G.spellIdx*60,.08,.1,"triangle");
+    if(G.spellIdx>=t.letters.length){ return eatRight(true); }
+    updateHud(); return; }
+  G.snake.pop(); removeFood(f);
+  loseLife(`Not “${f.w}”`, f.w, `Spell ${t.w}. Next letter: ${need}.`);
+  if(!G.foods.some(x=>x.idx>=G.spellIdx&&x.w===need)) newRound();
+}
+function eatRight(spelled,f){
+  const t=G.target; G.chomp=performance.now(); G.streak++;
+  const pts=(G.boss?15:G.mode==="missing"||G.mode==="glue"?12:10)+Math.min(G.streak-1,5)*2; G.score+=pts; G.eaten.push(t); markWord(t.glue?"glue"+t.gi:t.w,true); G.modeStats[G.mode].ok++;
+  if(f) burst(f.x,f.y,f);
+  sfx.good(); sayAfterSfx(fullSpeech(t)); toast(`+${pts} · ${t.w}${G.streak>=3?` · streak ${G.streak}🔥`:""}`,"good");
+  const h=G.snake[0]; fxAt("⭐",h.x,h.y,"rise");
+  if(G.snake.length>=BFLY_LEN){ G.bflies++; G.score+=30; G.snake=G.snake.slice(0,4); G.prev=G.snake.map(s=>({...s}));
+    fxAt("🦋",h.x,h.y,"fly"); confetti(30); setTimeout(()=>toast("🦋 Butterfly! +30","good"),500); }
+  if(G.boss){ G.boss.got++; if(G.boss.got>=BOSS_NEED) return bossCleared(); clearFoods(); newRound(); return; }
+  G.inLevel++;
+  if(G.inLevel>=PER_LEVEL){ G.inLevel=0; gem(1,"Level cleared!");
+    if(G.level%2===0){ return startBoss(); }
+    return levelUp(); }
+  clearFoods(); newRound();
+}
+function eatWrong(f){
+  G.snake.pop(); shrink(1); removeFood(f);
+  const t=G.target; G.sessionMiss[t.glue?"glue"+t.gi:t.w]=1;
+  loseLife(`Not quite: “${f.w}”`, f.w, G.mode==="glue"?`Not ${f.w}. Listen: ${t.glue.replace("___","...")}`:`That is ${f.w}.`+(G.mode!=="pic"?` Find ${G.mode==="missing"?"the missing letter":t.w}.`:""));
+  if(G.over) return;
+  if(G.foods.filter(x=>!x.correct).length<1) { clearFoods(); newRound(); }
+}
+function loseLife(msg,got,speech){
+  const t=G.target; G.streak=0; G.lives--; markWord(t.glue?"glue"+t.gi:t.w,false); G.wrong.push({target:t,got,mode:G.mode}); G.modeStats[G.mode].bad++; sfx.bad(); sayAfterSfx(speech);
+  toast(`${msg} · ${G.lives} ❤️ left`,"bad"); R.shake=0.6; G.hurt=performance.now();
+  if(G.lives<=0) return gameOver();
+  updateHud();
+}
+function bump(){ /* Garden only: the fence just stops the caterpillar, no heart lost */
+  clearInterval(G.timer); G.ready=true; G.q=[]; G.hurt=performance.now()-400; R.shake=0.3; tone(300,.12,.1,"triangle");
+  toast("Bump! Turn another way 🙂",""); }
+function crash(msg){
+  sfx.crash(); G.lives--; G.streak=0; clearInterval(G.timer); R.shake=1; G.hurt=performance.now();
+  if(G.lives<=0){ updateHud(); return gameOver(); }
+  const len=Math.max(3,G.snake.length), y=Math.floor(ROWS/2); G.snake=[]; for(let i=0;i<len;i++) G.snake.push({x:Math.max(0,Math.min(COLS-1,Math.floor(COLS/2)-i)),y});
+  G.prev=G.snake.map(s=>({...s})); G.dir={x:1,y:0}; G.q=[];
+  const keep=G.foods.slice(); G.foods=[]; keep.forEach(f=>{ if(placeFood(f)) G.foods.push(f); });
+  const need=G.mode==="spell"?G.target.letters[G.spellIdx]:null;
+  if(G.mode==="spell"? !G.foods.some(f=>f.w===need) : !G.foods.some(f=>f.correct)){ clearFoods(); newRound(); }
+  updateHud(); G.ready=true; showOverlay(msg, `${G.lives} ❤️ left · tap to continue`,{img:heroImg(curWorld(),2),small:true});
+}
+function levelUp(){
+  G.level++; G.tick=baseTick(); clearInterval(G.timer); G.ready=true;
+  const nw=curWorld();
+  clearFoods(); newRound(); updateHud(); confetti(40);
+  tone(523,.15,.12,"triangle");setTimeout(()=>tone(659,.15,.12,"triangle"),140);setTimeout(()=>tone(784,.3,.12,"triangle"),280);
+  setTimeout(()=>say("Level "+G.level+"!"),650); announceMode(1700);
+  showOverlay(`Level ${G.level}! ${WORLDS[nw].emoji}`, `${WORLDS[nw].name} · tap to continue`,{img:heroImg(nw,1),small:true,mode:true});
+}
+function startBoss(){
+  G.boss={got:0}; clearInterval(G.timer); G.ready=true; clearFoods(); newRound(); updateHud();
+  tone(330,.2,.12,"square");setTimeout(()=>tone(262,.3,.12,"square"),200);
+  setTimeout(()=>say("Boss time! Listen carefully."),600);
+  showOverlay("👾 Boss time!",`Eat ${BOSS_NEED} right words · tap to start`,{mode:true});
+}
+function bossCleared(){
+  const w=curWorld(); G.boss=null; G.score+=50; clearInterval(G.timer);
+  gem(2,"Boss beaten!");
+  if(w>=WORLDS.length-1){ G.won=true; confetti(80); tone(784,.2,.12);setTimeout(()=>tone(1047,.4,.12),180); say("You did it! Super star!"); return gameOver(); }
+  if(!G.test&&prog.unlocked<w+1){ prog.unlocked=w+1; LS.set("wm.prog",prog); G.newWorlds.push(w+1); gem(5,"New world!"); }
+  G.level++; G.tick=baseTick(); G.ready=true; applyWorldTheme(); clearFoods(); newRound(); updateHud();
+  const nw=WORLDS[curWorld()];
+  tone(523,.12,.12,"triangle");setTimeout(()=>tone(784,.12,.12,"triangle"),120);setTimeout(()=>tone(1047,.3,.12,"triangle"),240);
+  setTimeout(()=>say(`Boss cleared! Welcome to the ${nw.name}!`),700); announceMode(3200);
+  showOverlay(`🏆 Boss cleared! +50`, `New world: ${nw.emoji} ${nw.name} · new outfit! · tap to go`,{img:"img/hero_change.webp",spin:true,mode:true});
+}
+function saveBest(){ if(G.test) return; if(G.score>(best.score||0)){best.score=G.score;G.newBest=true} if(G.level>(best.level||1)) best.level=G.level; LS.set("snake.best2",best); }
+function gameOver(){
+  clearInterval(G.timer); G.over=true; saveBest(); saveGame();
+  if(!G.won){ showOverlay("Game over","Out of ❤️ · let's try again!",{img:heroImg(curWorld(),2),small:true}); }
+  setTimeout(()=>{ screen="result"; render(); },G.won?1200:1500);
+}
+const _mc=document.createElement("canvas").getContext("2d");
+function spanFor(w){ _mc.font='700 100px Lexend, "Be Vietnam Pro", sans-serif'; const tw=_mc.measureText(w).width/100*0.48; return Math.max(2,Math.min(7,Math.ceil(0.95+tw+0.3))); }
+
+/* =================== 2.5D RENDERER (canvas) =================== */
+const IMGS={};
+function img(name){ let im=IMGS[name]; if(!im){ im=new Image(); im.decoding="async"; im.src="img/"+name+".webp"; IMGS[name]=im; } return im; }
+const ok=im=>im&&im.complete&&im.naturalWidth>0;
+function heroImg(w,i){ return `img/hero_${WORLDS[w].key}_${i}.webp`; }
+function worldAssets(i){ const k=WORLDS[i].key, a=["bg_"+k,"tile_"+k];
+  for(let j=0;j<6;j++){ a.push(`hero_${k}_${j}`,`food_${k}_${j}`); a.push(`deco_${k}_${j}`); }
+  if(k==="ocean") a.push("hero_garden_3","deco_garden_0"); return a; }
+const UI_ASSETS=["ui_0","ui_1","ui_2","ui_3","ui_6","ui_7","ui_8","ui_9","bird_ostrich","bird_hummingbird","bird_falcon","logo","menu_map"];
+function preload(names){ return Promise.all(names.map(n=>new Promise(r=>{ const im=img(n); if(ok(im)) return r(); im.addEventListener("load",r,{once:true}); im.addEventListener("error",r,{once:true}); }))); }
+const R={cv:null,ctx:null,w:0,h:0,dpr:1,shake:0,fx:[],pat:null,patKey:"",act:[],actWorld:-1};
+function geom(){ const c=Math.floor(Math.min(R.w*0.92/COLS, R.h*0.84/ROWS)); const bw=c*COLS, bh=c*ROWS; return {c,bw,bh,bx:Math.round((R.w-bw)/2),by:Math.round((R.h-bh)/2+R.h*0.015)}; }
+function rr(ctx,x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function drawImgC(ctx,im,cx,cy,w,flip,alpha){ if(!ok(im)) return false; const h=w*im.naturalHeight/im.naturalWidth; ctx.save(); if(alpha!=null) ctx.globalAlpha=alpha; ctx.translate(cx,cy); if(flip) ctx.scale(-1,1); ctx.drawImage(im,-w/2,-h/2,w,h); ctx.restore(); return true; }
+function tilePattern(k,c){ const per={garden:4,farm:4,city:5,ocean:5,space:6}[k]||4, size=Math.max(32,Math.round(c*per*R.dpr)); const key=k+size;
+  if(R.patKey===key&&R.pat) return R.pat; const im=img("tile_"+k); if(!ok(im)) return null;
+  const off=document.createElement("canvas"); off.width=off.height=size; off.getContext("2d").drawImage(im,0,0,size,size);
+  R.pat=R.ctx.createPattern(off,"repeat"); R.pat.scale=1/R.dpr; R.patKey=key; return R.pat; }
+function cellXY(gx,gy,g){ return {x:g.bx+(gx+0.5)*g.c, y:g.by+(gy+0.5)*g.c}; }
+function initActors(wi){ R.actWorld=wi; R.act=[]; const k=WORLDS[wi].key, rnd=Math.random;
+  const cloud={garden:"deco_garden_0",farm:"deco_farm_2",city:"deco_city_2",ocean:"deco_garden_0"}[k];
+  if(cloud) for(let i=0;i<2;i++) R.act.push({img:cloud,kind:"drift",x:rnd(),sp:0.008+rnd()*0.008,s:0.18+rnd()*0.06,band:"top",ph:rnd()*9});
+  if(k==="garden"){ R.act.push({img:"deco_garden_1",kind:"flit",s:0.075,ph:rnd()*9},{img:"deco_garden_2",kind:"flit",s:0.07,ph:rnd()*9+3}); }
+  if(k==="farm"){ R.act.push({img:"deco_farm_5",kind:"fly",sp:0.05,s:0.08,ph:rnd()*9},{img:"deco_farm_1",kind:"walk",sp:0.025,s:0.075,x:rnd()}); }
+  if(k==="city"){ R.act.push({img:"deco_city_0",kind:"walk",sp:0.06,s:0.11,x:rnd()},{img:"deco_city_1",kind:"walk",sp:-0.04,s:0.13,x:rnd()},{img:"deco_city_3",kind:"rise",sp:0.03,s:0.055,x:rnd()}); }
+  if(k==="ocean"){ for(let i=0;i<10;i++) R.act.push({kind:"bubble",x:rnd(),y:rnd(),sp:0.03+rnd()*0.04,s:3+rnd()*6}); R.act.push({img:"deco_ocean_2",kind:"fly",sp:0.045,s:0.08,ph:rnd()*9},{img:"deco_ocean_3",kind:"drift",x:rnd(),sp:0.006,s:0.1,band:"top",ph:2},{img:"deco_ocean_5",kind:"walk",sp:0.018,s:0.08,x:rnd()},{img:"deco_ocean_1",kind:"walk",sp:-0.035,s:0.065,x:rnd()}); }
+  if(k==="space"){ for(let i=0;i<46;i++) R.act.push({kind:"star",x:rnd(),y:rnd(),s:1+rnd()*2.2,ph:rnd()*9}); R.act.push({img:"deco_space_1",kind:"fly",sp:0.09,s:0.08,ph:rnd()*9},{img:"deco_space_4",kind:"fly",sp:-0.035,s:0.09,ph:rnd()*9+4},{img:"deco_space_2",kind:"drift",x:rnd(),sp:0.005,s:0.08,band:"top",ph:5}); }
+}
+function drawActors(ctx,t,g,front){
+  const W=R.w,H=R.h, topBand=g.by, botTop=g.by+g.bh+g.c*0.25, botBand=H-botTop;
+  R.act.forEach(a=>{ const im=a.img?img(a.img):null;
+    if(a.kind==="drift"&&!front){ const x=((a.x+t*a.sp)%1.4)-0.2; const s=Math.min(a.s*W,topBand*1.15); drawImgC(ctx,im,x*W,Math.max(s*0.3,topBand*0.4+Math.sin(t*0.4+a.ph)*3),s,false,0.92); }
+    else if(a.kind==="flit"&&front){ const x=W*(0.5+0.44*Math.sin(t*0.19+a.ph)), vx=Math.cos(t*0.19+a.ph); const y=Math.max(14,topBand*0.5+topBand*0.28*Math.sin(t*1.4+a.ph)); const s=Math.min(a.s*W,topBand*0.9); drawImgC(ctx,im,x,y,s*(0.92+0.08*Math.sin(t*14)),vx<0); }
+    else if(a.kind==="fly"&&front){ const x=((((t*a.sp+a.ph)%1.4)+1.4)%1.4)-0.2; const s=Math.min(a.s*W,topBand*0.8); drawImgC(ctx,im,x*W,topBand*0.45+Math.sin(t*2+a.ph)*4,s,a.sp<0); }
+    else if(a.kind==="walk"&&front&&botBand>16){ let x=a.x+t*a.sp; x=((x%1.4)+1.4)%1.4-0.2; const s=Math.min(a.s*W,botBand*1.25); drawImgC(ctx,im,x*W,botTop+botBand*0.5+Math.abs(Math.sin(t*6))*-2,s,a.sp<0); }
+    else if(a.kind==="rise"&&!front){ const y=1.1-((t*a.sp+a.x)%1.3); const x=a.x<0.5?g.bx*0.5:W-g.bx*0.5; if(g.bx>18) drawImgC(ctx,im,x+Math.sin(t+a.x*9)*4,y*H,Math.min(a.s*W,g.bx*0.8),false); }
+    else if(a.kind==="bubble"&&!front){ const y=1-((a.y+t*a.sp)%1.1); const x=a.x<0.5?a.x*g.bx*1.6:W-(1-a.x)*g.bx*1.6; ctx.save(); ctx.globalAlpha=0.55; ctx.strokeStyle="#fff"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x+Math.sin(t*2+a.x*20)*3,y*H,a.s,0,7); ctx.stroke(); ctx.restore(); }
+    else if(a.kind==="star"&&!front){ ctx.save(); ctx.globalAlpha=0.35+0.65*Math.abs(Math.sin(t*1.5+a.ph)); ctx.fillStyle="#FFF6C8"; ctx.beginPath(); ctx.arc(a.x*W,a.y*H,a.s,0,7); ctx.fill(); ctx.restore(); }
+    else if(a.kind==="comet"&&!front){ const p=((t+a.ph)%9)/2.2; if(p<1){ const x=W*(1.1-p*1.3), y=topBand*(0.2+p*0.7); ctx.save(); const gr=ctx.createLinearGradient(x,y,x+70,y-22); gr.addColorStop(0,"rgba(255,246,200,.95)"); gr.addColorStop(1,"rgba(255,246,200,0)"); ctx.strokeStyle=gr; ctx.lineWidth=3; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+70,y-22); ctx.stroke(); ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(x,y,3.2,0,7); ctx.fill(); ctx.restore(); } }
+  });
+}
+function drawCover(ctx,im,W,H){ const s=Math.max(W/im.naturalWidth,H/im.naturalHeight); const dw=im.naturalWidth*s, dh=im.naturalHeight*s; ctx.drawImage(im,(W-dw)/2,(H-dh)/2,dw,dh); }
+function drawBoard(ctx,g,wi,now){
+  const W=WORLDS[wi], k=W.key, c=g.c, r=c*0.55;
+  ctx.save(); ctx.fillStyle="rgba(42,35,64,.22)"; rr(ctx,g.bx+c*0.12,g.by+c*0.42,g.bw,g.bh,r); ctx.fill(); ctx.restore();
+  ctx.fillStyle=W.slab; rr(ctx,g.bx,g.by+c*0.24,g.bw,g.bh,r); ctx.fill(); ctx.lineWidth=Math.max(2,c*0.07); ctx.strokeStyle="#2A2340"; ctx.stroke();
+  ctx.save(); rr(ctx,g.bx,g.by,g.bw,g.bh,r); ctx.clip();
+  const pat=tilePattern(k,c); if(pat){ ctx.save(); ctx.translate(g.bx,g.by); if(pat.setTransform) pat.setTransform(new DOMMatrix().scale(pat.scale)); ctx.fillStyle=pat; ctx.fillRect(0,0,g.bw,g.bh); ctx.restore(); } else { ctx.fillStyle=W.page; ctx.fillRect(g.bx,g.by,g.bw,g.bh); }
+  ctx.fillStyle=k==="space"?"rgba(255,255,255,.08)":k==="garden"?"rgba(255,255,255,.3)":"rgba(255,255,255,.16)"; ctx.fillRect(g.bx,g.by,g.bw,g.bh);
+  for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){ ctx.fillStyle=(x+y)%2?"rgba(255,255,255,.09)":"rgba(42,35,64,.035)"; ctx.fillRect(g.bx+x*c,g.by+y*c,c,c); }
+  const vg=ctx.createLinearGradient(0,g.by,0,g.by+c*0.6); vg.addColorStop(0,"rgba(42,35,64,.16)"); vg.addColorStop(1,"rgba(42,35,64,0)"); ctx.fillStyle=vg; ctx.fillRect(g.bx,g.by,g.bw,c*0.6);
+  ctx.restore();
+  ctx.lineWidth=Math.max(2.5,c*0.08); ctx.strokeStyle="#2A2340"; rr(ctx,g.bx,g.by,g.bw,g.bh,r); ctx.stroke();
+  ctx.lineWidth=Math.max(1.5,c*0.05); ctx.strokeStyle="rgba(255,255,255,.55)"; rr(ctx,g.bx+c*0.09,g.by+c*0.09,g.bw-c*0.18,g.bh-c*0.18,r*0.8); ctx.stroke();
+}
+function drawFood(ctx,f,g,wi,now){
+  const W=WORLDS[wi], k=W.key, c=g.c, p=cellXY(f.x,f.y,g), age=Math.min(1,(now-(f.born||0))/320), pop=age<1?0.4+0.6*(1-Math.pow(1-age,3))+Math.sin(age*Math.PI)*0.12:1;
+  const bob=Math.sin(now/520+(f.x*3+f.y))*c*0.04, col=W.foods[f.icon%6], icon=img(`food_${k}_${f.icon%6}`);
+  if(f.letter){
+    ctx.save(); ctx.translate(p.x,p.y+bob); ctx.scale(pop,pop);
+    ctx.fillStyle="rgba(42,35,64,.18)"; ctx.beginPath(); ctx.ellipse(0,c*0.38,c*0.36,c*0.12,0,0,7); ctx.fill();
+    if(!drawImgC(ctx,icon,0,-c*0.02,c*1.12)){ ctx.fillStyle=col; ctx.beginPath(); ctx.arc(0,0,c*0.44,0,7); ctx.fill(); }
+    ctx.font=`700 ${f.w.length>1?c*0.5:c*0.66}px Lexend, "Be Vietnam Pro", sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.lineJoin="round"; ctx.lineWidth=c*0.13; ctx.strokeStyle="#2A2340"; ctx.strokeText(f.w,0,c*0.02); ctx.fillStyle="#fff"; ctx.fillText(f.w,0,c*0.02);
+    ctx.restore(); return;
+  }
+  const x0=g.bx+f.x*c+c*0.06, w=f.span*c-c*0.12, h=c*0.8, y0=p.y-h/2+bob;
+  ctx.save(); ctx.translate(x0+w/2,p.y); ctx.scale(pop,pop); ctx.translate(-(x0+w/2),-p.y);
+  ctx.fillStyle="rgba(42,35,64,.18)"; rr(ctx,x0+c*0.06,y0+c*0.2,w,h,h/2); ctx.fill();
+  ctx.fillStyle=col; rr(ctx,x0,y0+c*0.12,w,h,h/2); ctx.fill(); ctx.lineWidth=Math.max(2,c*0.07); ctx.strokeStyle="#2A2340"; ctx.stroke();
+  ctx.fillStyle="#fff"; rr(ctx,x0,y0,w,h,h/2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=col; ctx.globalAlpha=0.18; rr(ctx,x0+c*0.08,y0+c*0.08,w-c*0.16,h*0.38,h*0.2); ctx.fill(); ctx.globalAlpha=1;
+  drawImgC(ctx,icon,x0+c*0.42,y0+h/2-c*0.03,c*0.86);
+  ctx.font=`700 ${c*0.48}px Lexend, "Be Vietnam Pro", sans-serif`; ctx.textAlign="left"; ctx.textBaseline="middle"; ctx.fillStyle="#2A2340"; ctx.fillText(f.w,x0+c*0.9,y0+h/2+c*0.02);
+  ctx.restore();
+}
+function drawSnake(ctx,g,wi,now){
+  const k=WORLDS[wi].key, c=g.c, moving=!(G.ready||G.paused||G.over), t=moving?Math.min(1,(now-G.lastStep)/G.tick):1, e=t*t*(3-2*t)*0.35+t*0.65;
+  const pos=G.snake.map((b,i)=>{ const a=G.prev[i]||b; const pa=cellXY(a.x,a.y,g), pb=cellXY(b.x,b.y,g); return {x:pa.x+(pb.x-pa.x)*e, y:pa.y+(pb.y-pa.y)*e}; });
+  const hurt=G.hurt&&now-G.hurt<700, chompT=G.chomp?now-G.chomp:1e9;
+  const segIm=img(k==="ocean"?"hero_garden_3":`hero_${k}_3`), ringIm=img("hero_ocean_3"), tailIm=img(`hero_${k}_4`);
+  for(let i=pos.length-1;i>=1;i--){ const p=pos[i], bob=moving?Math.sin(now/150-i*0.9)*c*0.04:0;
+    ctx.fillStyle="rgba(42,35,64,.16)"; ctx.beginPath(); ctx.ellipse(p.x,p.y+c*0.3,c*0.36,c*0.11,0,0,7); ctx.fill();
+    if(i===pos.length-1){ const q=pos[i-1]; drawImgC(ctx,tailIm,p.x,p.y-c*0.05+bob,c*0.9,q.x>p.x+0.5); }
+    else { const s=1-Math.min(0.12,i*0.008); drawImgC(ctx,(k==="ocean"&&i===1)?ringIm:segIm,p.x,p.y-c*0.05+bob,c*0.9*s); }
+  }
+  const h=pos[0]; let face=0;
+  if(hurt) face=2; else if(chompT<260) face=1; else { const nx=G.snake[0].x+G.dir.x, ny=G.snake[0].y+G.dir.y; if(G.foods.some(f=>f.y===ny&&nx>=f.x&&nx<f.x+f.span)) face=1; }
+  const sq=chompT<240?1+0.16*Math.sin(chompT/240*Math.PI):1, blink=hurt&&Math.floor((now-G.hurt)/110)%2===1;
+  if(!blink){ ctx.fillStyle="rgba(42,35,64,.18)"; ctx.beginPath(); ctx.ellipse(h.x,h.y+c*0.34,c*0.42,c*0.13,0,0,7); ctx.fill();
+    ctx.save(); ctx.translate(h.x,h.y-c*0.16+(moving?Math.sin(now/150)*c*0.03:0)); ctx.scale(sq,2-sq);
+    drawImgC(ctx,img(`hero_${k}_${face}`),0,0,c*1.15,G.dir.x<0); ctx.restore(); }
+}
+function burst(gx,gy,f){ const n=14, wi=curWorld(), col=f?WORLDS[wi].foods[(f.icon||0)%6]:"#FFD166"; for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=0.04+Math.random()*0.07; R.fx.push({kind:"p",gx:gx+(f&&f.span>1?(f.span-1)/2:0),gy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-0.03,t0:performance.now(),life:600+Math.random()*300,col:i%3?col:"#FFF2A8",r:0.07+Math.random()*0.07}); } }
+function confetti(n){ const cols=["#E5483B","#FFD166","#3FAE4A","#2F7FE0","#E86AA0","#F08A24"]; for(let i=0;i<n;i++) R.fx.push({kind:"c",x:Math.random(),y:-0.05-Math.random()*0.3,vx:(Math.random()-.5)*0.08,vy:0.18+Math.random()*0.22,rot:Math.random()*6,vr:(Math.random()-.5)*8,t0:performance.now(),life:2600,col:cols[i%6]}); }
+function fxAt(e,x,y,kind){ R.fx.push({kind:"e",e,gx:x,gy:y,k:kind,t0:performance.now(),life:kind==="fly"?1600:900}); }
+function drawFx(ctx,g,now){
+  R.fx=R.fx.filter(f=>{ const age=now-f.t0, k=age/f.life; if(k>=1) return false; ctx.save();
+    if(f.kind==="p"){ const s=age/16; const p=cellXY(f.gx+f.vx*s,f.gy+f.vy*s+0.0006*s*s,g); ctx.globalAlpha=1-k; ctx.fillStyle=f.col; ctx.beginPath(); ctx.arc(p.x,p.y-g.c*0.2,g.c*f.r*(1-k*0.5),0,7); ctx.fill(); }
+    else if(f.kind==="c"){ const s=age/1000; const x=(f.x+f.vx*s)*R.w, y=(f.y+f.vy*s)*R.h; ctx.translate(x,y); ctx.rotate(f.rot+f.vr*s); ctx.globalAlpha=Math.min(1,(1-k)*2); ctx.fillStyle=f.col; ctx.fillRect(-4,-6,8,12); }
+    else { const p=cellXY(f.gx,f.gy,g); let y=p.y-g.c*0.5, x=p.x; if(f.k==="fall"){ y+=k*g.c; x+=Math.sin(k*6)*g.c*0.3; } else if(f.k==="fly"){ y-=k*g.c*4; x+=Math.sin(k*9)*g.c*0.6; } else y-=k*g.c*1.2;
+      ctx.globalAlpha=1-k; ctx.font=`${f.k==="fly"?g.c*1.3:g.c*0.7}px serif`; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(f.e,x,y); }
+    ctx.restore(); return true; });
+}
+let _raf=0;
+function loop(now){
+  _raf=requestAnimationFrame(loop);
+  if(!R.ctx||screen!=="game"||!G) return;
+  const ctx=R.ctx, wi=curWorld(), W=WORLDS[wi], g=geom(), t=now/1000;
+  if(R.actWorld!==wi) initActors(wi);
+  ctx.setTransform(R.dpr,0,0,R.dpr,0,0);
+  if(R.shake>0.01){ ctx.translate((Math.random()-.5)*R.shake*10,(Math.random()-.5)*R.shake*6); R.shake*=0.88; } else R.shake=0;
+  const bg=img("bg_"+W.key); if(ok(bg)) drawCover(ctx,bg,R.w,R.h); else { ctx.fillStyle=W.page; ctx.fillRect(0,0,R.w,R.h); }
+  drawActors(ctx,t,g,false);
+  drawBoard(ctx,g,wi,now);
+  G.foods.slice().sort((a,b)=>a.y-b.y).forEach(f=>drawFood(ctx,f,g,wi,now));
+  drawSnake(ctx,g,wi,now);
+  drawFx(ctx,g,now);
+  drawActors(ctx,t,g,true);
+}
+function clearFoods(){ if(G) G.foods=[]; }
+function removeFood(f){ G.foods=G.foods.filter(x=>x!==f); }
+function applyWorldTheme(){ const W=WORLDS[curWorld()]; document.body.style.setProperty("--page",W.page); document.body.style.setProperty("--page-2",W.page2); }
+
+/* =================== UI =================== */
+function render(){ const a=$("#app");
+  if(screen==="menu") a.innerHTML=menuHtml(); else if(screen==="game") a.innerHTML=gameHtml(); else a.innerHTML=resultHtml();
+  document.body.classList.toggle("playing",screen==="game"); applyWorldTheme(); if(screen==="game") window.scrollTo(0,0); bind();
+  if(screen==="game"){ R.cv=$("#cv"); R.ctx=R.cv.getContext("2d"); setupCanvas(); updateHud(); if(!_raf) _raf=requestAnimationFrame(loop); } }
+function masteryStats(){ const seen=ALL.filter(x=>M[x.w]); const mast=ALL.filter(x=>mastered(x.w)); const wk=ALL.filter(x=>weak(x.w)).sort((a,b)=>(M[b.w].bad-M[b.w].ok)-(M[a.w].bad-M[a.w].ok));
+  const w11=ALL.filter(x=>x.w11), w11seen=w11.filter(x=>M[x.w]), w11m=w11.filter(x=>mastered(x.w)); return {seen,mast,wk,w11,w11seen,w11m}; }
+function historyHtml(){
+  const st=db?(dbOk?"Synced to server":"Connecting to server…"):"Saved on this device only";
+  const ms=masteryStats();
+  const mastHtml=`<div style="display:grid;gap:6px"><div class="eyebrow">Word progress</div>
+    <div class="tiles"><div class="tile"><b>${ms.mast.length}</b><span>words mastered (3+ right)</span></div><div class="tile"><b>${ms.seen.length}/${ALL.length}</b><span>words met so far</span></div>
+    <div class="tile"><b>${ms.w11seen.length}/${ms.w11.length}</b><span>Week 11 words met</span></div><div class="tile"><b>${ms.w11m.length}</b><span>Week 11 words mastered</span></div></div>
+    ${ms.wk.length?`<div class="note"><b>Still tricky:</b> ${ms.wk.slice(0,14).map(x=>esc(x.w)).join(" · ")}</div>`:""}</div>`;
+  if(!games.length) return mastHtml+`<div><div class="eyebrow">Play history · ${st}</div><div class="note">No games yet.</div></div>`;
+  const recent=games.slice(-8).reverse(); const totalMin=Math.round(games.reduce((a,g)=>a+(g.durSec||0),0)/60);
+  return mastHtml+`<div style="display:grid;gap:8px"><div class="eyebrow">Play history · ${st}</div>
+    <div class="note">${games.length} games · about ${totalMin} min · ${games.reduce((a,g)=>a+(g.eaten||[]).length,0)} words eaten correctly</div>
+    <div class="list">${recent.map(g=>{const d=new Date(g.ts);return `<div class="li"><span style="min-width:74px" class="note">${d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"})} ${d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span><span><b>${g.score}</b> pts · Level ${g.level}${g.world?` (${esc(g.world)})`:""} · ${(g.eaten||[]).length} words${(g.wrong||[]).length?` · missed: ${g.wrong.map(w=>esc(w.t)).join(", ")}`:""}</span></div>`}).join("")}</div></div>`;
+}
+const MAP_SPOTS=[[0.41,0.842],[0.663,0.638],[0.331,0.475],[0.672,0.342],[0.466,0.206]];
+function menuHtml(){
+  const sel=TEST?LEVELS[testLevel].world:Math.min(cfg.world||0,prog.unlocked);
+  return `<div class="menu">
+  <section class="card mapcard">
+    <img class="logoimg" src="img/logo.webp" alt="Word Muncher">
+    <div class="tag">Eat, spell and explore 5 worlds!</div>
+    <div class="map" style="background-image:url(img/menu_map.webp)">
+      ${WORLDS.map((w,i)=>{const lock=!TEST&&i>prog.unlocked, p=MAP_SPOTS[i];return `<button class="isl${i===sel?" on":""}" data-world="${i}" ${lock?"disabled":""} aria-pressed="${i===sel}" style="left:${p[0]*100}%;top:${p[1]*100}%"><b>${lock?"🔒":w.emoji} ${w.name}</b><small>Level ${i*2+1}–${i*2+2}</small></button>`}).join("")}
+      <img class="mapmascot" src="${heroImg(sel,5)}" alt="" style="left:${MAP_SPOTS[sel][0]*100+(MAP_SPOTS[sel][0]<0.5?15:-15)}%;top:${MAP_SPOTS[sel][1]*100-2}%;translate:${MAP_SPOTS[sel][0]<0.5?"0":"-100%"} -100%">
+    </div>
+  </section>
+  <div class="playrow">
+    ${WW?`<div class="wwbar"><a class="btn" href="../">🪄 Back to Word Wizard</a><span class="note">💎 ${wwGems()} Magic Gems · today from Word Muncher: ${gemsToday()}/${GEM_CAP}</span></div>`:""}
+    ${TEST?`<div class="testbar"><div><b>🔧 Parent test mode</b><br><span class="note">Progress, scores and word history are not saved.</span></div><div class="lvpick">${LEVELS.slice(1).map((L,i)=>`<button data-tlv="${i+1}" aria-pressed="${testLevel===i+1}">${WORLDS[L.world].emoji} L${i+1}</button>`).join("")}</div><button class="btn" id="testoff">Exit test mode</button></div>`:""}
+    <button class="btn go big" id="start"><img class="bi" src="img/ui_6.webp" alt="">Play</button>
+    <div class="row" style="justify-content:center"><button class="btn" id="sndtest">🔊 Test sound</button></div>
+    <div class="note">Best: <b>${best.score||0}</b> pts · Top level: <b>${best.level||1}</b> · ❤️ ×${LIVES} each game</div>
+  </div>
+  <details class="card"${TEST?" open":""}><summary>For parents</summary>
+    <div style="display:grid;gap:12px;margin-top:10px">
+      <div class="testgate"><div class="eyebrow" style="margin-bottom:6px">Parent test mode</div>${TEST?`<div class="note">On. Pick any level above the Play button.</div>`:`<div class="note">Unlock every world and level to try them out. Minh's progress, scores and word history are not changed. Turns off when the page is reloaded.</div><div class="row" style="margin-top:6px"><label class="note" for="gate">Parents only: 7 × 8 =</label><input id="gate" inputmode="numeric" autocomplete="off" style="width:70px;font:inherit;padding:6px 8px;border:2px solid var(--line);border-radius:10px"><button class="btn" id="gateok">Unlock</button></div>`}</div>
+      <div class="note">${ALL.length} curriculum words: ESL weeks 2–7 and 11, Science Units 2.3 and 4, phonics (short vowels, magic e, qu), EFL spelling (oy, ear, red words, time words), Movers topics and tricky words. Words Minh gets wrong come back more often; words right 3+ times come back rarely; the ${W11_COUNT} Week 11 words come up a little more often.</div>
+      <div class="note" style="display:grid;gap:4px">
+        <div><b>🌼 Garden (L1–2)</b> · practice garden: slower, the fence does not cost a heart · L1 👀 picture, L2 👂 listen</div>
+        <div><b>🌾 Farm (L3–4)</b> · L3 🔤 missing letter (b_ne), L4 ✏️ spelling (3–4 letters)</div>
+        <div><b>🏙️ City (L5–6)</b> · Week 11 words start here · L5 👀 picture, L6 🧩 Glue word (A penguin can swim ___ walk → and / or / but)</div>
+        <div><b>🌊 Ocean (L7–8)</b> · L7 🔤 missing letter / qu, L8 ✏️ spelling up to 6 letters</div>
+        <div><b>🪐 Space (L9–10)</b> · L9 🧩 Glue word with “because”, L10 ✏️ hard Week 11 spelling (said, again, another, minutes, friction, hummingbird…)</div>
+        <div>Each level is one type of question, announced on screen and by voice. 5 right answers = next level. After every 2 levels: 👾 boss (listen only, ${BOSS_NEED} right words) to unlock the next world and a new outfit for the caterpillar.</div>
+        <div>❤️ ×${LIVES}: hitting the fence or eating a wrong word/letter costs 1 heart (wrong = also shorter). 0 hearts = game over. Biting the tail just snips it.</div>
+      </div>
+      <div><div class="eyebrow" style="margin-bottom:6px">Starting speed</div><div class="seg">${[["slow","Slow"],["mid","Medium"],["fast","Fast"]].map(([k,l])=>`<button data-speed="${k}" aria-pressed="${cfg.speed===k}">${l}</button>`).join("")}</div></div>
+      <div><div class="eyebrow" style="margin-bottom:6px">Voice</div>
+        <div class="row"><select id="voicesel" style="font:inherit;padding:8px;border-radius:10px;border:2px solid var(--line);max-width:100%">${voiceOptions()}</select><button class="btn" id="voicetest">🔊 Try</button></div>
+        <div class="note" style="margin-top:6px">★ = clearer, natural voice.</div></div>
+      <label class="switch"><input type="checkbox" id="sfxon" ${cfg.sfx!==false?"checked":""}> Sound effects (beeps). Turn off if the voice crackles.</label>
+      ${historyHtml()}
+    </div></details></div>`;
+}
+function gameHtml(){
+  const land=isLand();
+  return `<div class="game${land?" land":""}" id="game">
+   <div class="side" id="side">
+     <div class="hud"><div class="bubble" id="target"></div>
+       <div class="stats"><span class="hearts" id="hearts"></span><span class="score" id="score">0</span></div></div>
+     <div class="lvbar"><span id="lvname"></span><div class="lvtrack"><i id="lvfill"></i></div><span id="len" class="note"></span></div>
+     ${land?ctrlHtml():""}
+   </div>
+   <div class="stage" id="stage"><div class="boardwrap" id="bw"><canvas id="cv"></canvas><div id="ov"></div><div id="tt"></div></div></div>
+   ${land?"":ctrlHtml()}
+  </div>`;
+}
+function ctrlHtml(){ return `<div class="ctrl" id="ctrl"><div class="pad"><button class="up" data-dir="0,-1" aria-label="Up">▲</button><button class="left" data-dir="-1,0" aria-label="Left">◀</button><button class="down" data-dir="0,1" aria-label="Down">▼</button><button class="right" data-dir="1,0" aria-label="Right">▶</button></div>
+   <div class="row" style="justify-content:center"><button class="btn" id="pause"><img class="bi" src="img/ui_8.webp" alt="">Pause</button><button class="btn" id="quit">Finish</button></div></div>`; }
+function vpH(){ return (window.visualViewport&&window.visualViewport.height)||window.innerHeight; }
+function vpW(){ return (window.visualViewport&&window.visualViewport.width)||window.innerWidth; }
+function isLand(){ return vpW()>=640 && vpW()>vpH()*1.05; }
+function setupCanvas(){
+  const stage=$("#stage"), game=$("#game"), cv=$("#cv"); if(!stage||!cv) return; const land=game.classList.contains("land");
+  stage.style.width=""; const availW=Math.min(land?vpW()-32-300-16:game.clientWidth,900)-6;
+  const top=$("#bw").getBoundingClientRect().top+window.scrollY, below=land?0:($("#ctrl").offsetHeight+10);
+  const availH=vpH()-top-below-14;
+  let w=Math.max(260,availW), h=Math.max(300,availH);
+  if(w/h>1.0) w=h;
+  w=Math.floor(w); h=Math.floor(h);
+  R.dpr=Math.min(window.devicePixelRatio||1,2); R.w=w; R.h=h;
+  stage.style.width=(w+6)+"px"; cv.style.width=w+"px"; cv.style.height=h+"px"; cv.width=Math.round(w*R.dpr); cv.height=Math.round(h*R.dpr); R.pat=null; R.patKey="";
+}
+const MODE_LBL={pic:"Find the word",listen:"Listen and find",missing:"Missing letter",spell:"Spell it!",glue:"Glue word"};
+function updateHud(){
+  if(!G||screen!=="game")return; const t=G.target, m=G.mode, el=$("#target"); if(!el||!t) return;
+  const spk=`<button class="spk" id="replay" aria-label="Listen again"><img src="img/ui_7.webp" alt=""></button>`;
+  const ava=`<span class="ava"><img src="${heroImg(curWorld(),0)}" alt=""></span>`;
+  let lbl=(G.boss?`👾 Boss · ${G.boss.got}/${BOSS_NEED} · `:"")+MODE_INFO[m].icon+" "+MODE_INFO[m].txt, main="";
+  if(m==="pic") main=`<span class="ava picbox" style="background:#fff"><span class="pic">${picHtml(t.pic)}</span></span><div class="grow"><div class="lbl">${lbl}</div><div class="say">What is it? Eat the word!</div></div>`;
+  else if(m==="listen") main=`${ava}<div class="grow"><div class="lbl">${lbl}</div><div class="say">${G.boss?"No picture! Listen.":"Listen and eat the word"}</div></div>${spk}`;
+  else if(m==="missing"){ const L=[...t.letters]; let tiles=""; for(let i=0;i<L.length;i++){ if(i===G.missIdx){ tiles+=`<i class="blank">${G.missLen>1?"__":"_"}</i>`; i+=G.missLen-1; } else tiles+=`<i>${L[i]}</i>`; }
+    main=`${t.pic?`<span class="ava picbox" style="background:#fff"><span class="pic">${picHtml(t.pic)}</span></span>`:ava}<div class="grow"><div class="lbl">${lbl}</div><div class="pattern">${tiles}</div></div>${spk}`; }
+  else if(m==="glue") main=`${ava}<div class="grow"><div class="lbl">${lbl} · and / or / but${G.foods.some(f=>f.w==="because")?" / because":""}</div><div class="glue">${esc(t.glue).replace("___","<i>?</i>")}</div></div>${spk}`;
+  else main=`${t.pic?`<span class="ava picbox" style="background:#fff"><span class="pic">${picHtml(t.pic)}</span></span>`:ava}<div class="grow"><div class="lbl">${lbl}</div><div class="pattern">${[...t.letters].map((c,i)=>i<G.spellIdx?`<i class="got">${c}</i>`:`<i class="blank">_</i>`).join("")}</div></div>${spk}`;
+  el.innerHTML=main; el.className="bubble m-"+m; const rp=$("#replay"); if(rp) rp.onclick=()=>say(promptSpeech(t,m));
+  $("#hearts").innerHTML=Array.from({length:LIVES},(_,i)=>`<img src="img/${i<G.lives?"ui_0":"ui_1"}.webp" class="${i<G.lives?"":"lost"}" alt="">`).join("");
+  $("#score").innerHTML=`<img src="img/ui_2.webp" alt="">${G.score}`; $("#len").textContent=`🐛 ${G.snake.length}/${BFLY_LEN}${G.bflies?" · 🦋"+G.bflies:""}`;
+  const W=WORLDS[curWorld()];
+  $("#lvname").textContent=`${W.emoji} Level ${G.level}${G.boss?" · BOSS":""}${G.test?" · 🔧":""}`; $("#lvfill").style.width=(G.boss?G.boss.got/BOSS_NEED*100:G.inLevel/PER_LEVEL*100)+"%";
+}
+function showOverlay(t,sub,o){ o=o||{}; const el=$("#ov"); if(el) el.innerHTML=`<div class="overlay"><div class="ovcard">${o.img?`<img src="${o.img}" alt="" class="${o.spin?"spin":""}" style="${o.small?"width:110px":""}">`:""}<b>${esc(t)}</b>${o.mode&&G?`<div class="modechip m-${modeOf()}">${MODE_INFO[modeOf()].icon} ${MODE_INFO[modeOf()].txt}</div>`:""}<div class="note">${esc(sub.replace(/(^| · )tap.*$/i,""))}</div><div class="tap">${/tap|press/i.test(sub)?"Tap to go!":""}</div></div></div>`; }
+function hideOverlay(){ const o=$("#ov"); if(o) o.innerHTML=""; }
+function toast(m,k){ const t=$("#tt"); if(!t)return; t.innerHTML=`<div class="toast ${k||""}">${esc(m)}</div>`; clearTimeout(toast._t); toast._t=setTimeout(()=>{t.innerHTML=""},1400); }
+function resultHtml(){
+  const g=G; const learned=[...new Map(g.eaten.map(x=>[x.glue?x.glue:x.w,x])).values()]; const wi=LEVELS[g.level].world, W=WORLDS[wi];
+  const stars=g.won?3:(g.eaten.length>=12&&g.wrong.length<=3)?3:g.eaten.length>=6?2:g.eaten.length>=1?1:0;
+  const nw=g.newWorlds.map(i=>`${WORLDS[i].emoji} ${WORLDS[i].name}`);
+  return `<div class="result"><section class="card" style="display:grid;gap:12px">
+    <img class="hero" src="${heroImg(wi,5)}" alt="">
+    <div class="stars">${[0,1,2].map(i=>`<img src="img/${i<stars?"ui_2":"ui_3"}.webp" alt="">`).join("")}${g.won||g.newBest?`<img src="img/ui_9.webp" alt="" style="margin-left:6px">`:""}</div>
+    <div style="text-align:center"><div class="eyebrow">${g.won?"All worlds cleared":"Game over"}</div><h2 style="font-size:24px">${g.won?"You beat every boss! 🏆":g.newBest?"New record! 🎉":g.score>=150?"Great job!":"Nice try! Keep going!"}</h2></div>
+    <div class="tiles"><div class="tile"><b>${g.score}</b><span>points · best ${best.score}</span></div><div class="tile"><b>${g.level}</b><span>level · ${W.emoji} ${W.name}</span></div><div class="tile"><b>${g.eaten.length}</b><span>right answers</span></div><div class="tile"><b>${g.bflies||0} 🦋</b><span>butterflies</span></div></div>
+    ${nw.length?`<div class="li" style="background:var(--ok-soft)">🔓 Unlocked: <b>${nw.join(" · ")}</b> + new outfit</div>`:""}
+    ${g.wrong.length?`<div><div class="eyebrow" style="margin-bottom:6px">Words to practise</div><div class="list">${[...new Map(g.wrong.map(w=>[w.target.glue||w.target.w,w])).values()].map(w=>{const full=fullSpeech(w.target);return `<div class="li bad"><span class="e">${w.target.pic?picHtml(w.target.pic,"sm"):"🔊"}</span><span><b>${esc(full)}</b> · ate “${esc(w.got)}”</span><button class="btn" style="margin-left:auto;padding:4px 10px" data-say="${esc(full)}">🔊</button></div>`}).join("")}</div></div>`:""}
+    ${learned.length?`<div><div class="eyebrow" style="margin-bottom:6px">You got these right</div><div class="chips">${learned.map(x=>`<button class="chip" data-say="${esc(fullSpeech(x))}">${x.pic?picHtml(x.pic,"sm")+" ":""}${esc(x.glue?x.glue.replace("___",x.w):x.w)}${!x.glue&&mastered(x.w)?" ⭐":""}</button>`).join("")}</div></div>`:""}
+    <div class="note">${g.test?"🔧 Test game, not saved.":!g.startedAt?"Game not started, so not saved.":g.savedServer?"✓ Saved to server.":db?"Saving…":"Saved on this device."}</div>
+    ${WW&&!g.test?`<div class="li" style="background:#E8F3FF">💎 <span><b>+${g.gems||0} Magic Gems</b> for Word Wizard · today ${gemsToday()}/${GEM_CAP}${g.gemCapped?" · daily limit reached":""}</span></div>`:""}
+    <div class="row" style="justify-content:center"><button class="btn go big" id="again">Play again</button><button class="btn" id="menu">Home</button>${WW?`<a class="btn" href="../">🪄 Word Wizard</a>`:""}</div>
+  </section></div>`;
+}
+function saveCfg(){ LS.set("snake.cfg",cfg); }
+function bind(){
+  document.querySelectorAll("[data-speed]").forEach(b=>b.onclick=()=>{cfg.speed=b.dataset.speed;saveCfg();render()});
+  document.querySelectorAll("[data-world]").forEach(b=>b.onclick=()=>{ if(TEST){ testLevel=+b.dataset.world*2+1; render(); return; } cfg.world=+b.dataset.world;saveCfg();render()});
+  const st=$("#start"); if(st) st.onclick=()=>{ unlockAudio(); const w=TEST?LEVELS[testLevel].world:Math.min(cfg.world||0,prog.unlocked); st.textContent="Loading…"; preload(worldAssets(w)).then(()=>newGame(w,TEST?testLevel:0)); };
+  const go=$("#gateok"); if(go) go.onclick=()=>{ const v=($("#gate").value||"").trim(); if(v==="56"){ TEST=true; testLevel=Math.min(cfg.world||0,prog.unlocked)*2+1; render(); window.scrollTo(0,0); } else { $("#gate").value=""; $("#gate").placeholder="?"; } };
+  const to=$("#testoff"); if(to) to.onclick=()=>{ TEST=false; render(); };
+  document.querySelectorAll("[data-tlv]").forEach(b=>b.onclick=()=>{ testLevel=+b.dataset.tlv; render(); });
+  const sn=$("#sndtest"); if(sn) sn.onclick=()=>{ unlockAudio(); sfx.good(); sayAfterSfx("Hello Minh! Let's play."); };
+  const vs=$("#voicesel"); if(vs) vs.onchange=()=>{ cfg.voice=vs.value; saveCfg(); unlockAudio(); say("Hello Minh! A parrot can talk and fly."); };
+  const vt=$("#voicetest"); if(vt) vt.onclick=()=>{ unlockAudio(); say("Hello Minh! A parrot can talk and fly."); };
+  const so=$("#sfxon"); if(so) so.onchange=()=>{ cfg.sfx=so.checked; saveCfg(); };
+  document.querySelectorAll("[data-dir]").forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.dir.split(",").map(Number);turn(x,y)});
+  const ps=$("#pause"); if(ps) ps.onclick=pause;
+  const q=$("#quit"); if(q) q.onclick=()=>{ if(G){clearInterval(G.timer);G.over=true; saveBest(); saveGame();} screen="result"; render(); };
+  const ag=$("#again"); if(ag) ag.onclick=()=>newGame(LEVELS[G.level].world);
+  const mn=$("#menu"); if(mn) mn.onclick=()=>{screen="menu";G=null;render()};
+  document.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
+  const bw=$("#bw"); if(bw){
+    let sx=0,sy=0;
+    bw.addEventListener("touchstart",e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;},{passive:true});
+    bw.addEventListener("touchmove",e=>{e.preventDefault();},{passive:false});
+    bw.addEventListener("touchend",e=>{const t=e.changedTouches[0];const dx=t.clientX-sx,dy=t.clientY-sy;
+      if(Math.max(Math.abs(dx),Math.abs(dy))<18){ if(G&&(G.ready||G.paused)) start(); return; }
+      if(Math.abs(dx)>Math.abs(dy)) turn(dx>0?1:-1,0); else turn(0,dy>0?1:-1);});
+    bw.addEventListener("click",()=>{ if(G&&(G.ready||G.paused)) start(); });
+  }
+}
+document.addEventListener("keydown",e=>{
+  if(screen!=="game"||!G)return; const k=e.key.toLowerCase();
+  const m={arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1],arrowleft:[-1,0],a:[-1,0],arrowright:[1,0],d:[1,0]};
+  if(m[k]){e.preventDefault();turn(...m[k]);} else if(k===" "){e.preventDefault(); if(G.ready) start(); else pause();} else if(G.ready) start();
+});
+document.addEventListener("visibilitychange",()=>{ if(document.hidden&&G&&!G.paused&&!G.ready&&!G.over) pause(); });
+function relayout(){ if(screen!=="game")return; const g=$("#game"); if(g&&g.classList.contains("land")!==isLand()){ const wasRun=G&&!G.ready&&!G.paused&&!G.over; if(wasRun){G.paused=true;clearInterval(G.timer);}
+  const ovHtml=$("#ov")?$("#ov").innerHTML:""; $("#app").innerHTML=gameHtml(); bind(); R.cv=$("#cv"); R.ctx=R.cv.getContext("2d"); setupCanvas(); updateHud();
+  if(wasRun) showOverlay("Paused","Tap to keep playing"); else if(ovHtml) $("#ov").innerHTML=ovHtml; } else setupCanvas(); }
+let _rt; function onResize(){ clearTimeout(_rt); _rt=setTimeout(relayout,120); }
+window.addEventListener("resize",onResize); window.addEventListener("orientationchange",onResize); if(window.visualViewport) window.visualViewport.addEventListener("resize",onResize);
+render(); initDb();
+/* warm the image cache: current world first, then the rest */
+preload(worldAssets(Math.min(cfg.world||0,prog.unlocked)).concat(["hero_change"],UI_ASSETS)).then(()=>{ for(let i=0;i<WORLDS.length;i++) preload(worldAssets(i)); });
+</script>
+</body>
+</html>
