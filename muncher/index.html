@@ -352,7 +352,7 @@ const sfx={good(){tone(660,.12,.12,"triangle");setTimeout(()=>tone(990,.18,.12,"
 /* =================== GAME LOGIC =================== */
 function lv(){ return LEVELS[G.level]; }
 function curWorld(){ return G?lv().world:Math.min(cfg.world||0,prog.unlocked); }
-function baseTick(){ if(G.level===1) return SPEED[cfg.speed]+120; if(G.level===2) return SPEED[cfg.speed]+70; return Math.max(150, SPEED[cfg.speed]-(G.level-1)*14); } /* Garden = practice garden: slower */
+function baseTick(){ if(G.level===1) return SPEED[cfg.speed]+120; return Math.max(150, SPEED[cfg.speed]+70-(G.level-2)*22); } /* L1 slowest, then a gentle +22ms/level ramp (no sudden jump at Level 3) */ /* Garden = practice garden: slower */
 
 function newGame(startWorld,startLevel){
   unlockAudio();
@@ -447,7 +447,7 @@ function step(){
   if(G.q.length) G.dir=G.q.shift();
   G.prev=G.snake.map(s=>({...s})); G.lastStep=performance.now();
   const h=G.snake[0]; const nx=h.x+G.dir.x, ny=h.y+G.dir.y;
-  if(nx<0||ny<0||nx>=COLS||ny>=ROWS){ G.prev=G.snake.map(s=>({...s})); if(curWorld()===0) return bump(); return crash("Ouch! The fence!"); }
+  if(nx<0||ny<0||nx>=COLS||ny>=ROWS){ G.prev=G.snake.map(s=>({...s})); return bump(); } /* every level: the fence just stops the caterpillar, no heart lost */
   const bi=G.snake.slice(0,-1).findIndex(s=>s.x===nx&&s.y===ny);
   if(bi>=0){ const cut=G.snake.splice(Math.max(bi,3)); cut.forEach(c=>fxAt("🍃",c.x,c.y,"fall")); G.prev=G.prev.slice(0,G.snake.length);
     G.streak=0; tone(520,.08,.1,"triangle"); toast("Snip! ✂️ Your tail fell off","bad");
@@ -497,7 +497,7 @@ function loseLife(msg,got,speech){
   if(G.lives<=0) return gameOver();
   updateHud();
 }
-function bump(){ /* Garden only: the fence just stops the caterpillar, no heart lost */
+function bump(){ /* the fence just stops the caterpillar, no heart lost */
   clearInterval(G.timer); G.ready=true; G.q=[]; G.hurt=performance.now()-400; R.shake=0.3; tone(300,.12,.1,"triangle");
   toast("Bump! Turn another way 🙂",""); }
 function crash(msg){
@@ -718,7 +718,7 @@ function menuHtml(){
         <div><b>🌊 Ocean (L7–8)</b> · L7 🔤 missing letter / qu, L8 ✏️ spelling up to 6 letters</div>
         <div><b>🪐 Space (L9–10)</b> · L9 🧩 Glue word with “because”, L10 ✏️ hard Week 11 spelling (said, again, another, minutes, friction, hummingbird…)</div>
         <div>Each level is one type of question, announced on screen and by voice. 5 right answers = next level. After every 2 levels: 👾 boss (listen only, ${BOSS_NEED} right words) to unlock the next world and a new outfit for the caterpillar.</div>
-        <div>❤️ ×${LIVES}: hitting the fence or eating a wrong word/letter costs 1 heart (wrong = also shorter). 0 hearts = game over. Biting the tail just snips it.</div>
+        <div>❤️ ×${LIVES}: eating a wrong word/letter costs 1 heart and makes you shorter. 0 hearts = game over. The fence just stops you (no heart lost). Biting the tail just snips it.</div>
       </div>
       <div><div class="eyebrow" style="margin-bottom:6px">Starting speed</div><div class="seg">${[["slow","Slow"],["mid","Medium"],["fast","Fast"]].map(([k,l])=>`<button data-speed="${k}" aria-pressed="${cfg.speed===k}">${l}</button>`).join("")}</div></div>
       <div><div class="eyebrow" style="margin-bottom:6px">Voice</div>
