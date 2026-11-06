@@ -280,7 +280,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const SPEED={slow:330,mid:260,fast:200};
-const COLS=12, ROWS=14, BFLY_LEN=12;
+const COLS=12, ROWS=14, BFLY_LEN=9;
 
 let games=LS.get("snake.games",[]), db=null, dbOk=false;
 function mergeMastery(remote){ if(!remote) return; Object.entries(remote).forEach(([w,r])=>{ const l=M[w]; if(!l||((r.ok||0)+(r.bad||0))>((l.ok||0)+(l.bad||0))) M[w]=r; }); LS.set("wm.mastery",M); }
@@ -352,7 +352,7 @@ const sfx={good(){tone(660,.12,.12,"triangle");setTimeout(()=>tone(990,.18,.12,"
 /* =================== GAME LOGIC =================== */
 function lv(){ return LEVELS[G.level]; }
 function curWorld(){ return G?lv().world:Math.min(cfg.world||0,prog.unlocked); }
-function baseTick(){ if(G.level===1) return SPEED[cfg.speed]+120; return Math.max(150, SPEED[cfg.speed]+70-(G.level-2)*22); } /* L1 slowest, then a gentle +22ms/level ramp (no sudden jump at Level 3) */ /* Garden = practice garden: slower */
+function baseTick(){ if(G.level===1) return SPEED[cfg.speed]+170; return Math.max(180, SPEED[cfg.speed]+100-(G.level-2)*14); } /* L1 slowest, then a gentle 14ms/level ramp */ /* Garden = practice garden: slower */
 
 function newGame(startWorld,startLevel){
   unlockAudio();
@@ -459,6 +459,10 @@ function step(){
   if(f.correct) return eatRight(false,f);
   eatWrong(f);
 }
+/* tap-to-steer: tap anywhere on the board, the caterpillar turns toward that side (never reverses) */
+function tapSteer(cx,cy){ if(!G||G.over||!R.cv) return; const r=R.cv.getBoundingClientRect(), g=geom();
+  const tx=(cx-r.left-g.bx)/g.c-0.5, ty=(cy-r.top-g.by)/g.c-0.5, h=G.snake[0], d=G.q.length?G.q[G.q.length-1]:G.dir, dx=tx-h.x, dy=ty-h.y;
+  if(d.x){ if(Math.abs(dy)>=0.5) turn(0,dy>0?1:-1); } else { if(Math.abs(dx)>=0.5) turn(dx>0?1:-1,0); } }
 function shrink(n){ for(let i=0;i<n&&G.snake.length>3;i++){ G.snake.pop(); } }
 function eatLetter(f){
   const t=G.target, need=t.letters[G.spellIdx];
@@ -626,16 +630,16 @@ function drawSnake(ctx,g,wi,now){
   const hurt=G.hurt&&now-G.hurt<700, chompT=G.chomp?now-G.chomp:1e9;
   const segIm=img(k==="ocean"?"hero_garden_3":`hero_${k}_3`), ringIm=img("hero_ocean_3"), tailIm=img(`hero_${k}_4`);
   for(let i=pos.length-1;i>=1;i--){ const p=pos[i], bob=moving?Math.sin(now/150-i*0.9)*c*0.04:0;
-    ctx.fillStyle="rgba(42,35,64,.16)"; ctx.beginPath(); ctx.ellipse(p.x,p.y+c*0.3,c*0.36,c*0.11,0,0,7); ctx.fill();
-    if(i===pos.length-1){ const q=pos[i-1]; drawImgC(ctx,tailIm,p.x,p.y-c*0.05+bob,c*0.9,q.x>p.x+0.5); }
-    else { const s=1-Math.min(0.12,i*0.008); drawImgC(ctx,(k==="ocean"&&i===1)?ringIm:segIm,p.x,p.y-c*0.05+bob,c*0.9*s); }
+    ctx.fillStyle="rgba(42,35,64,.16)"; ctx.beginPath(); ctx.ellipse(p.x,p.y+c*0.26,c*0.3,c*0.09,0,0,7); ctx.fill();
+    if(i===pos.length-1){ const q=pos[i-1]; drawImgC(ctx,tailIm,p.x,p.y-c*0.05+bob,c*0.74,q.x>p.x+0.5); }
+    else { const s=1-Math.min(0.12,i*0.008); drawImgC(ctx,(k==="ocean"&&i===1)?ringIm:segIm,p.x,p.y-c*0.05+bob,c*0.74*s); }
   }
   const h=pos[0]; let face=0;
   if(hurt) face=2; else if(chompT<260) face=1; else { const nx=G.snake[0].x+G.dir.x, ny=G.snake[0].y+G.dir.y; if(G.foods.some(f=>f.y===ny&&nx>=f.x&&nx<f.x+f.span)) face=1; }
   const sq=chompT<240?1+0.16*Math.sin(chompT/240*Math.PI):1, blink=hurt&&Math.floor((now-G.hurt)/110)%2===1;
-  if(!blink){ ctx.fillStyle="rgba(42,35,64,.18)"; ctx.beginPath(); ctx.ellipse(h.x,h.y+c*0.34,c*0.42,c*0.13,0,0,7); ctx.fill();
-    ctx.save(); ctx.translate(h.x,h.y-c*0.16+(moving?Math.sin(now/150)*c*0.03:0)); ctx.scale(sq,2-sq);
-    drawImgC(ctx,img(`hero_${k}_${face}`),0,0,c*1.15,G.dir.x<0); ctx.restore(); }
+  if(!blink){ ctx.fillStyle="rgba(42,35,64,.18)"; ctx.beginPath(); ctx.ellipse(h.x,h.y+c*0.3,c*0.36,c*0.11,0,0,7); ctx.fill();
+    ctx.save(); ctx.translate(h.x,h.y-c*0.1+(moving?Math.sin(now/150)*c*0.03:0)); ctx.scale(sq,2-sq);
+    drawImgC(ctx,img(`hero_${k}_${face}`),0,0,c*0.96,G.dir.x<0); ctx.restore(); }
 }
 function burst(gx,gy,f){ const n=14, wi=curWorld(), col=f?WORLDS[wi].foods[(f.icon||0)%6]:"#FFD166"; for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=0.04+Math.random()*0.07; R.fx.push({kind:"p",gx:gx+(f&&f.span>1?(f.span-1)/2:0),gy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-0.03,t0:performance.now(),life:600+Math.random()*300,col:i%3?col:"#FFF2A8",r:0.07+Math.random()*0.07}); } }
 function confetti(n){ const cols=["#E5483B","#FFD166","#3FAE4A","#2F7FE0","#E86AA0","#F08A24"]; for(let i=0;i<n;i++) R.fx.push({kind:"c",x:Math.random(),y:-0.05-Math.random()*0.3,vx:(Math.random()-.5)*0.08,vy:0.18+Math.random()*0.22,rot:Math.random()*6,vr:(Math.random()-.5)*8,t0:performance.now(),life:2600,col:cols[i%6]}); }
@@ -717,6 +721,7 @@ function menuHtml(){
         <div><b>🏙️ City (L5–6)</b> · Week 11 words start here · L5 👀 picture, L6 🧩 Glue word (A penguin can swim ___ walk → and / or / but)</div>
         <div><b>🌊 Ocean (L7–8)</b> · L7 🔤 missing letter / qu, L8 ✏️ spelling up to 6 letters</div>
         <div><b>🪐 Space (L9–10)</b> · L9 🧩 Glue word with “because”, L10 ✏️ hard Week 11 spelling (said, again, another, minutes, friction, hummingbird…)</div>
+        <div>Moving: tap the board on the side you want to go (above/below or left/right of the caterpillar), swipe, or use the arrow buttons.</div>
         <div>Each level is one type of question, announced on screen and by voice. 5 right answers = next level. After every 2 levels: 👾 boss (listen only, ${BOSS_NEED} right words) to unlock the next world and a new outfit for the caterpillar.</div>
         <div>❤️ ×${LIVES}: eating a wrong word/letter costs 1 heart and makes you shorter. 0 hearts = game over. The fence just stops you (no heart lost). Biting the tail just snips it.</div>
       </div>
@@ -814,13 +819,14 @@ function bind(){
   const mn=$("#menu"); if(mn) mn.onclick=()=>{screen="menu";G=null;render()};
   document.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
   const bw=$("#bw"); if(bw){
-    let sx=0,sy=0;
+    let sx=0,sy=0,lastTouch=0;
     bw.addEventListener("touchstart",e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;},{passive:true});
     bw.addEventListener("touchmove",e=>{e.preventDefault();},{passive:false});
     bw.addEventListener("touchend",e=>{const t=e.changedTouches[0];const dx=t.clientX-sx,dy=t.clientY-sy;
-      if(Math.max(Math.abs(dx),Math.abs(dy))<18){ if(G&&(G.ready||G.paused)) start(); return; }
+      lastTouch=Date.now();
+      if(Math.max(Math.abs(dx),Math.abs(dy))<18){ if(G&&(G.ready||G.paused)) start(); else tapSteer(t.clientX,t.clientY); return; }
       if(Math.abs(dx)>Math.abs(dy)) turn(dx>0?1:-1,0); else turn(0,dy>0?1:-1);});
-    bw.addEventListener("click",()=>{ if(G&&(G.ready||G.paused)) start(); });
+    bw.addEventListener("click",e=>{ if(Date.now()-lastTouch<600) return; if(G&&(G.ready||G.paused)) start(); else tapSteer(e.clientX,e.clientY); });
   }
 }
 document.addEventListener("keydown",e=>{
