@@ -268,6 +268,9 @@ let cfg=Object.assign({speed:"slow",world:0},LS.get("snake.cfg",{}));
 let best=LS.get("snake.best2",{score:0,level:1});
 let prog=Object.assign({unlocked:0},LS.get("wm.prog",{}));
 let M=LS.get("wm.mastery",{});
+/* per-level checkpoint: prog.cp={level,boss} = where the next game in that world starts */
+function cpFor(w){ const cp=prog.cp; return cp&&LEVELS[cp.level]&&LEVELS[cp.level].world===w?cp:null; }
+function saveCp(boss){ if(!G||G.test) return; const cur=prog.cp; if(cur&&(cur.level>G.level||(cur.level===G.level&&cur.boss&&!boss))) return; prog.cp={level:G.level,boss:!!boss}; LS.set("wm.prog",prog); }
 /* Inside Word Wizard (Vercel /muncher/): share Magic Gems 💎 with Word Wizard */
 const WW=/\/muncher(\/|\/index\.html)?$/.test(location.pathname), GEM_CAP=10;
 function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -303,7 +306,7 @@ async function saveGame(){
   games.push(rec); LS.set("snake.games",games); LS.set("wm.mastery",M); LS.set("wm.prog",prog);
   if(db){ try{ await db.collection("games").doc(rec.id).set(rec); G.savedServer=true; }catch(e){ G.savedServer=false; }
     db.collection("mastery").doc("minh").set({words:M,ts:Date.now()}).catch(()=>{});
-    db.collection("progress").doc("minh").set({unlocked:prog.unlocked,ts:Date.now()}).catch(()=>{}); }
+    db.collection("progress").doc("minh").set({unlocked:prog.unlocked,cp:prog.cp||null,ts:Date.now()}).catch(()=>{}); }
   if(screen==="result") render();
 }
 /* learning engine: weak words come back more, mastered words rarely, Week 11 words a little more often */
@@ -361,8 +364,10 @@ function newGame(startWorld,startLevel){
   const mid={x:Math.floor(COLS/2),y:Math.floor(ROWS/2)};
   const snake=[{x:mid.x,y:mid.y},{x:mid.x-1,y:mid.y},{x:mid.x-2,y:mid.y}];
   G={snake,prev:snake.map(s=>({...s})),dir:{x:1,y:0},q:[],foods:[],target:null,score:0,lives:LIVES,streak:0,eaten:[],wrong:[],recent:[],glueRecent:[],
-     level:TEST&&startLevel?startLevel:w*2+1,test:TEST,inLevel:0,boss:null,mode:"pic",paused:false,over:false,timer:null,ready:true,bflies:0,sessionMiss:{},modeStats:{},lastStep:0,newWorlds:[]};
-  G.tick=baseTick(); screen="game"; render(); newRound(); G.ready=true;
+     level:TEST&&startLevel?startLevel:(cpFor(w)?cpFor(w).level:w*2+1),test:TEST,inLevel:0,boss:null,mode:"pic",paused:false,over:false,timer:null,ready:true,bflies:0,sessionMiss:{},modeStats:{},lastStep:0,newWorlds:[]};
+  G.tick=baseTick(); screen="game"; render();
+  if(!TEST&&cpFor(w)&&cpFor(w).boss&&cpFor(w).level===G.level){ G.startedAt=null; return startBoss(); }
+  newRound(); G.ready=true;
   showOverlay(`${WORLDS[w].emoji} ${WORLDS[w].name} · Level ${G.level}`,"Tap or press any key to start",{img:heroImg(w,5),mode:true}); announceMode(400);
 }
 function pickMode(){
@@ -516,7 +521,7 @@ function crash(msg){
   updateHud(); G.ready=true; showOverlay(msg, `${G.lives} ❤️ left · tap to continue`,{img:heroImg(curWorld(),2),small:true});
 }
 function levelUp(){
-  G.level++; G.tick=baseTick(); clearInterval(G.timer); G.ready=true;
+  G.level++; G.tick=baseTick(); clearInterval(G.timer); G.ready=true; saveCp(false);
   const nw=curWorld();
   clearFoods(); newRound(); updateHud(); confetti(40);
   tone(523,.15,.12,"triangle");setTimeout(()=>tone(659,.15,.12,"triangle"),140);setTimeout(()=>tone(784,.3,.12,"triangle"),280);
@@ -524,7 +529,7 @@ function levelUp(){
   showOverlay(`Level ${G.level}! ${WORLDS[nw].emoji}`, `${WORLDS[nw].name} · tap to continue`,{img:heroImg(nw,1),small:true,mode:true});
 }
 function startBoss(){
-  G.boss={got:0}; clearInterval(G.timer); G.ready=true; clearFoods(); newRound(); updateHud();
+  G.boss={got:0}; saveCp(true); clearInterval(G.timer); G.ready=true; clearFoods(); newRound(); updateHud();
   tone(330,.2,.12,"square");setTimeout(()=>tone(262,.3,.12,"square"),200);
   setTimeout(()=>say("Boss time! Listen carefully."),600);
   showOverlay("👾 Boss time!",`Eat ${BOSS_NEED} right words · tap to start`,{mode:true});
@@ -533,8 +538,9 @@ function bossCleared(){
   const w=curWorld(); G.boss=null; G.score+=50; clearInterval(G.timer);
   gem(2,"Boss beaten!");
   if(w>=WORLDS.length-1){ G.won=true; confetti(80); tone(784,.2,.12);setTimeout(()=>tone(1047,.4,.12),180); say("You did it! Super star!"); return gameOver(); }
+  if(!G.test){ cfg.world=w+1; saveCfg(); } /* next visit opens the world he is playing */
   if(!G.test&&prog.unlocked<w+1){ prog.unlocked=w+1; LS.set("wm.prog",prog); G.newWorlds.push(w+1); gem(5,"New world!"); }
-  G.level++; G.tick=baseTick(); G.ready=true; applyWorldTheme(); clearFoods(); newRound(); updateHud();
+  G.level++; G.tick=baseTick(); G.ready=true; saveCp(false); applyWorldTheme(); clearFoods(); newRound(); updateHud();
   const nw=WORLDS[curWorld()];
   tone(523,.12,.12,"triangle");setTimeout(()=>tone(784,.12,.12,"triangle"),120);setTimeout(()=>tone(1047,.3,.12,"triangle"),240);
   setTimeout(()=>say(`Boss cleared! Welcome to the ${nw.name}!`),700); announceMode(3200);
@@ -711,7 +717,7 @@ function menuHtml(){
   <div class="playrow">
     ${WW?`<div class="wwbar"><a class="btn" href="../">🪄 Back to Word Wizard</a><span class="note">💎 ${wwGems()} Magic Gems · today from Word Muncher: ${gemsToday()}/${GEM_CAP}</span></div>`:""}
     ${TEST?`<div class="testbar"><div><b>🔧 Parent test mode</b><br><span class="note">Progress, scores and word history are not saved.</span></div><div class="lvpick">${LEVELS.slice(1).map((L,i)=>`<button data-tlv="${i+1}" aria-pressed="${testLevel===i+1}">${WORLDS[L.world].emoji} L${i+1}</button>`).join("")}</div><button class="btn" id="testoff">Exit test mode</button></div>`:""}
-    <button class="btn go big" id="start"><img class="bi" src="img/ui_6.webp" alt="">Play</button>
+    <button class="btn go big" id="start"><img class="bi" src="img/ui_6.webp" alt="">${!TEST&&cpFor(sel)&&(cpFor(sel).level>sel*2+1||cpFor(sel).boss)?`Continue · Level ${cpFor(sel).level}${cpFor(sel).boss?" 👾":""}`:"Play"}</button>
     <div class="row" style="justify-content:center"><button class="btn" id="sndtest">🔊 Test sound</button></div>
     <div class="note">Best: <b>${best.score||0}</b> pts · Top level: <b>${best.level||1}</b> · ❤️ ×${LIVES} each game</div>
   </div>
