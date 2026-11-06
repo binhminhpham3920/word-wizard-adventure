@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<script src="/sync.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Word Muncher</title>
@@ -270,6 +271,7 @@ let prog=Object.assign({unlocked:0},LS.get("wm.prog",{}));
 let M=LS.get("wm.mastery",{});
 /* per-level checkpoint: prog.cp={level,boss} = where the next game in that world starts */
 function cpFor(w){ const cp=prog.cp; return cp&&LEVELS[cp.level]&&LEVELS[cp.level].world===w?cp:null; }
+if(prog.cp&&LEVELS[prog.cp.level]&&LEVELS[prog.cp.level].world>(cfg.world||0)) cfg.world=LEVELS[prog.cp.level].world; /* e.g. progress synced from the other device */
 function saveCp(boss){ if(!G||G.test) return; const cur=prog.cp; if(cur&&(cur.level>G.level||(cur.level===G.level&&cur.boss&&!boss))) return; prog.cp={level:G.level,boss:!!boss}; LS.set("wm.prog",prog); }
 /* Inside Word Wizard (Vercel /muncher/): share Magic Gems 💎 with Word Wizard */
 const WW=/\/muncher(\/|\/index\.html)?$/.test(location.pathname), GEM_CAP=10;
