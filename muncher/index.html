@@ -272,7 +272,7 @@ let M=LS.get("wm.mastery",{});
 /* per-level checkpoint: prog.cp={level,boss} = where the next game in that world starts */
 function cpFor(w){ const cp=prog.cp; return cp&&LEVELS[cp.level]&&LEVELS[cp.level].world===w?cp:null; }
 if(prog.cp&&LEVELS[prog.cp.level]&&LEVELS[prog.cp.level].world>(cfg.world||0)) cfg.world=LEVELS[prog.cp.level].world; /* e.g. progress synced from the other device */
-function saveCp(boss){ if(!G||G.test) return; const cur=prog.cp; if(cur&&(cur.level>G.level||(cur.level===G.level&&cur.boss&&!boss))) return; prog.cp={level:G.level,boss:!!boss}; LS.set("wm.prog",prog); }
+function saveCp(boss){ if(!G||G.test) return; const cur=prog.cp; if(cur&&(cur.level>G.level||(cur.level===G.level&&cur.boss&&!boss))) return; prog.cp={level:G.level,boss:!!boss}; LS.set("wm.prog",prog); try{ if(db) db.collection("progress").doc("minh").set({unlocked:prog.unlocked,cp:prog.cp,ts:Date.now()}).catch(()=>{}); }catch(e){} }
 /* Inside Word Wizard (Vercel /muncher/): share Magic Gems 💎 with Word Wizard */
 const WW=/\/muncher(\/|\/index\.html)?$/.test(location.pathname), GEM_CAP=10;
 function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -297,7 +297,8 @@ async function initDb(){ try{ if(!window.claude||!window.claude.use) return; db=
     games.forEach(g=>{ if(g.score>(best.score||0)) best.score=g.score; if(g.level>(best.level||1)) best.level=g.level; }); LS.set("snake.best2",best);
     if(screen==="menu") render(); }, ()=>{ db=null; });
   try{ const s=await db.collection("mastery").doc("minh").get(); if(s.exists) mergeMastery((s.data()||{}).words); }catch(e){}
-  try{ const s=await db.collection("progress").doc("minh").get(); if(s.exists){ const r=s.data()||{}; if((r.unlocked||0)>prog.unlocked){ prog.unlocked=r.unlocked; LS.set("wm.prog",prog); } } }catch(e){}
+  try{ const s=await db.collection("progress").doc("minh").get(); if(s.exists){ const r=s.data()||{}; if((r.unlocked||0)>prog.unlocked){ prog.unlocked=r.unlocked; LS.set("wm.prog",prog); }
+      const a=prog.cp, c=r.cp; if(c&&LEVELS[c.level]&&(!a||c.level>a.level||(c.level===a.level&&c.boss&&!a.boss))){ prog.cp=c; LS.set("wm.prog",prog); if(LEVELS[c.level].world>(cfg.world||0)) cfg.world=LEVELS[c.level].world; } } }catch(e){} /* per-level checkpoint from the other device */
   if(screen==="menu") render();
   }catch(e){ db=null; } }
 async function saveGame(){
